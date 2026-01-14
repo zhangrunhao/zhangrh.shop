@@ -16,7 +16,16 @@ const actionCards = [
   },
 ]
 
-export function BattlePage() {
+type BattlePageProps = {
+  playerId: string
+  opponentId: string
+  onBack: () => void
+}
+
+export function BattlePage({ playerId, opponentId, onBack }: BattlePageProps) {
+  const displayPlayerId = playerId || 'pending'
+  const displayOpponentId = opponentId || 'pending'
+
   return (
     <section className="battle">
       <header className="battle__header">
@@ -30,11 +39,16 @@ export function BattlePage() {
           <span className="battle__round-value">3</span>
         </div>
       </header>
+      <div className="battle__nav">
+        <button className="battle__back" onClick={onBack}>
+          Back to Lobby
+        </button>
+      </div>
 
       <div className="battle__players">
         <div className="battle__player-card">
           <p className="battle__player-role">You</p>
-          <p className="battle__player-name">Player One</p>
+          <p className="battle__player-name">{displayPlayerId}</p>
           <p className="battle__hp">HP 10</p>
           <p className="battle__hp-bar">
             <span style={{ width: '100%' }} />
@@ -42,7 +56,7 @@ export function BattlePage() {
         </div>
         <div className="battle__player-card battle__player-card--opponent">
           <p className="battle__player-role">Opponent</p>
-          <p className="battle__player-name">Player Two</p>
+          <p className="battle__player-name">{displayOpponentId}</p>
           <p className="battle__hp">HP 10</p>
           <p className="battle__hp-bar">
             <span style={{ width: '100%' }} />

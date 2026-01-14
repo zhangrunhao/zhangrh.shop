@@ -1,11 +1,37 @@
+import { useEffect, useState } from 'react'
+
 type MatchPageProps = {
   roomId: string
   playerName: string
+  playerId: string
   onBack: () => void
+  onMatched: () => void
 }
 
-export function MatchPage({ roomId, playerName, onBack }: MatchPageProps) {
-  const hasPlayerInfo = Boolean(roomId && playerName)
+export function MatchPage({ roomId, playerName, playerId, onBack, onMatched }: MatchPageProps) {
+  const hasPlayerInfo = Boolean(roomId && playerName && playerId)
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+
+  useEffect(() => {
+    if (!hasPlayerInfo) {
+      return
+    }
+
+    const startTime = Date.now()
+    const intervalId = window.setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000)
+      setElapsedSeconds(Math.min(elapsed, 3))
+    }, 250)
+
+    const timeoutId = window.setTimeout(() => {
+      onMatched()
+    }, 3000)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.clearTimeout(timeoutId)
+    }
+  }, [onMatched, hasPlayerInfo])
 
   return (
     <section className="match">
@@ -25,6 +51,14 @@ export function MatchPage({ roomId, playerName, onBack }: MatchPageProps) {
             <div className="match__row">
               <span className="match__label">Player</span>
               <span className="match__value">{playerName}</span>
+            </div>
+            <div className="match__row">
+              <span className="match__label">User ID</span>
+              <span className="match__value">{playerId}</span>
+            </div>
+            <div className="match__row">
+              <span className="match__label">Wait Time</span>
+              <span className="match__value">{elapsedSeconds}s</span>
             </div>
           </>
         ) : (

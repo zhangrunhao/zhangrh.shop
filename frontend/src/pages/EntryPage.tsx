@@ -1,12 +1,11 @@
 import { useState } from 'react'
 
-type LobbyAction = 'create' | 'join'
-
 type EntryPageProps = {
-  onSubmit: (payload: { roomId: string; playerName: string; action: LobbyAction }) => void
+  onJoin: (payload: { roomId: string; playerName: string }) => void
+  onCreate: () => void
 }
 
-export function EntryPage({ onSubmit }: EntryPageProps) {
+export function EntryPage({ onJoin, onCreate }: EntryPageProps) {
   const [roomId, setRoomId] = useState('')
   const [playerName, setPlayerName] = useState('')
   const [error, setError] = useState('')
@@ -20,6 +19,11 @@ export function EntryPage({ onSubmit }: EntryPageProps) {
       return false
     }
 
+    if (!/^\d+$/.test(trimmedRoomId)) {
+      setError('Room ID must be numeric.')
+      return false
+    }
+
     if (!trimmedName) {
       setError('Player name is required.')
       return false
@@ -29,15 +33,14 @@ export function EntryPage({ onSubmit }: EntryPageProps) {
     return true
   }
 
-  const handleSubmit = (action: LobbyAction) => {
+  const handleJoin = () => {
     if (!validate()) {
       return
     }
 
-    onSubmit({
+    onJoin({
       roomId: roomId.trim(),
       playerName: playerName.trim(),
-      action,
     })
   }
 
@@ -56,9 +59,11 @@ export function EntryPage({ onSubmit }: EntryPageProps) {
           <span className="entry__label">Room ID</span>
           <input
             className={`entry__input ${error && !roomId.trim() ? 'entry__input--error' : ''}`}
-            placeholder="e.g. demo"
+            placeholder="e.g. 1001"
             value={roomId}
-            onChange={(event) => setRoomId(event.target.value)}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            onChange={(event) => setRoomId(event.target.value.replace(/\D/g, ''))}
           />
         </label>
 
@@ -75,10 +80,10 @@ export function EntryPage({ onSubmit }: EntryPageProps) {
         {error ? <p className="entry__error">{error}</p> : null}
 
         <div className="entry__actions">
-          <button className="entry__button entry__button--ghost" onClick={() => handleSubmit('create')}>
+          <button className="entry__button entry__button--ghost" onClick={onCreate}>
             Create Room
           </button>
-          <button className="entry__button" onClick={() => handleSubmit('join')}>
+          <button className="entry__button" onClick={handleJoin}>
             Join Room
           </button>
         </div>
