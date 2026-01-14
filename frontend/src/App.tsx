@@ -4,18 +4,24 @@ import { BattlePage } from './pages/BattlePage'
 import { CreateRoomPage } from './pages/CreateRoomPage'
 import { EntryPage } from './pages/EntryPage'
 import { MatchPage } from './pages/MatchPage'
-import type { RoomState } from './types'
+import { ResultPage } from './pages/ResultPage'
+import type { GameOver, RoomState, RoundResult } from './types'
 
 type Route =
   | { name: 'entry' }
   | { name: 'create' }
   | { name: 'match'; roomId: string }
   | { name: 'battle' }
+  | { name: 'result' }
 
 const resolveRoute = (): Route => {
   const path = window.location.pathname
   if (path === '/battle') {
     return { name: 'battle' }
+  }
+
+  if (path === '/result') {
+    return { name: 'result' }
   }
 
   if (path === '/create') {
@@ -39,6 +45,8 @@ function App() {
     opponentId: '',
   })
   const [roomState, setRoomState] = useState<RoomState | null>(null)
+  const [roundResult, setRoundResult] = useState<RoundResult | null>(null)
+  const [gameOver, setGameOver] = useState<GameOver | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const pendingMessageRef = useRef<string | null>(null)
 
@@ -49,6 +57,8 @@ function App() {
       if (nextRoute.name === 'entry') {
         setPlayerInfo({ roomId: '', playerName: '', playerId: '', opponentId: '' })
         setRoomState(null)
+        setRoundResult(null)
+        setGameOver(null)
         if (wsRef.current) {
           wsRef.current.close()
           wsRef.current = null
@@ -67,6 +77,24 @@ function App() {
   }, [route, playerInfo.roomId])
 
   useEffect(() => {
+    if (route.name !== 'battle') {
+      return
+    }
+    if (!playerInfo.playerId || !playerInfo.roomId) {
+      navigateToEntry()
+    }
+  }, [route.name, playerInfo.playerId, playerInfo.roomId])
+
+  useEffect(() => {
+    if (route.name !== 'result') {
+      return
+    }
+    if (!gameOver) {
+      navigateToEntry()
+    }
+  }, [route.name, gameOver])
+
+  useEffect(() => {
     if (playerInfo.playerName) {
       document.title = `${playerInfo.playerName} - Card Duel`
     } else {
@@ -77,6 +105,8 @@ function App() {
   const resetSession = () => {
     setPlayerInfo({ roomId: '', playerName: '', playerId: '', opponentId: '' })
     setRoomState(null)
+    setRoundResult(null)
+    setGameOver(null)
     if (wsRef.current) {
       wsRef.current.close()
       wsRef.current = null
@@ -112,6 +142,13 @@ function App() {
       window.history.pushState({}, '', '/battle')
     }
     setRoute({ name: 'battle' })
+  }
+
+  const navigateToResult = () => {
+    if (window.location.pathname !== '/result') {
+      window.history.pushState({}, '', '/result')
+    }
+    setRoute({ name: 'result' })
   }
 
   const handleSocketMessage = (rawMessage: string) => {
@@ -168,6 +205,25 @@ function App() {
       }
       return
     }
+
+    if (message.type === 'round_result') {
+      const payload = message.payload as RoundResult
+      if (!payload?.roomId) {
+        return
+      }
+      setRoundResult(payload)
+      return
+    }
+
+    if (message.type === 'game_over') {
+      const payload = message.payload as GameOver
+      if (!payload?.roomId) {
+        return
+      }
+      setGameOver(payload)
+      navigateToResult()
+      return
+    }
   }
 
   const connectSocket = () => {
@@ -211,6 +267,28 @@ function App() {
     }
     pendingMessageRef.current = payload
   }
+
+  const handlePlayAction = (action: 'attack' | 'defend' | 'rest') => {
+    if (!playerInfo.roomId || !playerInfo.playerId || !roomState) {
+      return
+    }
+    if (roomState.status !== 'playing') {
+      return
+    }
+
+    sendMessage({
+      type: 'play_action',
+      payload: {
+        roomId: playerInfo.roomId,
+        round: roomState.round,
+        playerId: playerInfo.playerId,
+        action,
+      },
+    })
+  }
+
+  const playerIndex = roomState?.players.findIndex((player) => player.playerId === playerInfo.playerId)
+  const playerSide = playerIndex === 0 ? 'p1' : playerIndex === 1 ? 'p2' : null
 
   return (
     <div className="app">
@@ -258,6 +336,17 @@ function App() {
           playerId={playerInfo.playerId}
           opponentId={playerInfo.opponentId}
           roomState={roomState}
+          roundResult={roundResult}
+          playerSide={playerSide}
+          onPlayAction={handlePlayAction}
+          onBack={navigateToEntry}
+        />
+      ) : null}
+      {route.name === 'result' ? (
+        <ResultPage
+          playerId={playerInfo.playerId}
+          playerSide={playerSide}
+          gameOver={gameOver}
           onBack={navigateToEntry}
         />
       ) : null}

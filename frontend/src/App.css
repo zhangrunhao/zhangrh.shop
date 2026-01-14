@@ -283,6 +283,18 @@
   box-shadow: 0 12px 24px rgba(31, 41, 51, 0.12);
 }
 
+.battle__card--selected {
+  border-color: var(--accent);
+  box-shadow: 0 12px 26px rgba(255, 107, 61, 0.28);
+}
+
+.battle__card--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
+}
+
 .battle__card-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -429,6 +441,80 @@
   border: 1px solid var(--accent-2);
 }
 
+.result {
+  width: min(560px, 100%);
+  background: var(--panel);
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  padding: 32px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.result__header {
+  text-align: left;
+}
+
+.result__eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.result__title {
+  margin: 0 0 8px;
+  font-size: 2rem;
+}
+
+.result__subtitle {
+  margin: 0;
+  color: var(--muted);
+}
+
+.result__panel {
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: #fff8ef;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.result__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+
+.result__label {
+  color: var(--muted);
+}
+
+.result__value {
+  font-weight: 600;
+}
+
+.result__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.result__button {
+  border-radius: 999px;
+  border: none;
+  padding: 12px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 12px 20px rgba(255, 107, 61, 0.3);
+}
+
 @media (max-width: 540px) {
   .entry {
     padding: 24px;
@@ -455,6 +541,10 @@
   }
 
   .match {
+    padding: 24px;
+  }
+
+  .result {
     padding: 24px;
   }
 }
