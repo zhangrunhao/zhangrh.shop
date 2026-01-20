@@ -7,6 +7,8 @@ import { MatchPage } from './pages/MatchPage'
 import { ResultPage } from './pages/ResultPage'
 import type { GameOver, RoomState, RoundResult } from './types'
 
+type Theme = 'light' | 'dark'
+
 type Route =
   | { name: 'entry' }
   | { name: 'create' }
@@ -36,7 +38,31 @@ const resolveRoute = (): Route => {
   return { name: 'entry' }
 }
 
+const themeStorageKey = 'card_duel_theme'
+
+const getPreferredTheme = (): Theme => {
+  if (typeof window === 'undefined') {
+    return 'light'
+  }
+
+  let stored: string | null = null
+  try {
+    stored = window.localStorage.getItem(themeStorageKey)
+  } catch (error) {
+    stored = null
+  }
+
+  if (stored === 'light' || stored === 'dark') {
+    return stored
+  }
+
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light'
+}
+
 function App() {
+  const [theme, setTheme] = useState<Theme>(() => getPreferredTheme())
   const [route, setRoute] = useState<Route>(resolveRoute)
   const [playerInfo, setPlayerInfo] = useState({
     roomId: '',
@@ -49,6 +75,16 @@ function App() {
   const [gameOver, setGameOver] = useState<GameOver | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const pendingMessageRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    document.documentElement.style.colorScheme = theme
+    try {
+      window.localStorage.setItem(themeStorageKey, theme)
+    } catch (error) {
+      // Ignore write failures (private mode, restricted storage).
+    }
+  }, [theme])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -315,6 +351,16 @@ function App() {
 
   return (
     <div className="app">
+      <div className="app__topbar">
+        <button
+          className="app__toggle"
+          type="button"
+          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          aria-pressed={theme === 'dark'}
+        >
+          {theme === 'light' ? 'Night' : 'Day'}
+        </button>
+      </div>
       {route.name === 'entry' ? (
         <EntryPage
           onCreate={navigateToCreate}
