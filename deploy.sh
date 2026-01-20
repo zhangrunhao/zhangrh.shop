@@ -12,8 +12,8 @@ echo "==> Deploying on server"
 ssh "${user}@${host}" "set -e;
   cd ${repo_dir};
   git pull;
-  pnpm -C frontend install;
-  pnpm -C frontend build;
+  npm --prefix frontend install;
+  npm --prefix frontend run build;
   rm -rf ${frontend_remote_new};
   mkdir -p ${frontend_remote_new};
   cp -r frontend/dist/. ${frontend_remote_new}/;
