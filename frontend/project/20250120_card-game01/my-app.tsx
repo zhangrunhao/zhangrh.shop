@@ -17,72 +17,6 @@ type Route =
   | { name: 'battle' }
   | { name: 'result' }
 
-type MyAppProps = {
-  basePath?: string
-}
-
-const normalizeBasePath = (rawBasePath: string): string => {
-  const trimmed = rawBasePath.trim()
-  if (!trimmed || trimmed === '/' || trimmed === './' || trimmed === '.') {
-    return ''
-  }
-
-  let basePath = trimmed
-  if (basePath.endsWith('/')) {
-    basePath = basePath.slice(0, -1)
-  }
-  if (!basePath.startsWith('/')) {
-    basePath = `/${basePath}`
-  }
-  return basePath
-}
-
-const stripBasePath = (pathname: string, basePath: string): string => {
-  if (!basePath) {
-    return pathname
-  }
-  if (pathname === basePath) {
-    return '/'
-  }
-  if (pathname.startsWith(`${basePath}/`)) {
-    const rest = pathname.slice(basePath.length)
-    return rest.length ? rest : '/'
-  }
-  return pathname
-}
-
-const buildPath = (path: string, basePath: string): string => {
-  if (!basePath) {
-    return path
-  }
-  if (path === '/') {
-    return `${basePath}/`
-  }
-  return `${basePath}${path}`
-}
-
-const resolveRoute = (pathname: string, basePath: string): Route => {
-  const path = stripBasePath(pathname, basePath)
-  if (path === '/battle') {
-    return { name: 'battle' }
-  }
-
-  if (path === '/result') {
-    return { name: 'result' }
-  }
-
-  if (path === '/create') {
-    return { name: 'create' }
-  }
-
-  const match = path.match(/^\/match\/(\d+)$/)
-  if (match) {
-    return { name: 'match', roomId: match[1] }
-  }
-
-  return { name: 'entry' }
-}
-
 const themeStorageKey = 'card_duel_theme'
 
 const getPreferredTheme = (): Theme => {
@@ -106,11 +40,10 @@ const getPreferredTheme = (): Theme => {
     : 'light'
 }
 
-function MyApp({ basePath: basePathProp = '' }: MyAppProps) {
-  const basePath = normalizeBasePath(basePathProp)
+function MyApp() {
   const [theme, setTheme] = useState<Theme>(() => getPreferredTheme())
   const [language, setLanguage] = useState<Language>(() => getPreferredLanguage())
-  const [route, setRoute] = useState<Route>(() => resolveRoute(window.location.pathname, basePath))
+  const [route, setRoute] = useState<Route>({ name: 'entry' })
   const [playerInfo, setPlayerInfo] = useState({
     roomId: '',
     playerName: '',
@@ -142,26 +75,6 @@ function MyApp({ basePath: basePathProp = '' }: MyAppProps) {
       // Ignore write failures (private mode, restricted storage).
     }
   }, [language])
-
-  useEffect(() => {
-    const handlePopState = () => {
-      const nextRoute = resolveRoute(window.location.pathname, basePath)
-      setRoute(nextRoute)
-      if (nextRoute.name === 'entry') {
-        setPlayerInfo({ roomId: '', playerName: '', playerId: '', opponentId: '' })
-        setRoomState(null)
-        setRoundResult(null)
-        setGameOver(null)
-        if (wsRef.current) {
-          wsRef.current.close()
-          wsRef.current = null
-        }
-      }
-    }
-
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
-  }, [basePath])
 
   useEffect(() => {
     if (route.name === 'match' && route.roomId !== playerInfo.roomId) {
@@ -207,37 +120,24 @@ function MyApp({ basePath: basePathProp = '' }: MyAppProps) {
     pendingMessageRef.current = null
   }
 
-  const pushPath = (path: string) => {
-    const nextPath = buildPath(path, basePath)
-    if (window.location.pathname !== nextPath) {
-      window.history.pushState({}, '', nextPath)
-    }
-  }
-
   const navigateToEntry = () => {
-    pushPath('/')
     setRoute({ name: 'entry' })
     resetSession()
   }
 
   const navigateToCreate = () => {
-    pushPath('/create')
     setRoute({ name: 'create' })
   }
 
   const navigateToMatch = (roomId: string) => {
-    const path = `/match/${roomId}`
-    pushPath(path)
     setRoute({ name: 'match', roomId })
   }
 
   const navigateToBattle = () => {
-    pushPath('/battle')
     setRoute({ name: 'battle' })
   }
 
   const navigateToResult = () => {
-    pushPath('/result')
     setRoute({ name: 'result' })
   }
 

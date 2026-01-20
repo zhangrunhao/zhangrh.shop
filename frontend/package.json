@@ -7,7 +7,8 @@
     "dev": "node tools/vite-project.mjs dev",
     "build": "node tools/vite-project.mjs build",
     "lint": "eslint .",
-    "preview": "node tools/vite-project.mjs preview"
+    "preview": "node tools/vite-project.mjs preview",
+    "publish": "node tools/publish.mjs"
   },
   "dependencies": {
     "react": "^19.2.0",

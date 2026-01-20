@@ -52,11 +52,27 @@ export const createProjectConfig = ({
   return defineConfig(({ command }) =>
     mergeConfig(sharedConfig, {
       root: projectRoot,
-      base: command === 'build' ? './' : '/',
+      base: command === 'build' ? '../' : '/',
       appType: isMultiPage ? 'mpa' : 'spa',
+      plugins: [
+        {
+          name: 'move-html-to-subdir',
+          apply: 'build',
+          generateBundle(_options, bundle) {
+            for (const [fileName, file] of Object.entries(bundle)) {
+              if (file.type !== 'asset' || !fileName.endsWith('.html')) {
+                continue
+              }
+              delete bundle[fileName]
+              file.fileName = path.posix.join('html', fileName)
+              bundle[file.fileName] = file
+            }
+          },
+        },
+      ],
       build: {
-        outDir: path.join(distRoot, 'html'),
-        assetsDir: '../static',
+        outDir: distRoot,
+        assetsDir: 'static',
         emptyOutDir: true,
         rollupOptions: {
           input: htmlInputs,
