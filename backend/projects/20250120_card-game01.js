@@ -145,10 +145,8 @@ export const registerCardGame01 = ({ app, server }) => {
       broadcastRoomState(room)
 
       let result = 'draw'
-      if (p1.hp > p2.hp) {
-        result = 'p1_win'
-      } else if (p2.hp > p1.hp) {
-        result = 'p2_win'
+      if (p1.hp !== p2.hp) {
+        result = p1.hp > p2.hp ? 'p1_win' : 'p2_win'
       }
 
       broadcastToRoom(room, {
