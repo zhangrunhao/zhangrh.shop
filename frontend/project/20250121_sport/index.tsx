@@ -1,9 +1,17 @@
 import { createRoot } from "react-dom/client";
 
 const getProjectRoot = (pathname: string) => {
-  const match = pathname.match(/^(.*)\/index(?:\.html)?$/);
-  if (match) {
-    return match[1] || "";
+  const trimmed = pathname.replace(/\/+$/, "");
+  if (trimmed === "" || trimmed === "/index" || trimmed === "/index.html") {
+    return "";
+  }
+  const indexMatch = trimmed.match(/^\/([^/]+)\/index(?:\.html)?$/);
+  if (indexMatch) {
+    return `/${indexMatch[1]}`;
+  }
+  const projectMatch = trimmed.match(/^\/([^/]+)$/);
+  if (projectMatch) {
+    return `/${projectMatch[1]}`;
   }
   return "";
 };
