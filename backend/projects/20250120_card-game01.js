@@ -166,6 +166,7 @@ export const registerCardGame01 = ({ app, server }) => {
 
     room.round += 1
     broadcastRoomState(room)
+    scheduleBotAction(room)
   }
 
   const scheduleBotAction = (room) => {
@@ -270,6 +271,7 @@ export const registerCardGame01 = ({ app, server }) => {
 
         send(ws, { type: 'room_created', payload: { roomId, playerId } })
         broadcastRoomState(room)
+        scheduleBotAction(room)
         return
       }
 
@@ -395,6 +397,7 @@ export const registerCardGame01 = ({ app, server }) => {
           })
           room.rematchReady.clear()
           broadcastRoomState(room)
+          scheduleBotAction(room)
           return
         }
 

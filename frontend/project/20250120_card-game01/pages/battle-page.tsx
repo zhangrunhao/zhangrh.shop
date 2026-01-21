@@ -33,7 +33,14 @@ export function BattlePage({
   const opponent = players.find((player) => player.playerId !== playerId)
   const isSubmitted = self?.submitted ?? false
   const status = roomState?.status ?? 'waiting'
-  const isYourTurn = status === 'playing' && !isSubmitted
+  const submittedCount = players.filter((player) => player.submitted).length
+  const isBothPending = submittedCount === 0
+  const isOnePending = submittedCount === 1
+  const isBothSubmitted = submittedCount >= 2
+  const isPromptState = status === 'playing' && isOnePending && !isSubmitted
+  const isWaitingState = status === 'playing' && isOnePending && isSubmitted
+  const isIdleState = status === 'playing' && isBothPending
+  const isRevealState = status === 'playing' && isBothSubmitted
   const [selectedAction, setSelectedAction] = useState<'attack' | 'defend' | 'rest' | null>(null)
   const [pendingReveal, setPendingReveal] = useState<RoundResult | null>(null)
   const [revealedResult, setRevealedResult] = useState<RoundResult | null>(null)
@@ -116,6 +123,25 @@ export function BattlePage({
     setSelectedAction(null)
   }, [roomState?.round])
 
+  const statusTitleKey = isPromptState
+    ? 'battle.status_prompt_title'
+    : isWaitingState
+      ? 'battle.status_waiting_title'
+      : isRevealState
+        ? 'battle.status_reveal_title'
+        : isIdleState
+          ? 'battle.status_both_pending_title'
+          : 'battle.waiting'
+  const statusTextKey = isPromptState
+    ? 'battle.status_prompt_text'
+    : isWaitingState
+      ? 'battle.status_waiting_text'
+      : isRevealState
+        ? 'battle.status_reveal_text'
+        : isIdleState
+          ? 'battle.status_both_pending_text'
+          : 'battle.locked'
+
   const handleSelect = (action: 'attack' | 'defend' | 'rest') => {
     if (isSubmitted || status !== 'playing') {
       return
@@ -179,7 +205,7 @@ export function BattlePage({
 
       <section className="battle__actions">
         <h2 className="battle__section-title">{t('battle.choose_card')}</h2>
-        <div className="battle__cards">
+        <div className={`battle__cards${isPromptState ? ' battle__cards--alert' : ''}`}>
           {actionCards.map((card) => (
             <button
               className={`battle__card${
@@ -197,12 +223,12 @@ export function BattlePage({
       </section>
 
       <section className="battle__status">
-        <div className={`battle__status-panel${isYourTurn ? ' battle__status-panel--prompt' : ''}`}>
-          <h3 className={`battle__status-title${isYourTurn ? ' battle__status-title--prompt' : ''}`}>
-            {isSubmitted ? t('battle.waiting') : t('battle.your_move')}
+        <div className={`battle__status-panel${isPromptState ? ' battle__status-panel--prompt' : ''}`}>
+          <h3 className={`battle__status-title${isPromptState ? ' battle__status-title--prompt' : ''}`}>
+            {t(statusTitleKey)}
           </h3>
-          <p className={`battle__status-text${isYourTurn ? ' battle__status-text--prompt' : ''}`}>
-            {isSubmitted ? t('battle.locked') : t('battle.pick')}
+          <p className={`battle__status-text${isPromptState ? ' battle__status-text--prompt' : ''}`}>
+            {t(statusTextKey)}
           </p>
           {selectedAction ? (
             <p className="battle__status-text">
