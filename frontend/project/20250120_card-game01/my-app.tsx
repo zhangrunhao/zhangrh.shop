@@ -348,6 +348,11 @@ function MyApp() {
   return (
     <div className="app">
       <div className="app__topbar">
+        {route.name === 'battle' ? (
+          <button className="app__toggle" type="button" onClick={() => navigateToEntry()}>
+            {t('battle.back')}
+          </button>
+        ) : null}
         <button
           className="app__toggle"
           type="button"
@@ -430,7 +435,6 @@ function MyApp() {
           roundResult={roundResult}
           playerSide={playerSide}
           onPlayAction={handlePlayAction}
-          onBack={navigateToEntry}
         />
       ) : null}
       {route.name === 'result' ? (

@@ -16,7 +16,6 @@ type BattlePageProps = {
   roundResult: RoundResult | null
   playerSide: 'p1' | 'p2' | null
   onPlayAction: (action: 'attack' | 'defend' | 'rest') => void
-  onBack: () => void
 }
 
 export function BattlePage({
@@ -27,7 +26,6 @@ export function BattlePage({
   roundResult,
   playerSide,
   onPlayAction,
-  onBack,
 }: BattlePageProps) {
   const round = roomState?.round ?? 1
   const players = roomState?.players ?? []
@@ -149,12 +147,6 @@ export function BattlePage({
           <span className="battle__round-value">{round}</span>
         </div>
       </header>
-      <div className="battle__nav">
-        <button className="battle__back" onClick={onBack}>
-          {t('battle.back')}
-        </button>
-      </div>
-
       <div className="battle__players">
         <div className="battle__player-card">
           <p className="battle__player-role">{t('battle.you')}</p>

@@ -166,20 +166,6 @@
   gap: 24px;
 }
 
-.battle__nav {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.battle__back {
-  border-radius: 999px;
-  border: 1px solid var(--accent-2);
-  background: transparent;
-  color: var(--accent-2);
-  padding: 8px 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
 
 .battle__eyebrow {
   margin: 0 0 8px;
