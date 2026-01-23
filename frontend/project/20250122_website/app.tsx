@@ -41,6 +41,8 @@ const XHS_URL = "https://xhslink.com/m/8PQZLZZjZmd";
 const BILIBILI_URL = "https://space.bilibili.com/3691001308777268";
 const CNBLOGS_URL = "https://www.cnblogs.com/zhangrunhao";
 const GITHUB_URL = "https://github.com/zhangrunhao";
+const SOCIAL_LINK_BASE =
+  "inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-800 shadow-sm transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md";
 
 const PRODUCTS: Product[] = [
   {
@@ -326,26 +328,50 @@ const HomePage = () => (
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
           to={XHS_URL}
-          className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900"
+          className={`${SOCIAL_LINK_BASE} bg-[#fff5f7]`}
         >
+          <span
+            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#ff2442] text-[10px] font-semibold text-white"
+            aria-hidden
+          >
+            小
+          </span>
           小红书
         </Link>
         <Link
           to={BILIBILI_URL}
-          className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900"
+          className={`${SOCIAL_LINK_BASE} bg-[#f2f7ff]`}
         >
+          <span
+            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#4c9bfd] text-[10px] font-semibold text-white"
+            aria-hidden
+          >
+            B
+          </span>
           B站
         </Link>
         <Link
           to={CNBLOGS_URL}
-          className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900"
+          className={`${SOCIAL_LINK_BASE} bg-[#f4fff6]`}
         >
+          <span
+            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#16a34a] text-[10px] font-semibold text-white"
+            aria-hidden
+          >
+            园
+          </span>
           博客园
         </Link>
         <Link
           to={GITHUB_URL}
-          className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900"
+          className={`${SOCIAL_LINK_BASE} bg-[#f6f6f6]`}
         >
+          <span
+            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[10px] font-semibold text-white"
+            aria-hidden
+          >
+            GH
+          </span>
           GitHub
         </Link>
       </div>
