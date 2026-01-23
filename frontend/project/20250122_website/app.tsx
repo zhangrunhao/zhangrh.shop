@@ -1,6 +1,11 @@
 import { marked } from "marked";
-import { useEffect, useMemo, useState, type MouseEvent, type ReactNode } from "react";
-import productCover from "./assets/product-card-demo.svg";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 
 type Post = {
   id: string;
@@ -32,7 +37,10 @@ const RAW_BASE = import.meta.env.BASE_URL ?? "/";
 const BASE_PATH = RAW_BASE === "/" ? "" : RAW_BASE.replace(/\/$/, "");
 
 const RSS_URL = "https://zhangrh.top/rss.xml";
-const GITHUB_URL = "https://github.com/";
+const XHS_URL = "https://xhslink.com/m/8PQZLZZjZmd";
+const BILIBILI_URL = "https://space.bilibili.com/3691001308777268";
+const CNBLOGS_URL = "https://www.cnblogs.com/zhangrunhao";
+const GITHUB_URL = "https://github.com/zhangrunhao";
 
 const PRODUCTS: Product[] = [
   {
@@ -41,43 +49,9 @@ const PRODUCTS: Product[] = [
     summary: "即时对战的卡牌策略玩法，支持在线体验与对战。",
     description:
       "一个轻量级的在线卡牌策略原型，用于验证即时对战与回合节奏的可玩性。",
-    url: "https://zhangrh.top/",
-    cover: productCover,
-  },
-  {
-    id: "focus-notes",
-    title: "专注笔记",
-    summary: "记录灵感与任务的极简写作空间。",
-    description:
-      "一个去干扰的写作页面，支持快速记录、标签整理与多端同步的最小体验。",
-    url: "https://zhangrh.top/",
-    cover: productCover,
-  },
-  {
-    id: "habit-tracker",
-    title: "习惯打卡面板",
-    summary: "用可视化方式追踪每日习惯。",
-    description: "提供轻量打卡与连续天数统计，帮助建立可持续的日常节奏。",
-    url: "https://zhangrh.top/",
-    cover: productCover,
-  },
-  {
-    id: "team-roadmap",
-    title: "团队路线图",
-    summary: "协作整理产品里程碑与优先级。",
-    description:
-      "集中展示关键版本节点与负责人，方便同步计划与上下游协作。",
-    url: "https://zhangrh.top/",
-    cover: productCover,
-  },
-  {
-    id: "lightweight-analytics",
-    title: "轻量数据面板",
-    summary: "关注核心指标的最小仪表盘。",
-    description:
-      "为小型项目提供访问趋势、留存、转化等关键指标的即时概览。",
-    url: "https://zhangrh.top/",
-    cover: productCover,
+    url: "https://zhangrh.top/20250120_card-game01/",
+    cover:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Princes_de_Florence_%28jeu%29.jpg/500px-Princes_de_Florence_%28jeu%29.jpg",
   },
 ];
 
@@ -206,7 +180,12 @@ const Link = ({
     }
   };
   return (
-    <a className={className} href={href} onClick={handleClick} aria-label={ariaLabel}>
+    <a
+      className={className}
+      href={href}
+      onClick={handleClick}
+      aria-label={ariaLabel}
+    >
       {children}
     </a>
   );
@@ -233,13 +212,17 @@ const AppHeader = ({ currentPath }: { currentPath: string }) => {
           <div className="flex flex-row space-x-0 pr-10">
             {NAV_ITEMS.map((item) => {
               const isActive =
-                item.to === "/" ? normalized === "/" : normalized.startsWith(item.to);
+                item.to === "/"
+                  ? normalized === "/"
+                  : normalized.startsWith(item.to);
               return (
                 <Link
                   key={item.to}
                   to={item.to}
                   className={`transition-all hover:text-neutral-800 flex align-middle relative py-1 px-2 m-1 ${
-                    isActive ? "text-neutral-900 font-semibold" : "text-neutral-600"
+                    isActive
+                      ? "text-neutral-900 font-semibold"
+                      : "text-neutral-600"
                   }`}
                 >
                   {item.label}
@@ -281,9 +264,13 @@ const AppFooter = () => (
 const PostList = ({ posts }: { posts: Post[] }) => (
   <div>
     {posts.map((post) => (
-      <Link key={post.id} to={`/blogs/${post.id}`} className="flex flex-col space-y-1 mb-4">
+      <Link
+        key={post.id}
+        to={`/blogs/${post.id}`}
+        className="flex flex-col space-y-1 mb-4"
+      >
         <div className="w-full flex flex-col md:flex-row space-x-0 md:space-x-2">
-          <p className="text-neutral-600 w-[100px] tabular-nums">
+          <p className="text-neutral-600 w-[120px] tabular-nums">
             {formatDate(post.date)}
           </p>
           <p className="text-neutral-900 tracking-tight">{post.title}</p>
@@ -314,7 +301,9 @@ const ProductGrid = ({ products }: { products: Product[] }) => (
           <h3 className="text-sm font-semibold leading-5 text-neutral-900">
             {product.title}
           </h3>
-          <p className="text-sm leading-5 text-neutral-600">{product.summary}</p>
+          <p className="text-sm leading-5 text-neutral-600">
+            {product.summary}
+          </p>
         </div>
       </Link>
     ))}
@@ -323,11 +312,44 @@ const ProductGrid = ({ products }: { products: Product[] }) => (
 
 const HomePage = () => (
   <section>
-    <h1 className="mb-8 text-2xl font-semibold tracking-tighter">个人介绍</h1>
-    <p className="mb-6 text-neutral-800">
-      我是一名前端开发者，喜欢各种各样的技术，最近想做点实际有用的东西，这个网站用来记录自己的天马行空
-      的想法、产品日记，还有实际上线的产品列表。
-    </p>
+    <div className="mb-10">
+      <h1 className="text-2xl font-semibold tracking-tighter">
+        做可上线的小产品
+      </h1>
+      <p className="mt-3 text-sm text-neutral-600">
+        大厂前端｜做可上线的小产品｜记录产品日记与技术复盘
+      </p>
+      <p className="mt-6 text-neutral-800">
+        前端开发者，在大厂做了很多年线上项目。现在更想把时间花在“真实有用”的事情上：做一些自己感兴趣、
+        也真的能上线的小产品，把灵感、踩坑和迭代记录下来，放在这里当作我的产品日记。
+      </p>
+      <div className="mt-6 flex flex-wrap gap-3">
+        <Link
+          to={XHS_URL}
+          className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900"
+        >
+          小红书
+        </Link>
+        <Link
+          to={BILIBILI_URL}
+          className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900"
+        >
+          B站
+        </Link>
+        <Link
+          to={CNBLOGS_URL}
+          className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900"
+        >
+          博客园
+        </Link>
+        <Link
+          to={GITHUB_URL}
+          className="inline-flex items-center rounded-full border border-neutral-300 px-4 py-2 text-sm text-neutral-700 transition-all hover:border-neutral-400 hover:text-neutral-900"
+        >
+          GitHub
+        </Link>
+      </div>
+    </div>
     <div className="mt-10">
       <h2 className="mb-6 text-xl font-semibold tracking-tight">文档列表</h2>
       <PostList posts={POSTS} />
@@ -349,7 +371,9 @@ const BlogListPage = () => (
 const BlogDetailPage = ({ post }: { post: Post }) => (
   <section>
     <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Blog</p>
-    <h1 className="mt-3 text-2xl font-semibold tracking-tighter">{post.title}</h1>
+    <h1 className="mt-3 text-2xl font-semibold tracking-tighter">
+      {post.title}
+    </h1>
     <p className="mt-2 text-sm text-neutral-600">{formatDate(post.date)}</p>
     <div
       className="mt-6 text-[15px] leading-7 text-neutral-800 [&_h1]:mt-8 [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:tracking-tighter [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:text-lg [&_h3]:font-semibold [&_p]:mb-4 [&_ul]:mb-4 [&_ol]:mb-4 [&_ul]:pl-5 [&_ol]:pl-5 [&_ul]:list-disc [&_ol]:list-decimal [&_code]:rounded [&_code]:bg-neutral-100 [&_code]:px-1 [&_code]:py-0.5"
@@ -367,8 +391,12 @@ const ProductListPage = () => (
 
 const ProductDetailPage = ({ product }: { product: Product }) => (
   <section>
-    <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">Product</p>
-    <h1 className="mt-3 text-2xl font-semibold tracking-tighter">{product.title}</h1>
+    <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">
+      Product
+    </p>
+    <h1 className="mt-3 text-2xl font-semibold tracking-tighter">
+      {product.title}
+    </h1>
     <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_200px]">
       <div>
         <p className="text-neutral-800 mb-4">{product.description}</p>
@@ -419,9 +447,12 @@ export const App = () => {
     document.title = titleMap[route.name];
   }, [route]);
 
-  const blogPost = route.name === "blog" ? POSTS.find((post) => post.id === route.id) : null;
+  const blogPost =
+    route.name === "blog" ? POSTS.find((post) => post.id === route.id) : null;
   const product =
-    route.name === "product" ? PRODUCTS.find((item) => item.id === route.id) : null;
+    route.name === "product"
+      ? PRODUCTS.find((item) => item.id === route.id)
+      : null;
 
   return (
     <div className="min-h-screen bg-white text-black font-sans">
@@ -430,9 +461,13 @@ export const App = () => {
         <div className="flex-auto min-w-0 mt-6 flex flex-col px-2 md:px-0">
           {route.name === "home" && <HomePage />}
           {route.name === "blogs" && <BlogListPage />}
-          {route.name === "blog" && blogPost && <BlogDetailPage post={blogPost} />}
+          {route.name === "blog" && blogPost && (
+            <BlogDetailPage post={blogPost} />
+          )}
           {route.name === "products" && <ProductListPage />}
-          {route.name === "product" && product && <ProductDetailPage product={product} />}
+          {route.name === "product" && product && (
+            <ProductDetailPage product={product} />
+          )}
           {route.name === "blog" && !blogPost && <NotFoundPage />}
           {route.name === "product" && !product && <NotFoundPage />}
           {route.name === "not-found" && <NotFoundPage />}
@@ -445,8 +480,12 @@ export const App = () => {
 
 function parsePost(filePath: string, raw: string): Post {
   const frontmatterMatch = raw.match(/^---\s*\n([\s\S]*?)\n---\s*/);
-  const frontmatter = frontmatterMatch ? parseFrontmatter(frontmatterMatch[1]) : {};
-  const content = frontmatterMatch ? raw.slice(frontmatterMatch[0].length) : raw;
+  const frontmatter = frontmatterMatch
+    ? parseFrontmatter(frontmatterMatch[1])
+    : {};
+  const content = frontmatterMatch
+    ? raw.slice(frontmatterMatch[0].length)
+    : raw;
   const fileName = filePath.split("/").pop()?.replace(/\.md$/, "") ?? "post";
   const id = frontmatter.slug || fileName;
   const title = frontmatter.title || fileName;
