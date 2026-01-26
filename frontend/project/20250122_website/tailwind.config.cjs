@@ -6,6 +6,7 @@ module.exports = {
     path.join(__dirname, "index.html"),
     path.join(__dirname, "index.tsx"),
     path.join(__dirname, "app.tsx"),
+    path.join(__dirname, "components/**/*.{ts,tsx}"),
   ],
   theme: {
     extend: {},

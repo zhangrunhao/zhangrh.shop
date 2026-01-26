@@ -1,30 +1,14 @@
 import { marked } from "marked";
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type MouseEvent,
-  type ReactNode,
-} from "react";
-import cover from "./assets/Weixin Image_20260126133248_39_37.png";
-
-type Post = {
-  id: string;
-  title: string;
-  date: string;
-  summary: string;
-  content: string;
-  html: string;
-};
-
-type Product = {
-  id: string;
-  title: string;
-  summary: string;
-  description: string;
-  url: string;
-  cover: string;
-};
+import { useEffect, useMemo, useState } from "react";
+import { BlogListPage } from "./components/blog-list-page";
+import { Link } from "./components/link";
+import { PostList } from "./components/post-list";
+import { ProductGrid } from "./components/product-grid";
+import { ProductListPage } from "./components/product-list-page";
+import { PRODUCTS } from "./data/products";
+import { normalizePath } from "./routing";
+import type { Post, Product } from "./types";
+import { formatDate } from "./utils/date";
 
 type Route =
   | { name: "home" }
@@ -34,9 +18,6 @@ type Route =
   | { name: "product"; id: string }
   | { name: "not-found" };
 
-const RAW_BASE = import.meta.env.BASE_URL ?? "/";
-const BASE_PATH = RAW_BASE === "/" ? "" : RAW_BASE.replace(/\/$/, "");
-
 const RSS_URL = "https://zhangrh.top/rss.xml";
 const XHS_URL = "https://xhslink.com/m/8PQZLZZjZmd";
 const BILIBILI_URL = "https://space.bilibili.com/3691001308777268";
@@ -44,27 +25,6 @@ const CNBLOGS_URL = "https://www.cnblogs.com/zhangrunhao";
 const GITHUB_URL = "https://github.com/zhangrunhao";
 const SOCIAL_LINK_BASE =
   "inline-flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-800 shadow-sm transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md";
-
-const PRODUCTS: Product[] = [
-  {
-    id: "card-game-demo",
-    title: "卡牌游戏在线 Demo",
-    summary: "一番一瞪眼",
-    description:
-      "一个轻量级的在线卡牌策略原型，用于验证即时对战与回合节奏的可玩性。",
-    url: "https://zhangrh.top/20250120_card-game01/",
-    cover:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Princes_de_Florence_%28jeu%29.jpg/500px-Princes_de_Florence_%28jeu%29.jpg",
-  },
-  {
-    id: "card-game-demo2",
-    title: "卡牌游戏在线 Demo2",
-    summary: "即时对战的卡牌策略玩法，支持在线体验与对战。",
-    description: "十五张卡牌, 抽5选3, 进行排列",
-    url: "https://zhangrh.top/20250126-card_game02/",
-    cover: cover,
-  },
-];
 
 const RAW_POSTS = import.meta.glob("./content/posts/*.md", {
   query: "?raw",
@@ -87,41 +47,6 @@ const NAV_ITEMS = [
   { label: "博客文章", to: "/blogs" },
   { label: "产品列表", to: "/products" },
 ];
-
-const DATE_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
-
-const stripBase = (pathname: string) => {
-  if (BASE_PATH && pathname.startsWith(BASE_PATH)) {
-    const next = pathname.slice(BASE_PATH.length);
-    if (!next) {
-      return "/";
-    }
-    return next.startsWith("/") ? next : `/${next}`;
-  }
-  return pathname || "/";
-};
-
-const normalizePath = (pathname: string) => {
-  const trimmed = stripBase(pathname).replace(/\/+$/, "");
-  return trimmed === "" ? "/" : trimmed;
-};
-
-const withBase = (path: string) => {
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  return BASE_PATH ? `${BASE_PATH}${normalized}` : normalized;
-};
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return DATE_FORMATTER.format(date);
-};
 
 const resolveRoute = (pathname: string): Route => {
   const path = normalizePath(pathname);
@@ -155,51 +80,6 @@ const usePathname = () => {
   }, []);
 
   return pathname;
-};
-
-const Link = ({
-  to,
-  children,
-  className,
-  ariaLabel,
-}: {
-  to: string;
-  children: ReactNode;
-  className?: string;
-  ariaLabel?: string;
-}) => {
-  const isExternal = to.startsWith("http://") || to.startsWith("https://");
-  if (isExternal) {
-    return (
-      <a
-        className={className}
-        href={to}
-        target="_blank"
-        rel="noreferrer"
-        aria-label={ariaLabel}
-      >
-        {children}
-      </a>
-    );
-  }
-  const href = withBase(to);
-  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-    if (window.location.pathname !== href) {
-      window.history.pushState({}, "", href);
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-  };
-  return (
-    <a
-      className={className}
-      href={href}
-      onClick={handleClick}
-      aria-label={ariaLabel}
-    >
-      {children}
-    </a>
-  );
 };
 
 const ArrowIcon = () => (
@@ -272,55 +152,6 @@ const AppFooter = () => (
   </footer>
 );
 
-const PostList = ({ posts }: { posts: Post[] }) => (
-  <div>
-    {posts.map((post) => (
-      <Link
-        key={post.id}
-        to={`/blogs/${post.id}`}
-        className="flex flex-col space-y-1 mb-4"
-      >
-        <div className="w-full flex flex-col md:flex-row space-x-0 md:space-x-2">
-          <p className="text-neutral-600 w-[120px] tabular-nums">
-            {formatDate(post.date)}
-          </p>
-          <p className="text-neutral-900 tracking-tight">{post.title}</p>
-        </div>
-      </Link>
-    ))}
-  </div>
-);
-
-const ProductGrid = ({ products }: { products: Product[] }) => (
-  <div className="grid grid-cols-1 gap-5 min-[576px]:grid-cols-2 min-[768px]:grid-cols-3">
-    {products.map((product) => (
-      <Link
-        key={product.id}
-        to={`/products/${product.id}`}
-        className="group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-        ariaLabel={product.title}
-      >
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-100">
-          <img
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-            src={product.cover}
-            alt={product.title}
-            loading="lazy"
-          />
-        </div>
-        <div className="flex flex-1 flex-col gap-2 p-3">
-          <h3 className="text-sm font-semibold leading-5 text-neutral-900">
-            {product.title}
-          </h3>
-          <p className="text-sm leading-5 text-neutral-600">
-            {product.summary}
-          </p>
-        </div>
-      </Link>
-    ))}
-  </div>
-);
-
 const HomePage = () => (
   <section>
     <div className="mb-10">
@@ -374,20 +205,31 @@ const HomePage = () => (
       </div>
     </div>
     <div className="mt-10">
-      <h2 className="mb-6 text-xl font-semibold tracking-tight">文档列表</h2>
+      <h2 className="mb-6 text-xl font-semibold tracking-tight">
+        <Link
+          to="/blogs"
+          className="inline-flex items-center gap-2 text-neutral-900 transition-colors hover:text-neutral-800 hover:underline"
+          ariaLabel="前往博客列表"
+        >
+          文档列表
+          <ArrowIcon />
+        </Link>
+      </h2>
       <PostList posts={POSTS} />
     </div>
     <div className="mt-12">
-      <h2 className="mb-6 text-xl font-semibold tracking-tight">产品列表</h2>
+      <h2 className="mb-6 text-xl font-semibold tracking-tight">
+        <Link
+          to="/products"
+          className="inline-flex items-center gap-2 text-neutral-900 transition-colors hover:text-neutral-800 hover:underline"
+          ariaLabel="前往产品列表"
+        >
+          产品列表
+          <ArrowIcon />
+        </Link>
+      </h2>
       <ProductGrid products={PRODUCTS} />
     </div>
-  </section>
-);
-
-const BlogListPage = () => (
-  <section>
-    <h1 className="mb-8 text-2xl font-semibold tracking-tighter">博客</h1>
-    <PostList posts={POSTS} />
   </section>
 );
 
@@ -402,13 +244,6 @@ const BlogDetailPage = ({ post }: { post: Post }) => (
       className="mt-6 text-[15px] leading-7 text-neutral-800 [&_h1]:mt-8 [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:tracking-tighter [&_h2]:mt-6 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:text-lg [&_h3]:font-semibold [&_p]:mb-4 [&_ul]:mb-4 [&_ol]:mb-4 [&_ul]:pl-5 [&_ol]:pl-5 [&_ul]:list-disc [&_ol]:list-decimal [&_code]:rounded [&_code]:bg-neutral-100 [&_code]:px-1 [&_code]:py-0.5"
       dangerouslySetInnerHTML={{ __html: post.html }}
     />
-  </section>
-);
-
-const ProductListPage = () => (
-  <section>
-    <h1 className="mb-8 text-2xl font-semibold tracking-tighter">产品列表</h1>
-    <ProductGrid products={PRODUCTS} />
   </section>
 );
 
@@ -483,11 +318,11 @@ export const App = () => {
         <AppHeader currentPath={pathname} />
         <div className="flex-auto min-w-0 mt-6 flex flex-col px-2 md:px-0">
           {route.name === "home" && <HomePage />}
-          {route.name === "blogs" && <BlogListPage />}
+          {route.name === "blogs" && <BlogListPage posts={POSTS} />}
           {route.name === "blog" && blogPost && (
             <BlogDetailPage post={blogPost} />
           )}
-          {route.name === "products" && <ProductListPage />}
+          {route.name === "products" && <ProductListPage products={PRODUCTS} />}
           {route.name === "product" && product && (
             <ProductDetailPage product={product} />
           )}
