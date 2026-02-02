@@ -1,4 +1,5 @@
-import coverDemo2 from "../assets/demo2.png";
+import demo1Cover from "../assets/demo1.png";
+import demo2Cover from "../assets/demo2.png";
 import type { Product } from "../types";
 
 export const PRODUCTS: Product[] = [
@@ -9,8 +10,7 @@ export const PRODUCTS: Product[] = [
     description:
       "一个轻量级的在线卡牌策略原型，用于验证即时对战与回合节奏的可玩性。",
     url: "https://zhangrh.top/20250120_card-game01/",
-    cover:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Princes_de_Florence_%28jeu%29.jpg/500px-Princes_de_Florence_%28jeu%29.jpg",
+    cover: demo1Cover,
   },
   {
     id: "card-game-demo2",
@@ -19,6 +19,6 @@ export const PRODUCTS: Product[] = [
     description:
       "一个轻量级的在线卡牌策略原型，用于验证即时对战与回合节奏的可玩性。",
     url: "https://zhangrh.top/20250126-card_game02/",
-    cover: coverDemo2,
+    cover: demo2Cover,
   },
 ];
