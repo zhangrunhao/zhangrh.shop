@@ -2,6 +2,15 @@ import path from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig, mergeConfig } from 'vite'
 
+const CDN_BASE_URL = 'https://zhangrh-1307650972.cos.ap-beijing.myqcloud.com'
+
+export const formatBuildDate = (date = new Date()) => {
+  const year = date.getFullYear()
+  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const day = `${date.getDate()}`.padStart(2, '0')
+  return `${year}${month}${day}`
+}
+
 const sharedConfig = defineConfig({
   plugins: [react()],
   server: {
@@ -28,7 +37,9 @@ export const createProjectConfig = ({
         Object.entries(entry).map(([name, entryPath]) => [name, path.resolve(projectRoot, entryPath)]),
       )
     : { index: path.resolve(projectRoot, 'index.html') }
-  const distRoot = path.resolve(projectRoot, '../../dist', projectName)
+  const buildDate = formatBuildDate()
+  const distRoot = path.resolve(projectRoot, '../../dist', projectName, buildDate)
+  const baseUrl = `${CDN_BASE_URL.replace(/\/+$/, '')}/${projectName}/${buildDate}/`
 
   if (!htmlInputs.index) {
     throw new Error(`Missing index.html entry for ${projectRoot}.`)
@@ -37,7 +48,7 @@ export const createProjectConfig = ({
   return defineConfig(({ command }) =>
     mergeConfig(sharedConfig, {
       root: projectRoot,
-      base: command === 'build' ? `/${projectName}/` : '/',
+      base: command === 'build' ? baseUrl : '/',
       appType: 'spa',
       build: {
         outDir: distRoot,
