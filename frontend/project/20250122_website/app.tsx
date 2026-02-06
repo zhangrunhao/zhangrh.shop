@@ -19,8 +19,6 @@ type Route =
   | { name: "not-found" };
 
 const RSS_URL = "https://zhangrh.top/rss.xml";
-const XHS_URL = "https://xhslink.com/m/8PQZLZZjZmd";
-const BILIBILI_URL = "https://space.bilibili.com/3691001308777268";
 const CNBLOGS_URL = "https://www.cnblogs.com/zhangrunhao";
 const GITHUB_URL = "https://github.com/zhangrunhao";
 const SOCIAL_LINK_BASE =
@@ -165,44 +163,24 @@ const HomePage = () => (
         前端开发者，在大厂做了很多年线上项目。现在更想把时间花在“真实有用”的事情上：做一些自己感兴趣、
         也真的能上线的小产品，把灵感、踩坑和迭代记录下来，放在这里当作我的产品日记。
       </p>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link to={XHS_URL} className={`${SOCIAL_LINK_BASE} bg-[#fff5f7]`}>
-          <span
-            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#ff2442] text-[10px] font-semibold text-white"
-            aria-hidden
-          >
-            小
-          </span>
-          小红书
-        </Link>
-        <Link to={BILIBILI_URL} className={`${SOCIAL_LINK_BASE} bg-[#f2f7ff]`}>
-          <span
-            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#4c9bfd] text-[10px] font-semibold text-white"
-            aria-hidden
-          >
-            B
-          </span>
-          B站
-        </Link>
-        <Link to={CNBLOGS_URL} className={`${SOCIAL_LINK_BASE} bg-[#f4fff6]`}>
-          <span
-            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#16a34a] text-[10px] font-semibold text-white"
-            aria-hidden
-          >
-            园
-          </span>
-          博客园
-        </Link>
-        <Link to={GITHUB_URL} className={`${SOCIAL_LINK_BASE} bg-[#f6f6f6]`}>
-          <span
-            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[10px] font-semibold text-white"
-            aria-hidden
-          >
-            GH
-          </span>
-          GitHub
-        </Link>
-      </div>
+      <Link to={CNBLOGS_URL} className={`${SOCIAL_LINK_BASE} bg-[#f4fff6]`}>
+        <span
+          className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#16a34a] text-[10px] font-semibold text-white"
+          aria-hidden
+        >
+          园
+        </span>
+        博客园
+      </Link>
+      <Link to={GITHUB_URL} className={`${SOCIAL_LINK_BASE} bg-[#f6f6f6]`}>
+        <span
+          className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[10px] font-semibold text-white"
+          aria-hidden
+        >
+          GH
+        </span>
+        GitHub
+      </Link>
     </div>
     <div className="mt-10">
       <h2 className="mb-6 text-xl font-semibold tracking-tight">
