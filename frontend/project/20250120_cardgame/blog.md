@@ -8,7 +8,7 @@
 
 结果做完之后的结论依旧扎心：**哪怕是抽 5 排 3，这种结构依然很无聊。**
 
-在线体验地址：`https://zhangrh.top/20250126-card_game02/`
+在线体验地址：`https://zhangrh.top/20250120_cardgame/`
 
 ---
 
