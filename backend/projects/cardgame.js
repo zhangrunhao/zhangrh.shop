@@ -1,7 +1,7 @@
 import express from 'express'
 import { WebSocketServer } from 'ws'
 
-export const CARD_GAME20250120_PREFIX = '/api/20250120_cardgame'
+export const CARD_GAME_PREFIX = '/api/cardgame'
 
 const MAX_ROUNDS = 10
 const HAND_SIZE = 5
@@ -105,17 +105,17 @@ const buildRoomSummary = (room) => ({
   })),
 })
 
-export const registerCardGame20250120 = ({ app, server }) => {
+export const registerCardGame = ({ app, server }) => {
   const router = express.Router()
 
   router.get('/health', (_req, res) => {
-    res.json({ ok: true, project: '20250120_cardgame' })
+    res.json({ ok: true, project: 'cardgame' })
   })
 
-  app.use(CARD_GAME20250120_PREFIX, router)
+  app.use(CARD_GAME_PREFIX, router)
 
   const wss = new WebSocketServer({ noServer: true })
-  const wsPath = `${CARD_GAME20250120_PREFIX}/ws`
+  const wsPath = `${CARD_GAME_PREFIX}/ws`
 
   const handleUpgrade = (req, socket, head) => {
     if (!req.url) {

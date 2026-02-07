@@ -6,7 +6,7 @@ import mime from 'mime-types'
 
 const { COS_SECRET_ID, COS_SECRET_KEY } = process.env
 
-export const DEFAULT_PROJECT_NAME = '20250122_website'
+export const DEFAULT_PROJECT_NAME = 'hub'
 export const staticBuildDirForProject = (projectName) =>
   path.join('dist', projectName, 'static')
 export const cosPrefixForProject = (projectName) => `${projectName}/static`

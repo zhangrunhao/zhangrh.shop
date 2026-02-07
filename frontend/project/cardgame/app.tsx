@@ -215,7 +215,7 @@ const App = () => {
 
   const buildWsUrls = () => {
     const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const wsPath = '/api/20250120_cardgame/ws'
+    const wsPath = '/api/cardgame/ws'
     if (import.meta.env.DEV) {
       const proxyUrl = `${wsProto}://${window.location.host}${wsPath}`
       const directUrl = `${wsProto}://${window.location.hostname}:3001${wsPath}`

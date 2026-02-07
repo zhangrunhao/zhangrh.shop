@@ -38,7 +38,7 @@ test('joinCosKey prefixes and normalizes', () => {
 })
 
 test('CONFIG uses hardcoded defaults', () => {
-  assert.equal(DEFAULT_PROJECT_NAME, '20250122_website')
+  assert.equal(DEFAULT_PROJECT_NAME, 'hub')
   assert.equal(CONFIG.COS_BUCKET, 'zhangrh-1307650972')
   assert.equal(CONFIG.COS_REGION, 'ap-beijing')
   assert.equal(
@@ -49,11 +49,11 @@ test('CONFIG uses hardcoded defaults', () => {
 
 test('staticBuildDirForProject points to dist/<project>/static', () => {
   assert.equal(
-    staticBuildDirForProject('20250122_website'),
-    'dist/20250122_website/static',
+    staticBuildDirForProject('hub'),
+    'dist/hub/static',
   )
 })
 
 test('cosPrefixForProject points to <project>/static', () => {
-  assert.equal(cosPrefixForProject('20250122_website'), '20250122_website/static')
+  assert.equal(cosPrefixForProject('hub'), 'hub/static')
 })

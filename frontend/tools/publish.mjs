@@ -91,7 +91,7 @@ if (!project) {
 
 const rsyncUser = 'root'
 const rsyncHost = '101.200.185.29'
-const rsyncDest = '/var/www/card-game-site.new/'
+const rsyncDest = '/var/www/zhangrh.shop'
 
 const repoRoot = findRepoRoot(cwd) ?? path.resolve(cwd, '..')
 
