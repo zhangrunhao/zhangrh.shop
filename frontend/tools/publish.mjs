@@ -1,66 +1,27 @@
 import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import process from 'node:process'
+
+import {
+  STATE_FILE_RELATIVE_PATH,
+  listProjects,
+  loadState,
+  resolvePublishProject,
+  saveState,
+} from './publish-lib.mjs'
 
 const cwd = process.cwd()
 const projectRoot = path.join(cwd, 'project')
-
-const listProjects = () => {
-  if (!fs.existsSync(projectRoot)) {
-    return []
-  }
-  return fs
-    .readdirSync(projectRoot, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort()
-}
-
-const projects = listProjects()
+const projects = listProjects(projectRoot)
+const stateFilePath = path.join(cwd, STATE_FILE_RELATIVE_PATH)
 
 const usage = () => {
   const available = projects.length ? projects.join(', ') : 'none'
-  console.log('Usage: npm run publish <project-name>')
+  console.log('Usage: npm run publish [project-name]')
   console.log(`Available projects: ${available}`)
+  console.log('Tip: 在终端中可直接上下键选择项目')
   console.log('Publish flow: git pull -> build -> upload to 101.200.185.29')
-}
-
-const parseProjectFromNpm = (command) => {
-  const raw = process.env.npm_config_argv
-  if (!raw) {
-    return null
-  }
-  try {
-    const parsed = JSON.parse(raw)
-    const original = Array.isArray(parsed.original) ? parsed.original : parsed.cooked
-    if (!Array.isArray(original)) {
-      return null
-    }
-    const commandIndex = original.findIndex((arg) => arg === command)
-    if (commandIndex === -1) {
-      return null
-    }
-    const candidate = original[commandIndex + 1]
-    if (typeof candidate !== 'string' || candidate.startsWith('-')) {
-      return null
-    }
-    return projects.includes(candidate) ? candidate : null
-  } catch {
-    return null
-  }
-}
-
-const extractProjectArg = (args) => {
-  let project = null
-  const rest = []
-  for (const arg of args) {
-    if (!project && projects.includes(arg)) {
-      project = arg
-      continue
-    }
-    rest.push(arg)
-  }
-  return { project, rest }
 }
 
 const findRepoRoot = (start) => {
@@ -77,19 +38,6 @@ const findRepoRoot = (start) => {
   }
 }
 
-const [command, ...rawArgs] = process.argv.slice(2)
-const directProject = command && projects.includes(command) ? command : null
-const { project: projectFromArgs } = extractProjectArg(rawArgs)
-const project = directProject ?? projectFromArgs ?? parseProjectFromNpm(command ?? 'publish')
-
-if (!project) {
-  console.error('Missing project name.')
-  usage()
-  process.exit(1)
-}
-
-const repoRoot = findRepoRoot(cwd) ?? path.resolve(cwd, '..')
-
 const run = (commandName, args, options) => {
   const result = spawnSync(commandName, args, { stdio: 'inherit', ...options })
   if (result.status !== 0) {
@@ -97,6 +45,34 @@ const run = (commandName, args, options) => {
   }
 }
 
-run('git', ['pull'], { cwd: repoRoot })
-run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build', '--', project], { cwd })
-run(process.execPath, [path.join(cwd, 'scripts', 'deploy-static.mjs'), project], { cwd })
+const main = async () => {
+  const state = loadState(stateFilePath)
+  const project = await resolvePublishProject({
+    projects,
+    argv: process.argv.slice(2),
+    npmConfigArgvRaw: process.env.npm_config_argv,
+    isInteractive: process.stdin.isTTY && process.stdout.isTTY,
+    lastProject: state.lastPublishProject,
+  })
+
+  if (!project) {
+    console.error('Missing project name.')
+    usage()
+    process.exit(1)
+  }
+
+  saveState(stateFilePath, {
+    ...state,
+    lastPublishProject: project,
+  })
+
+  const repoRoot = findRepoRoot(cwd) ?? path.resolve(cwd, '..')
+  run('git', ['pull'], { cwd: repoRoot })
+  run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build', '--', project], { cwd })
+  run(process.execPath, [path.join(cwd, 'scripts', 'deploy-static.mjs'), project], { cwd })
+}
+
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : String(error))
+  process.exit(1)
+})
