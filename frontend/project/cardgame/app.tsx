@@ -70,22 +70,64 @@ type RoundLog = {
   pairs: PairLog[]
 }
 
-type Route = 'entry' | 'battle' | 'result'
+type Route = 'entry' | 'rules' | 'battle' | 'result'
+type EntryMode = 'create' | 'join' | 'ai'
 
 type CardMeta = {
   label: string
-  icon: string
-  tone: 'sun' | 'wave' | 'moss'
+  english: string
+  tag: CardType
+  tone: 'attack' | 'defense' | 'recover'
+  iconUrl: string
 }
 
+const ICON_ENTRY_CREATE = 'https://www.figma.com/api/mcp/asset/0fd62a56-94ec-435b-abf0-886e670b51d5'
+const ICON_ENTRY_JOIN = 'https://www.figma.com/api/mcp/asset/171d65c5-d77a-44ba-8616-b5b51c11c701'
+const ICON_ENTRY_BOT = 'https://www.figma.com/api/mcp/asset/02ccbe2d-3118-4431-9141-98c7add65d0c'
+const ICON_HELP = 'https://www.figma.com/api/mcp/asset/fb2bdaba-d757-4edf-a1c2-8a065cc4b03e'
+const ICON_BACK = 'https://www.figma.com/api/mcp/asset/180765f7-9b56-4654-89aa-8ed145b5e364'
+const ICON_SWORD = 'https://www.figma.com/api/mcp/asset/a10fb6ed-c7e4-4bb5-8bcc-79400d8af2fd'
+const ICON_SHIELD = 'https://www.figma.com/api/mcp/asset/392f3429-1f4e-4f12-9abe-3d9eb1ae64f1'
+const ICON_HEART_LINE = 'https://www.figma.com/api/mcp/asset/28811ea7-9bf1-4c86-aea2-dc1993ffff6b'
+const ICON_HP = 'https://www.figma.com/api/mcp/asset/c66df5b1-8210-45bd-9888-52a42ca5622d'
+const ICON_ALERT = 'https://www.figma.com/api/mcp/asset/a9555e6b-0cb8-437e-83e7-83bef46e7c07'
+const ICON_DECK = 'https://www.figma.com/api/mcp/asset/47c6d034-b8e0-4070-9e1d-baf4dee24b81'
+const ICON_DISCARD = 'https://www.figma.com/api/mcp/asset/6cd1188b-406e-42af-9ade-4f01d5e86c04'
+
 const CARD_META: Record<CardType, CardMeta> = {
-  A: { label: '进攻', icon: '⚔️', tone: 'sun' },
-  D: { label: '防守', icon: '🛡️', tone: 'wave' },
-  R: { label: '休养', icon: '🌿', tone: 'moss' },
+  A: {
+    label: '进攻',
+    english: 'ATTACK',
+    tag: 'A',
+    tone: 'attack',
+    iconUrl: ICON_SWORD,
+  },
+  D: {
+    label: '防守',
+    english: 'DEFENSE',
+    tag: 'D',
+    tone: 'defense',
+    iconUrl: ICON_SHIELD,
+  },
+  R: {
+    label: '休养',
+    english: 'RECOVER',
+    tag: 'R',
+    tone: 'recover',
+    iconUrl: ICON_HEART_LINE,
+  },
 }
+
+const ENTRY_MODES: Array<{ mode: EntryMode; title: string; subtitle: string; icon: string }> = [
+  { mode: 'create', title: '创建房间', subtitle: '邀请好友对战', icon: ICON_ENTRY_CREATE },
+  { mode: 'join', title: '加入房间', subtitle: '输入房间号加入', icon: ICON_ENTRY_JOIN },
+  { mode: 'ai', title: '人机对战', subtitle: '与 AI 练习', icon: ICON_ENTRY_BOT },
+]
 
 const App = () => {
   const [route, setRoute] = useState<Route>('entry')
+  const [entryMode, setEntryMode] = useState<EntryMode>('create')
+
   const [roomState, setRoomState] = useState<RoomState | null>(null)
   const [roundHand, setRoundHand] = useState<RoundHand | null>(null)
   const [selectedSlots, setSelectedSlots] = useState<Array<number | null>>([null, null, null])
@@ -102,6 +144,7 @@ const App = () => {
   const [playerId, setPlayerId] = useState('')
   const [playerName, setPlayerName] = useState('')
   const [joinRoomCode, setJoinRoomCode] = useState('')
+
   const pendingMessageRef = useRef<string | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const dragIndexRef = useRef<{ source: 'hand' | 'selected'; index: number } | null>(null)
@@ -112,60 +155,11 @@ const App = () => {
     roomState,
     playerId,
   ])
+
   const opponent = useMemo(
     () => roomState?.players.find((player) => player.playerId !== playerId) ?? null,
     [roomState, playerId],
   )
-
-  useEffect(() => {
-    if (!roundResult) {
-      return
-    }
-    setModalOpen(true)
-    setStepIndex(0)
-    setShowDelta(false)
-  }, [roundResult])
-
-  useEffect(() => {
-    if (!roundResult) {
-      return
-    }
-    setRoundLogs((prev) => {
-      if (prev.some((entry) => entry.round === roundResult.round)) {
-        return prev
-      }
-      return [...prev, { round: roundResult.round, pairs: [] }]
-    })
-  }, [roundResult?.round])
-
-  useEffect(() => {
-    if (!modalOpen || !roundResult || !showDelta) {
-      return
-    }
-    const step = roundResult.steps[stepIndex]
-    if (!step) {
-      return
-    }
-    const isP1 = roundResult.p1Id === playerId
-    const entry: PairLog = {
-      index: step.index,
-      myCard: isP1 ? step.p1Card : step.p2Card,
-      oppCard: isP1 ? step.p2Card : step.p1Card,
-      myDelta: isP1 ? step.p1Delta : step.p2Delta,
-      oppDelta: isP1 ? step.p2Delta : step.p1Delta,
-    }
-    setRoundLogs((prev) =>
-      prev.map((roundEntry) => {
-        if (roundEntry.round !== roundResult.round) {
-          return roundEntry
-        }
-        if (roundEntry.pairs.some((pair) => pair.index === entry.index)) {
-          return roundEntry
-        }
-        return { ...roundEntry, pairs: [...roundEntry.pairs, entry] }
-      }),
-    )
-  }, [modalOpen, roundResult, showDelta, stepIndex, playerId])
 
   useEffect(() => {
     if (!modalOpen || !roundResult) {
@@ -178,36 +172,16 @@ const App = () => {
     if (!showDelta) {
       const timer = window.setTimeout(() => {
         setShowDelta(true)
-      }, 500)
+      }, 320)
       return () => window.clearTimeout(timer)
     }
 
     const timer = window.setTimeout(() => {
       setShowDelta(false)
       setStepIndex((prev) => prev + 1)
-    }, 1000)
+    }, 760)
     return () => window.clearTimeout(timer)
   }, [modalOpen, roundResult, stepIndex, showDelta])
-
-  useEffect(() => {
-    if (roundHand && roomState) {
-      setSelectedSlots([null, null, null])
-      setRoundResult(null)
-      setStepIndex(0)
-      setShowDelta(false)
-      const meEntry = roomState.players.find((player) => player.playerId === playerId)
-      const oppEntry = roomState.players.find((player) => player.playerId !== playerId)
-      if (meEntry && oppEntry) {
-        setRoundBaseHp({ my: meEntry.hp, opponent: oppEntry.hp })
-      }
-    }
-  }, [roundHand?.round, roomState?.round, playerId])
-
-  useEffect(() => {
-    if (gameOver && !modalOpen) {
-      setRoute('result')
-    }
-  }, [gameOver, modalOpen])
 
   useEffect(() => {
     sessionActiveRef.current = Boolean(roomId && playerId)
@@ -295,14 +269,35 @@ const App = () => {
     setRoomId('')
     setPlayerId('')
     setRoundLogs([])
+    setStepIndex(0)
+    setShowDelta(false)
+    setModalOpen(false)
     sessionActiveRef.current = false
+  }
+
+  const appendRoundLog = (payload: RoundResult) => {
+    const iAmP1InPayload = payload.p1Id === playerId
+    const pairs: PairLog[] = payload.steps.map((step) => ({
+      index: step.index,
+      myCard: iAmP1InPayload ? step.p1Card : step.p2Card,
+      oppCard: iAmP1InPayload ? step.p2Card : step.p1Card,
+      myDelta: iAmP1InPayload ? step.p1Delta : step.p2Delta,
+      oppDelta: iAmP1InPayload ? step.p2Delta : step.p1Delta,
+    }))
+
+    setRoundLogs((prev) => {
+      if (prev.some((entry) => entry.round === payload.round)) {
+        return prev
+      }
+      return [...prev, { round: payload.round, pairs }]
+    })
   }
 
   const handleSocketMessage = (raw: string) => {
     let message: { type: string; payload?: unknown }
     try {
       message = JSON.parse(raw)
-    } catch (error) {
+    } catch {
       return
     }
 
@@ -334,18 +329,36 @@ const App = () => {
     if (message.type === 'round_hand') {
       const payload = message.payload as RoundHand
       setRoundHand(payload)
+      setSelectedSlots([null, null, null])
+      setRoundResult(null)
+      setStepIndex(0)
+      setShowDelta(false)
+      if (roomState) {
+        const meEntry = roomState.players.find((player) => player.playerId === playerId)
+        const oppEntry = roomState.players.find((player) => player.playerId !== playerId)
+        if (meEntry && oppEntry) {
+          setRoundBaseHp({ my: meEntry.hp, opponent: oppEntry.hp })
+        }
+      }
       return
     }
 
     if (message.type === 'round_result') {
       const payload = message.payload as RoundResult
+      appendRoundLog(payload)
       setRoundResult(payload)
+      setModalOpen(true)
+      setStepIndex(0)
+      setShowDelta(false)
       return
     }
 
     if (message.type === 'game_over') {
       const payload = message.payload as GameOver
       setGameOver(payload)
+      if (!modalOpen) {
+        setRoute('result')
+      }
       return
     }
   }
@@ -357,8 +370,7 @@ const App = () => {
     startedRef.current = true
     resetSession()
     setErrorMessage(null)
-    const trimmedName = playerName.trim()
-    sendMessage({ type: 'start_bot', payload: { playerName: trimmedName || '玩家' } })
+    sendMessage({ type: 'start_bot', payload: { playerName: playerName.trim() || '玩家' } })
   }
 
   const handleCreateRoom = () => {
@@ -402,6 +414,18 @@ const App = () => {
     })
   }
 
+  const handleEntryAction = () => {
+    if (entryMode === 'create') {
+      handleCreateRoom()
+      return
+    }
+    if (entryMode === 'join') {
+      handleJoinRoom()
+      return
+    }
+    handleStartBotMatch()
+  }
+
   const handleSubmit = () => {
     if (!roomState || !roundHand) {
       return
@@ -437,6 +461,16 @@ const App = () => {
       },
     })
     setRoute('battle')
+  }
+
+  const handleLeaveGame = () => {
+    startedRef.current = false
+    const ws = wsRef.current
+    if (ws && ws.readyState !== WebSocket.CLOSED) {
+      ws.close()
+    }
+    resetSession()
+    setRoute('entry')
   }
 
   const toggleSelect = (index: number) => {
@@ -511,11 +545,28 @@ const App = () => {
     dragIndexRef.current = null
   }
 
-  const iAmP1 = roundResult ? roundResult.p1Id === playerId : true
+  const renderStatusBadge = (type: 'game' | 'connection') => {
+    if (type === 'game') {
+      const label =
+        roomState?.status === 'playing'
+          ? '进行中'
+          : roomState?.status === 'finished'
+            ? '已结束'
+            : '等待中'
+      return <span className={`status-badge ${roomState?.status === 'playing' ? 'blue' : 'gray'}`}>{label}</span>
+    }
 
+    return (
+      <span className={`status-badge ${connectionState === 'connected' ? 'green' : 'gray'}`}>
+        {connectionState === 'connected' ? '已连接' : connectionState === 'connecting' ? '连接中' : '未连接'}
+      </span>
+    )
+  }
+
+  const iAmP1 = roundResult ? roundResult.p1Id === playerId : true
   const resolvedIndex = showDelta ? stepIndex : stepIndex - 1
   const resolvedStep =
-    modalOpen && roundResult && resolvedIndex >= 0 ? roundResult.steps[resolvedIndex] : null
+    modalOpen && roundResult && resolvedIndex >= 0 ? roundResult.steps[Math.min(resolvedIndex, roundResult.steps.length - 1)] : null
 
   const myFinalHp = resolvedStep
     ? iAmP1
@@ -529,52 +580,6 @@ const App = () => {
       : resolvedStep.p1Hp
     : opponent?.hp ?? roundBaseHp.opponent
 
-  const renderPile = (cards: CardType[] | undefined, prefix: string) => {
-    if (!cards || cards.length === 0) {
-      return <span className="empty">空</span>
-    }
-    return (
-      <div className="pile-cards">
-        {cards.map((card, index) => {
-          const meta = CARD_META[card]
-          return (
-            <span key={`${prefix}-${card}-${index}`} className={`chip chip-${meta.tone}`}>
-              {meta.icon} {card}
-            </span>
-          )
-        })}
-      </div>
-    )
-  }
-
-  const renderStepLine = (step: RoundStep, index: number) => {
-    const isResolved = index < stepIndex || (index === stepIndex && showDelta)
-    const isCurrent = index === stepIndex
-    const myCard = iAmP1 ? step.p1Card : step.p2Card
-    const oppCard = iAmP1 ? step.p2Card : step.p1Card
-    const myDelta = iAmP1 ? step.p1Delta : step.p2Delta
-    const oppDelta = iAmP1 ? step.p2Delta : step.p1Delta
-
-    return (
-      <div key={step.index} className={`modal-line ${isResolved ? 'resolved' : ''} ${isCurrent ? 'current' : ''}`}>
-        <div className="modal-line-title">第 {step.index} 对</div>
-        <div className="modal-line-cards">
-          <span>{CARD_META[myCard].icon} {myCard}</span>
-          <span className="vs">vs</span>
-          <span>{isResolved ? `${CARD_META[oppCard].icon} ${oppCard}` : '？'}</span>
-        </div>
-        {isResolved ? (
-          <div className="modal-line-delta">
-            <span>我方 {myDelta >= 0 ? '+' : ''}{myDelta}</span>
-            <span>对手 {oppDelta >= 0 ? '+' : ''}{oppDelta}</span>
-          </div>
-        ) : (
-          <div className="modal-line-delta pending">等待结算…</div>
-        )}
-      </div>
-    )
-  }
-
   const selectedCount = selectedSlots.filter((value) => value !== null).length
   const canSubmit =
     roundHand &&
@@ -582,314 +587,681 @@ const App = () => {
     !me?.submitted &&
     !modalOpen &&
     selectedCount === roundHand.requiredPickCount
+
   const displayRoomId = roomState?.roomId ?? roomId
+  const myName = me?.name || playerName || '我方'
+  const opponentName = opponent?.name || '对手'
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <div>
-          <p className="eyebrow">Demo2 · 抽 5 选 3 排序</p>
-          <h1>Card Clash: 15 张固定牌组</h1>
-          <p className="subtitle">节奏短促、三连对冲、10 回合定胜负。</p>
-        </div>
-        <div className="status-pill">
-          {connectionState === 'connected' ? '已连接' : connectionState === 'connecting' ? '连接中' : '未连接'}
-        </div>
-      </header>
+    <div className="app-root">
+      <div className="unsupported-screen">
+        <h2>请在 PC 浏览器中打开</h2>
+        <p>该 Demo 仅支持桌面端（最小宽度 1200px）。</p>
+      </div>
 
-      {modalOpen && (
-        <div className="modal-backdrop">
-          <div className="modal">
-            <h3>对冲结算</h3>
-            <div className="modal-lines">
-              {roundResult?.steps.map((step, index) => renderStepLine(step, index))}
-            </div>
-            <p className="modal-step">
-              {roundResult && stepIndex < roundResult.steps.length
-                ? `进行中：第 ${Math.min(stepIndex + 1, roundResult.steps.length)} 对`
-                : '本回合结算完成'}
-            </p>
+      <div className="app-shell">
+        {route === 'entry' && (
+          <section className="entry-wrap">
+            <header className="entry-header">
+              <h1>Card Clash</h1>
+              <p className="entry-subtitle">策略卡牌对战游戏</p>
+              <div className="entry-tags">
+                <span>10回合制</span>
+                <span>•</span>
+                <span>3张牌对决</span>
+                <span>•</span>
+                <span>策略致胜</span>
+              </div>
+            </header>
 
-            {roundResult && stepIndex >= roundResult.steps.length && (
-              <button
-                className="primary"
-                onClick={() => {
-                  if (roomState && playerId && !gameOver) {
-                    sendMessage({
-                      type: 'round_confirm',
-                      payload: {
-                        roomId: roomState.roomId,
-                        playerId,
-                        round: roomState.round,
-                      },
-                    })
-                  }
-                  setModalOpen(false)
-                  setShowDelta(false)
-                  setStepIndex(0)
-                  setRoundHand(null)
-                }}
-              >
-                确定
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {route === 'entry' && (
-        <section className="panel entry">
-          <div>
-            <h2>准备开始</h2>
-            <p>先输入昵称，然后创建房间或输入房间号加入。</p>
-          </div>
-          <div className="entry-form">
-            <label>
-              昵称
+            <div className="entry-panel">
+              <label className="field-label">游戏昵称</label>
               <input
+                className="text-input"
                 value={playerName}
                 onChange={(event) => setPlayerName(event.target.value)}
-                placeholder="例如：小张"
+                placeholder="输入你的昵称"
                 maxLength={20}
               />
-            </label>
-            <div className="actions">
-              <button className="primary" onClick={handleCreateRoom}>
-                创建房间
-              </button>
-              <button className="ghost" onClick={handleStartBotMatch}>
-                人机对战
-              </button>
-            </div>
-            <label>
-              房间号（4 位数字）
-              <input
-                value={joinRoomCode}
-                onChange={(event) => {
-                  const digitsOnly = event.target.value.replace(/\D/g, '').slice(0, 4)
-                  setJoinRoomCode(digitsOnly)
-                }}
-                inputMode="numeric"
-                placeholder="例如：1234"
-              />
-            </label>
-            <button className="primary" onClick={handleJoinRoom}>
-              加入房间
-            </button>
-            {errorMessage && <p className="error">{errorMessage}</p>}
-          </div>
-        </section>
-      )}
 
-      {route === 'battle' && (
-        <section className="battle">
-          <div className="panel info">
-            <div>
-              <h2>对局状态</h2>
-              <p>
-                当前回合 <strong>{roomState?.round ?? 1}</strong> / 10
-              </p>
-              <p className="helper">房间号：{displayRoomId || '—'}</p>
-              {roomState?.status === 'waiting' && (
-                <p className="helper">等待另一位玩家加入…</p>
+              {entryMode === 'join' && (
+                <>
+                  <label className="field-label">房间号</label>
+                  <input
+                    className="text-input"
+                    value={joinRoomCode}
+                    onChange={(event) => {
+                      const digitsOnly = event.target.value.replace(/\D/g, '').slice(0, 4)
+                      setJoinRoomCode(digitsOnly)
+                    }}
+                    inputMode="numeric"
+                    placeholder="输入4位房间号"
+                  />
+                </>
               )}
-            </div>
-            <div className="hp-grid">
-              <div>
-                <span className="label">我方</span>
-                <span className="value">{myFinalHp}</span>
-              </div>
-              <div>
-                <span className="label">对手</span>
-                <span className="value">{opponentFinalHp}</span>
-              </div>
-            </div>
-          </div>
-          {errorMessage && <div className="panel error-panel">{errorMessage}</div>}
 
-          <div className="panel hand">
-              <div className="panel-header">
-                <div>
-                  <h3>本回合抽到的 5 张</h3>
-                  <p>点选 3 张进入已选区，并拖拽排序。</p>
-                </div>
-                <div className="helper">
-                已选 {selectedCount}/{roundHand?.requiredPickCount ?? 3}
-                </div>
+              <div className="mode-grid">
+                {ENTRY_MODES.map((mode) => (
+                  <button
+                    key={mode.mode}
+                    className={`mode-card ${entryMode === mode.mode ? 'active' : ''}`}
+                    onClick={() => setEntryMode(mode.mode)}
+                    type="button"
+                  >
+                    <img src={mode.icon} alt="" className="mode-icon" />
+                    <div className="mode-title">{mode.title}</div>
+                    <div className="mode-subtitle">{mode.subtitle}</div>
+                  </button>
+                ))}
               </div>
 
-            <div className="selected">
-              <h4>已选序列</h4>
-              <div className="selected-row">
-                {[0, 1, 2].map((slot) => {
-                  const handIndex = selectedSlots[slot]
-                  if (handIndex === null || handIndex === undefined) {
-                    return (
-                      <div
-                        key={`slot-${slot}`}
-                        className="selected-slot"
-                      onDragOver={(event) => event.preventDefault()}
-                      onDrop={() => handleDrop(slot)}
-                    >
-                      <span className="order">{slot + 1}</span>
-                      <span className="placeholder">空位</span>
-                      </div>
-                    )
-                  }
-                  const card = roundHand?.hand[handIndex]
-                  if (!card) {
-                    return null
-                  }
+              <button
+                className="primary-button large"
+                onClick={handleEntryAction}
+                disabled={
+                  !playerName.trim() ||
+                  (entryMode === 'join' && !/^\d{4}$/.test(joinRoomCode.trim()))
+                }
+              >
+                {entryMode === 'create' ? '创建房间' : entryMode === 'join' ? '加入房间' : '开始游戏'}
+              </button>
+
+              {errorMessage && <p className="error-text">{errorMessage}</p>}
+            </div>
+
+            <button className="rules-link" onClick={() => setRoute('rules')} type="button">
+              <img src={ICON_HELP} alt="" />
+              <span>查看游戏规则</span>
+            </button>
+          </section>
+        )}
+
+        {route === 'rules' && (
+          <section className="rules-page">
+            <header className="rules-header">
+              <button className="back-link" onClick={() => setRoute('entry')} type="button">
+                <img src={ICON_BACK} alt="" />
+                <span>返回</span>
+              </button>
+              <h2>游戏规则</h2>
+              <div className="spacer" />
+            </header>
+
+            <div className="rules-panel">
+              <h3>基本规则</h3>
+              <div className="rule-list">
+                <div className="rule-item">
+                  <span className="rule-index">1</span>
+                  <div>
+                    <h4>回合制对战</h4>
+                    <p>
+                      游戏共 10 回合，双方初始 HP 为 10 点。每回合双方同时行动，先将对手 HP 降至 0
+                      或以下的玩家获胜。
+                    </p>
+                  </div>
+                </div>
+                <div className="rule-item">
+                  <span className="rule-index">2</span>
+                  <div>
+                    <h4>抽牌与出牌</h4>
+                    <p>每回合开始时抽取 5 张牌，从中选择 3 张并按顺序排列。双方同时提交后，按顺序逐对揭示并结算。</p>
+                  </div>
+                </div>
+                <div className="rule-item">
+                  <span className="rule-index">3</span>
+                  <div>
+                    <h4>逐对结算</h4>
+                    <p>第一张对第一张，第二张对第二张，第三张对第三张。每对牌根据类型克制关系决定结果。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rules-panel">
+              <h3>卡牌类型</h3>
+              <div className="rules-card-grid">
+                {(['A', 'D', 'R'] as CardType[]).map((card) => {
                   const meta = CARD_META[card]
                   return (
-                    <div
-                      key={`${card}-${slot}`}
-                      className={`selected-card card-${meta.tone}`}
-                      draggable={!me?.submitted}
-                      data-tip={`${meta.label}（${card}）`}
-                      onDragStart={() => handleDragStart('selected', slot)}
-                      onDragOver={(event) => event.preventDefault()}
-                      onDrop={() => handleDrop(slot)}
-                    >
-                      <span className="order">{slot + 1}</span>
-                      <span className="icon">{meta.icon}</span>
-                      <span className="title">{meta.label}</span>
-                      <span className="tag">{card}</span>
-                      <button
-                        type="button"
-                        className="remove"
-                        onClick={() => removeSelected(slot)}
-                        aria-label="移除"
-                      >
-                        ×
-                      </button>
+                    <div key={card} className="rules-card-column">
+                      <div className={`game-card tone-${meta.tone}`}>
+                        <div className="card-badge">{meta.tag}</div>
+                        <img src={meta.iconUrl} alt="" className="card-icon" />
+                        <div className="card-title">{meta.label}</div>
+                        <div className="card-subtitle">{meta.english}</div>
+                      </div>
+                      <div className={`rules-card-title tone-${meta.tone}`}>
+                        <img
+                          src={card === 'A' ? ICON_SWORD : card === 'D' ? ICON_SHIELD : ICON_HEART_LINE}
+                          alt=""
+                        />
+                        <span>
+                          {meta.label} ({card === 'A' ? 'Attack' : card === 'D' ? 'Defense' : 'Recover'})
+                        </span>
+                      </div>
+                      <p className="rules-card-desc">
+                        {card === 'A' && '对休养造成 2 点伤害，被防守完全抵挡，与进攻互相抵消。'}
+                        {card === 'D' && '完全抵挡进攻，与休养互相抵消，与防守互相抵消。'}
+                        {card === 'R' && '被进攻打断损失 2 HP，与防守互相抵消，双方休养各回复 1 HP。'}
+                      </p>
                     </div>
                   )
                 })}
-                <div className="actions inline">
-                  <button className="primary" onClick={handleSubmit} disabled={!canSubmit}>
-                    出牌
-                  </button>
-                  <span className="helper">
-                    {me?.submitted ? '已提交，等待对手…' : '选满后即可出牌'}
+              </div>
+            </div>
+
+            <div className="rules-panel">
+              <h3>对冲矩阵</h3>
+              <table className="matrix-table">
+                <thead>
+                  <tr>
+                    <th>我方 ↓ vs 对手 →</th>
+                    <th className="head-a">进攻 (A)</th>
+                    <th className="head-d">防守 (D)</th>
+                    <th className="head-r">休养 (R)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th className="row-a">进攻 (A)</th>
+                    <td>
+                      <strong>平局</strong>
+                      <span>双方 0 HP</span>
+                    </td>
+                    <td>
+                      <strong className="text-danger">防守完胜</strong>
+                      <span>双方 0 HP</span>
+                    </td>
+                    <td>
+                      <strong className="text-success">进攻得手</strong>
+                      <span>对手 -2 HP</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th className="row-d">防守 (D)</th>
+                    <td>
+                      <strong className="text-success">防守完胜</strong>
+                      <span>双方 0 HP</span>
+                    </td>
+                    <td>
+                      <strong>平局</strong>
+                      <span>双方 0 HP</span>
+                    </td>
+                    <td>
+                      <strong>平局</strong>
+                      <span>双方 0 HP</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th className="row-r">休养 (R)</th>
+                    <td>
+                      <strong className="text-danger">被打断</strong>
+                      <span>我方 -2 HP</span>
+                    </td>
+                    <td>
+                      <strong>平局</strong>
+                      <span>双方 0 HP</span>
+                    </td>
+                    <td>
+                      <strong className="text-success">双方回血</strong>
+                      <span>双方 +1 HP</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="rules-panel">
+              <h3>策略提示</h3>
+              <ul className="tips-list">
+                <li>
+                  <span>💡</span>
+                  <p>
+                    <strong>预判对手：</strong>根据对手的 HP 和历史出牌习惯，预测他们可能的选择。
+                  </p>
+                </li>
+                <li>
+                  <span>💡</span>
+                  <p>
+                    <strong>顺序很重要：</strong>合理安排三张牌的顺序，可以在关键位置取得优势。
+                  </p>
+                </li>
+                <li>
+                  <span>💡</span>
+                  <p>
+                    <strong>把握时机：</strong>在优势时可以选择休养回血，在劣势时需要冒险进攻。
+                  </p>
+                </li>
+                <li>
+                  <span>💡</span>
+                  <p>
+                    <strong>心理博弈：</strong>有时候“不合理”的出牌反而能出奇制胜。
+                  </p>
+                </li>
+              </ul>
+            </div>
+
+            <div className="rules-footer">
+              <button className="primary-button large" onClick={() => setRoute('entry')} type="button">
+                开始游戏
+              </button>
+            </div>
+          </section>
+        )}
+
+        {route === 'battle' && (
+          <section className="battle-page">
+            <div className="hud-card">
+              <div className="hud-left">
+                <div className="hud-block">
+                  <div className="hud-label">回合</div>
+                  <div className="hud-value">{roomState?.round ?? 1} / 10</div>
+                </div>
+                <div className="hud-divider" />
+                <div className="hud-block">
+                  <div className="hud-label">房间号</div>
+                  <div className="hud-room">{displayRoomId || '----'}</div>
+                </div>
+              </div>
+
+              <div className="hud-right">
+                {renderStatusBadge('game')}
+                {renderStatusBadge('connection')}
+                <button className="ghost-button" onClick={handleLeaveGame} type="button">
+                  离开游戏
+                </button>
+              </div>
+            </div>
+
+            <div className="hp-stack">
+              <div className="hp-row">
+                <div className="hp-meta left">
+                  <span className="hp-name">{myName}</span>
+                  <span className="hp-num">
+                    <span className="hp-main">{myFinalHp}</span>
+                    <span className="hp-total">/ 10</span>
+                  </span>
+                </div>
+                <div className="hp-track">
+                  <div className="hp-fill" style={{ width: `${Math.max(0, Math.min(100, (myFinalHp / 10) * 100))}%` }} />
+                  <div className="hp-center">
+                    <img src={ICON_HP} alt="" />
+                    <span>HP</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="hp-row">
+                <div className="hp-track">
+                  <div
+                    className="hp-fill"
+                    style={{ width: `${Math.max(0, Math.min(100, (opponentFinalHp / 10) * 100))}%` }}
+                  />
+                  <div className="hp-center">
+                    <img src={ICON_HP} alt="" />
+                    <span>HP</span>
+                  </div>
+                </div>
+                <div className="hp-meta right">
+                  <span className="hp-name">{opponentName}</span>
+                  <span className="hp-num">
+                    <span className="hp-main">{opponentFinalHp}</span>
+                    <span className="hp-total">/ 10</span>
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="cards">
-              {roundHand?.hand.map((card, index) => {
-                const meta = CARD_META[card]
-                const isSelected = selectedSlots.includes(index)
-                if (isSelected) {
-                  return null
-                }
-                return (
-                  <button
-                    key={`${card}-${index}`}
-                    className={`card card-${meta.tone} ${isSelected ? 'selected' : ''}`}
-                    onClick={() => toggleSelect(index)}
-                    type="button"
-                    disabled={Boolean(me?.submitted)}
-                    data-tip={`${meta.label}（${card}）`}
-                    draggable={!me?.submitted}
-                    onDragStart={() => handleDragStart('hand', index)}
-                  >
-                    <span className="icon">{meta.icon}</span>
-                    <span className="title">{meta.label}</span>
-                    <span className="tag">{card}</span>
-                    {isSelected && <span className="badge">已选</span>}
-                  </button>
-                )
-              })}
-              {!roundHand && <p className="placeholder">等待发牌…</p>}
-              {roundHand && roundHand.hand.every((_card, index) => selectedSlots.includes(index)) && (
-                <p className="placeholder">已全部选入序列</p>
-              )}
-            </div>
+            <div className="battle-grid">
+              <div className="battle-main">
+                <div className="battle-panel">
+                  <h3>选择出牌</h3>
 
-          </div>
+                  <div className="slots-area">
+                    <div className="slot-row">
+                      {[0, 1, 2].map((slot) => {
+                        const handIndex = selectedSlots[slot]
+                        const card = handIndex !== null && roundHand ? roundHand.hand[handIndex] : null
 
-          <div className="panel piles">
-            <div className="panel-header">
-              <div>
-                <h3>抽牌堆 / 弃牌堆</h3>
-                <p>显示本回合开始时双方牌库与弃牌堆内容。</p>
-              </div>
-              <div className="helper">牌库剩余：{roundHand?.deck?.length ?? 0}</div>
-            </div>
-            <div className="pile-grid">
-              <div className="pile">
-                <h4>我方抽牌堆</h4>
-                {renderPile(roundHand?.deck, 'my-deck')}
-              </div>
-              <div className="pile">
-                <h4>我方弃牌堆</h4>
-                {renderPile(roundHand?.discard, 'my-discard')}
-              </div>
-            </div>
-          </div>
+                        if (!card) {
+                          return (
+                            <div
+                              key={`slot-${slot}`}
+                              className="card-slot"
+                              onDragOver={(event) => event.preventDefault()}
+                              onDrop={() => handleDrop(slot)}
+                            >
+                              <div className="slot-order">第 {slot + 1} 张</div>
+                              <div className="slot-plus">+</div>
+                              <div className="slot-hint">拖拽卡牌至此</div>
+                            </div>
+                          )
+                        }
 
-          <div className="panel log">
-            <div className="panel-header">
-              <div>
-                <h3>对冲记录</h3>
-                <p>10 回合内每一回合、每一对的结算都会被保留。</p>
-              </div>
-            </div>
-            {roundLogs.length === 0 && <p className="placeholder">暂无记录，等待第一回合结算…</p>}
-            {roundLogs.map((roundEntry) => (
-              <div key={roundEntry.round} className="log-round">
-                <h4>第 {roundEntry.round} 回合</h4>
-                <div className="log-lines">
-                  {roundEntry.pairs.map((pair) => (
-                    <div key={`${roundEntry.round}-${pair.index}`} className="log-line">
-                      <span className="log-index">#{pair.index}</span>
-                      <span className="log-cards">
-                        {CARD_META[pair.myCard].icon} {pair.myCard} <span className="vs">vs</span>{' '}
-                        {CARD_META[pair.oppCard].icon} {pair.oppCard}
-                      </span>
-                      <span className="log-delta">
-                        我方 {pair.myDelta >= 0 ? '+' : ''}{pair.myDelta} · 对手 {pair.oppDelta >= 0 ? '+' : ''}{pair.oppDelta}
-                      </span>
+                        const meta = CARD_META[card]
+                        return (
+                          <div key={`slot-${slot}`} className="card-slot filled">
+                            <div className="slot-order">第 {slot + 1} 张</div>
+                            <div
+                              className={`game-card tone-${meta.tone}`}
+                              draggable={!me?.submitted && roomState?.status === 'playing'}
+                              onDragStart={() => handleDragStart('selected', slot)}
+                              onDragOver={(event) => event.preventDefault()}
+                              onDrop={() => handleDrop(slot)}
+                            >
+                              <div className="card-badge">{meta.tag}</div>
+                              <img src={meta.iconUrl} alt="" className="card-icon" />
+                              <div className="card-title">{meta.label}</div>
+                              <div className="card-subtitle">{meta.english}</div>
+                            </div>
+                            <button
+                              className="slot-remove"
+                              type="button"
+                              onClick={() => removeSelected(slot)}
+                              aria-label="移除"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )
+                      })}
                     </div>
-                  ))}
-                  {roundEntry.pairs.length === 0 && <p className="placeholder">等待结算…</p>}
+
+                    <div className="submit-area">
+                      <button className="primary-button" disabled={!canSubmit} onClick={handleSubmit} type="button">
+                        {canSubmit ? '确认出牌' : `请选择${roundHand?.requiredPickCount ?? 3}张牌`}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="hand-section">
+                    <div className="hand-label">手牌 ({roundHand?.hand.length ?? 0} 张)</div>
+                    <div className="hand-row">
+                      {roundHand?.hand.map((card, index) => {
+                        const meta = CARD_META[card]
+                        const selected = selectedSlots.includes(index)
+                        return (
+                          <button
+                            key={`${card}-${index}`}
+                            className={`hand-card ${selected ? 'used' : ''}`}
+                            onClick={() => toggleSelect(index)}
+                            type="button"
+                            disabled={selected || Boolean(me?.submitted) || roomState?.status !== 'playing' || modalOpen}
+                            draggable={!selected && !me?.submitted && roomState?.status === 'playing'}
+                            onDragStart={() => handleDragStart('hand', index)}
+                          >
+                            <div className={`game-card tone-${meta.tone}`}>
+                              <div className="card-badge">{meta.tag}</div>
+                              <img src={meta.iconUrl} alt="" className="card-icon" />
+                              <div className="card-title">{meta.label}</div>
+                              <div className="card-subtitle">{meta.english}</div>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {roomState?.status === 'waiting' && <p className="helper-text">等待另一位玩家加入房间…</p>}
+                  {me?.submitted && <p className="helper-text">已提交，等待对手出牌…</p>}
+                  {errorMessage && <p className="error-text">{errorMessage}</p>}
+                </div>
+
+                <div className="info-grid">
+                  <div className="info-panel">
+                    <h4>我方信息</h4>
+                    <div className="info-row">
+                      <div className="info-card">
+                        <img src={ICON_DECK} alt="" />
+                        <div>
+                          <span>牌库</span>
+                          <strong>{roundHand?.deck.length ?? 0}</strong>
+                        </div>
+                      </div>
+                      <div className="info-card">
+                        <img src={ICON_DISCARD} alt="" />
+                        <div>
+                          <span>弃牌堆</span>
+                          <strong>{roundHand?.discard.length ?? 0}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="info-panel">
+                    <h4>对手信息</h4>
+                    <div className="info-row">
+                      <div className="info-card">
+                        <img src={ICON_DECK} alt="" />
+                        <div>
+                          <span>牌库</span>
+                          <strong>{roundHand?.opponentDeck.length ?? 0}</strong>
+                        </div>
+                      </div>
+                      <div className="info-card">
+                        <img src={ICON_DISCARD} alt="" />
+                        <div>
+                          <span>弃牌堆</span>
+                          <strong>{roundHand?.opponentDiscard.length ?? 0}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="effect-panel">
+                  <img src={ICON_ALERT} alt="" />
+                  <div>
+                    <strong>状态效果区（预留）</strong>
+                    <p>未来版本将显示能量、护盾、持续效果等</p>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
 
-      {route === 'result' && (
-        <section className="panel result">
-          <h2>对局结束</h2>
-          <p className="result-title">
-            {gameOver?.result === 'draw'
-              ? '平局'
-              : gameOver?.result === (iAmP1 ? 'p1_win' : 'p2_win')
-                ? '胜利'
-                : '失败'}
-          </p>
-          <div className="result-grid">
-            <div>
-              <span className="label">我方最终血量</span>
-              <span className="value">{myFinalHp}</span>
+              <aside className="log-panel">
+                <div className="log-header">
+                  <h4>对战日志</h4>
+                  <p>点击展开查看详情</p>
+                </div>
+
+                {roundLogs.length === 0 ? (
+                  <div className="log-empty">
+                    <div>📜</div>
+                    <p>暂无对战记录</p>
+                  </div>
+                ) : (
+                  <div className="log-list">
+                    {[...roundLogs]
+                      .sort((a, b) => b.round - a.round)
+                      .map((roundEntry) => {
+                        const totalMy = roundEntry.pairs.reduce((sum, item) => sum + item.myDelta, 0)
+                        const totalOpp = roundEntry.pairs.reduce((sum, item) => sum + item.oppDelta, 0)
+                        return (
+                          <details key={roundEntry.round} className="log-round" open={roundEntry.round === (roomState?.round ?? 1) - 1}>
+                            <summary>
+                              <span className="round-chip">{roundEntry.round}</span>
+                              <span>
+                                <strong>第 {roundEntry.round} 回合</strong>
+                                <small>
+                                  我方 {totalMy >= 0 ? '+' : ''}
+                                  {totalMy} HP, 对手 {totalOpp >= 0 ? '+' : ''}
+                                  {totalOpp} HP
+                                </small>
+                              </span>
+                            </summary>
+                            <div className="log-lines">
+                              {roundEntry.pairs.map((pair) => (
+                                <div key={`${roundEntry.round}-${pair.index}`} className="log-line">
+                                  <span>第 {pair.index} 张</span>
+                                  <span>
+                                    {pair.myCard} vs {pair.oppCard}
+                                  </span>
+                                  <span>
+                                    我方 {pair.myDelta >= 0 ? '+' : ''}
+                                    {pair.myDelta}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
+                        )
+                      })}
+                  </div>
+                )}
+              </aside>
             </div>
-            <div>
-              <span className="label">对手最终血量</span>
-              <span className="value">{opponentFinalHp}</span>
+          </section>
+        )}
+
+        {modalOpen && roundResult && (
+          <div className="result-modal-backdrop">
+            <div className="result-modal">
+              <h3>{stepIndex === 0 ? '回合结算' : `第 ${Math.min(stepIndex + 1, roundResult.steps.length)} 对`}</h3>
+              <p>
+                {stepIndex < roundResult.steps.length
+                  ? showDelta
+                    ? '卡牌对决中...'
+                    : '准备揭示卡牌...'
+                  : '本回合结算完成'}
+              </p>
+
+              <div className="modal-progress">
+                {roundResult.steps.map((step, index) => {
+                  const active = index < stepIndex || (index === stepIndex && showDelta)
+                  return <span key={step.index} className={active ? 'active' : ''} />
+                })}
+              </div>
+
+              {stepIndex < roundResult.steps.length && (
+                <div className="modal-content">
+                  <div className="modal-cards">
+                    <div>
+                      <span>你</span>
+                      <div className={`game-card tone-${CARD_META[iAmP1 ? roundResult.steps[stepIndex].p1Card : roundResult.steps[stepIndex].p2Card].tone}`}>
+                        <div className="card-badge">{iAmP1 ? roundResult.steps[stepIndex].p1Card : roundResult.steps[stepIndex].p2Card}</div>
+                        <img
+                          src={CARD_META[iAmP1 ? roundResult.steps[stepIndex].p1Card : roundResult.steps[stepIndex].p2Card].iconUrl}
+                          alt=""
+                          className="card-icon"
+                        />
+                        <div className="card-title">{CARD_META[iAmP1 ? roundResult.steps[stepIndex].p1Card : roundResult.steps[stepIndex].p2Card].label}</div>
+                        <div className="card-subtitle">{CARD_META[iAmP1 ? roundResult.steps[stepIndex].p1Card : roundResult.steps[stepIndex].p2Card].english}</div>
+                      </div>
+                    </div>
+
+                    <div className="modal-vs">VS</div>
+
+                    <div>
+                      <span>对手</span>
+                      <div className={`game-card tone-${CARD_META[iAmP1 ? roundResult.steps[stepIndex].p2Card : roundResult.steps[stepIndex].p1Card].tone}`}>
+                        <div className="card-badge">{iAmP1 ? roundResult.steps[stepIndex].p2Card : roundResult.steps[stepIndex].p1Card}</div>
+                        <img
+                          src={CARD_META[iAmP1 ? roundResult.steps[stepIndex].p2Card : roundResult.steps[stepIndex].p1Card].iconUrl}
+                          alt=""
+                          className="card-icon"
+                        />
+                        <div className="card-title">{CARD_META[iAmP1 ? roundResult.steps[stepIndex].p2Card : roundResult.steps[stepIndex].p1Card].label}</div>
+                        <div className="card-subtitle">{CARD_META[iAmP1 ? roundResult.steps[stepIndex].p2Card : roundResult.steps[stepIndex].p1Card].english}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="modal-delta">
+                    <div>
+                      <span>你的 HP 变化</span>
+                      <strong className={(iAmP1 ? roundResult.steps[stepIndex].p1Delta : roundResult.steps[stepIndex].p2Delta) > 0 ? 'up' : (iAmP1 ? roundResult.steps[stepIndex].p1Delta : roundResult.steps[stepIndex].p2Delta) < 0 ? 'down' : ''}>
+                        {(iAmP1 ? roundResult.steps[stepIndex].p1Delta : roundResult.steps[stepIndex].p2Delta) >= 0 ? '+' : ''}
+                        {iAmP1 ? roundResult.steps[stepIndex].p1Delta : roundResult.steps[stepIndex].p2Delta}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>对手 HP 变化</span>
+                      <strong className={(iAmP1 ? roundResult.steps[stepIndex].p2Delta : roundResult.steps[stepIndex].p1Delta) > 0 ? 'up' : (iAmP1 ? roundResult.steps[stepIndex].p2Delta : roundResult.steps[stepIndex].p1Delta) < 0 ? 'down' : ''}>
+                        {(iAmP1 ? roundResult.steps[stepIndex].p2Delta : roundResult.steps[stepIndex].p1Delta) >= 0 ? '+' : ''}
+                        {iAmP1 ? roundResult.steps[stepIndex].p2Delta : roundResult.steps[stepIndex].p1Delta}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {stepIndex < roundResult.steps.length ? (
+                <button
+                  className="skip-button"
+                  onClick={() => {
+                    setStepIndex(roundResult.steps.length)
+                    setShowDelta(false)
+                  }}
+                  type="button"
+                >
+                  跳过动画
+                </button>
+              ) : (
+                <button
+                  className="primary-button"
+                  onClick={() => {
+                    if (roomState && playerId && !gameOver) {
+                      sendMessage({
+                        type: 'round_confirm',
+                        payload: {
+                          roomId: roomState.roomId,
+                          playerId,
+                          round: roomState.round,
+                        },
+                      })
+                    }
+                    setModalOpen(false)
+                    setShowDelta(false)
+                    setStepIndex(0)
+                    setRoundResult(null)
+                    setRoundHand(null)
+                    if (gameOver) {
+                      setRoute('result')
+                    }
+                  }}
+                  type="button"
+                >
+                  继续游戏
+                </button>
+              )}
             </div>
           </div>
-          <p className="hint">回合数：{gameOver?.round ?? roomState?.round ?? 0}</p>
-          <div className="actions">
-            <button className="primary" onClick={handleRematch}>
-              再来一局
-            </button>
-          </div>
-        </section>
-      )}
+        )}
+
+        {route === 'result' && (
+          <section className="result-page">
+            <div className="result-card">
+              <h2>对局结束</h2>
+              <p className="result-title">
+                {gameOver?.result === 'draw'
+                  ? '平局'
+                  : gameOver?.result === (iAmP1 ? 'p1_win' : 'p2_win')
+                    ? '胜利'
+                    : '失败'}
+              </p>
+              <div className="result-grid">
+                <div>
+                  <span>我方最终血量</span>
+                  <strong>{myFinalHp}</strong>
+                </div>
+                <div>
+                  <span>对手最终血量</span>
+                  <strong>{opponentFinalHp}</strong>
+                </div>
+              </div>
+              <p className="result-round">回合数：{gameOver?.round ?? roomState?.round ?? 0}</p>
+              <div className="result-actions">
+                <button className="primary-button" onClick={handleRematch} type="button">
+                  再来一局
+                </button>
+                <button className="ghost-button" onClick={handleLeaveGame} type="button">
+                  返回首页
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   )
 }
