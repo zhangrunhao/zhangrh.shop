@@ -14,6 +14,7 @@ import {
   pickDefaultChoice,
   saveState,
 } from './workspace-runner-lib.mjs'
+import { buildMenuLines, getMenuRewindLineCount } from './terminal-menu-lib.mjs'
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(scriptDir, '..')
@@ -44,16 +45,22 @@ const askChoice = async ({ title, choices, defaultValue }) => {
   }
 
   let currentIndex = defaultIndex
-  const renderCurrent = () => {
-    const marker = currentIndex === defaultIndex ? ' (上次默认)' : ''
-    readline.clearLine(process.stdout, 0)
-    readline.cursorTo(process.stdout, 0)
-    process.stdout.write(`> ${choices[currentIndex].label}${marker}`)
+  let renderedLineCount = 0
+
+  const renderMenu = () => {
+    if (renderedLineCount > 0) {
+      readline.moveCursor(process.stdout, 0, -getMenuRewindLineCount(renderedLineCount))
+      readline.cursorTo(process.stdout, 0)
+      readline.clearScreenDown(process.stdout)
+    }
+
+    const lines = buildMenuLines({ title, choices, currentIndex })
+    process.stdout.write(lines.join('\n'))
+    renderedLineCount = lines.length
   }
 
-  console.log(title)
-  console.log('使用 ↑/↓ 选择，按 Enter 确认')
-  renderCurrent()
+  process.stdout.write('\x1b[?25l')
+  renderMenu()
 
   return await new Promise((resolve) => {
     const onKeypress = (_str, key = {}) => {
@@ -64,12 +71,12 @@ const askChoice = async ({ title, choices, defaultValue }) => {
       }
       if (key.name === 'up') {
         currentIndex = (currentIndex - 1 + choices.length) % choices.length
-        renderCurrent()
+        renderMenu()
         return
       }
       if (key.name === 'down') {
         currentIndex = (currentIndex + 1) % choices.length
-        renderCurrent()
+        renderMenu()
         return
       }
       if (key.name === 'return' || key.name === 'enter') {
@@ -86,6 +93,7 @@ const askChoice = async ({ title, choices, defaultValue }) => {
         process.stdin.setRawMode(false)
       }
       process.stdin.pause()
+      process.stdout.write('\x1b[?25h')
     }
 
     readline.emitKeypressEvents(process.stdin)
