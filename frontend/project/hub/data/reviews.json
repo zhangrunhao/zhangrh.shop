@@ -1,0 +1,35 @@
+[
+  {
+    "id": "task-studio-v2-3-1",
+    "productName": "Task Studio",
+    "version": "v2.3.1",
+    "publishDate": "2026-02-05",
+    "dataChanges": [
+      "重构了时间追踪器的底层逻辑，优化了性能和数据准确性",
+      "追踪准确率提升 40%，用户反馈的计时偏差问题基本解决"
+    ],
+    "nextPlan": "开始设计团队协作功能的原型，下版本引入多人看板。"
+  },
+  {
+    "id": "moment-log-v1-5-2",
+    "productName": "Moment Log",
+    "version": "v1.5.2",
+    "publishDate": "2026-01-28",
+    "dataChanges": [
+      "新增语音记录功能，支持语音转文字",
+      "降低了记录门槛，语音记录量是文字记录的 2 倍"
+    ],
+    "nextPlan": "优化时间线回顾体验，增加情绪标签功能。"
+  },
+  {
+    "id": "task-studio-v2-2-0",
+    "productName": "Task Studio",
+    "version": "v2.2.0",
+    "publishDate": "2026-01-15",
+    "dataChanges": [
+      "优化了看板的拖拽交互，支持批量操作",
+      "任务整理效率提升，用户每天平均节省 5 分钟"
+    ],
+    "nextPlan": "收集用户对时间追踪器的反馈，准备下一版本优化。"
+  }
+]

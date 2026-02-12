@@ -1,0 +1,20 @@
+[
+  {
+    "id": "voice-journal",
+    "name": "Voice Journal",
+    "summary": "把语音日记自动整理为结构化时间线，降低日常记录门槛。",
+    "ideaDate": "2026-02-07"
+  },
+  {
+    "id": "weekly-rhythm",
+    "name": "Weekly Rhythm",
+    "summary": "围绕一周节奏的轻量目标追踪器，强调回顾和下一步动作。",
+    "ideaDate": "2026-02-03"
+  },
+  {
+    "id": "team-notes-lite",
+    "name": "Team Notes Lite",
+    "summary": "为小团队设计的协作记录面板，减少同步成本和信息丢失。",
+    "ideaDate": "2026-01-30"
+  }
+]

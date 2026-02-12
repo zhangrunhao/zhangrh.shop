@@ -1,12 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "./components/link";
-import { PRODUCTS } from "./data/products";
-import { normalizePath } from "./routing";
-import type { Product, ProductStatus } from "./types";
+import ideasData from "./data/ideas.json";
+import productsData from "./data/products.json";
+import reviewsData from "./data/reviews.json";
+import { normalizePath, withBase } from "./routing";
+import type { Idea, Product, ProductStatus, Review } from "./types";
+
+const PRODUCTS = productsData as Product[];
+const IDEAS = ideasData as Idea[];
+const REVIEWS = reviewsData as Review[];
+
+const EMAIL_LINK = "mailto:runhaozhang.dev@gmail.com";
+const GITHUB_LINK = "https://github.com/zhangrunhao";
 
 type Route =
   | { name: "home" }
   | { name: "products" }
+  | { name: "product-detail"; productId: string }
   | { name: "ideas" }
   | { name: "reviews" }
   | { name: "about" }
@@ -15,36 +25,9 @@ type Route =
 type NavItem = {
   label: string;
   to: string;
-  routeName: Exclude<Route["name"], "not-found">;
+  routeName: Exclude<Route["name"], "not-found" | "product-detail" | "home">;
   icon: "product" | "idea" | "review" | "about";
 };
-
-type IdeaTag = "Idea" | "Prototype" | "Lab";
-
-type IdeaCard = {
-  id: string;
-  type: IdeaTag;
-  title: string;
-  date: string;
-  summary: string;
-  nextStep: string;
-  tags: string[];
-};
-
-type Review = {
-  id: string;
-  product: string;
-  version: string;
-  date: string;
-  title: string;
-  done: string;
-  impact: string;
-  next: string;
-};
-
-const EMAIL_LINK = "mailto:runhaozhang.dev@gmail.com";
-const GITHUB_LINK = "https://github.com/zhangrunhao";
-const TWITTER_LINK = "https://x.com";
 
 const NAV_ITEMS: NavItem[] = [
   { label: "产品", to: "/products", routeName: "products", icon: "product" },
@@ -60,6 +43,7 @@ const HOME_AREAS = [
     description: "已上线且持续迭代",
     icon: "product",
     iconClassName: "bg-emerald-100 text-emerald-700",
+    className: "border border-[#e5e5e5] bg-white",
   },
   {
     to: "/ideas",
@@ -67,100 +51,21 @@ const HOME_AREAS = [
     description: "想法、实验和原型",
     icon: "idea",
     iconClassName: "bg-amber-100 text-amber-700",
+    className: "border-2 border-[#d4d4d4] bg-[rgba(255,251,235,0.3)]",
   },
   {
     to: "/reviews",
     title: "复盘",
-    description: "每次发版的复盘",
+    description: "每次发版的思考",
     icon: "review",
     iconClassName: "bg-blue-100 text-blue-700",
+    className: "border border-[#e5e5e5] bg-white",
   },
 ] as const;
 
-const IDEAS: IdeaCard[] = [
-  {
-    id: "focus-soundtrack",
-    type: "Lab",
-    title: "Focus Soundtrack",
-    date: "2/7",
-    summary: "根据你的工作状态自动切换背景音乐的专注工具",
-    nextStep: "测试不同音乐类型对专注力的影响，收集用户反馈",
-    tags: ["音乐", "专注", "实验"],
-  },
-  {
-    id: "micro-habits",
-    type: "Prototype",
-    title: "Micro Habits",
-    date: "2/3",
-    summary: "一个极简的微习惯追踪工具，每天只记录 3 个最重要的小习惯",
-    nextStep: "完成数据可视化模块，设计习惯连续记录的激励机制",
-    tags: ["健康", "习惯", "Web"],
-  },
-  {
-    id: "quick-feedback",
-    type: "Prototype",
-    title: "Quick Feedback",
-    date: "2/1",
-    summary: "一个可以嵌入任何网站的快速反馈组件，3 秒完成反馈",
-    nextStep: "开发嵌入 SDK，支持自定义样式",
-    tags: ["用户体验", "工具", "SDK"],
-  },
-  {
-    id: "one-page-wiki",
-    type: "Idea",
-    title: "One Page Wiki",
-    date: "1/30",
-    summary: "一个项目，一个页面。把所有信息塞进一页，强制精简",
-    nextStep: "围绕互链，思考如何在一页内做好信息层级",
-    tags: ["知识管理", "极简", "生产力"],
-  },
-];
-
-const REVIEWS: Review[] = [
-  {
-    id: "card-game-v0-8-0",
-    product: "卡牌游戏",
-    version: "v0.8.0",
-    date: "2/5",
-    title: "卡牌游戏 v0.8.0 - 战斗节奏优化",
-    done: "重做了出牌顺序提示和回合推进逻辑，支持连招提示",
-    impact: "首局完成率提升 36%，单局时长缩短约 18%",
-    next: "开始设计新手引导拆分方案，补齐首日留存数据",
-  },
-  {
-    id: "calorie-app-v0-4-1",
-    product: "热量摄入 app",
-    version: "v0.4.1",
-    date: "1/28",
-    title: "热量摄入 app v0.4.1 - 餐次记录升级",
-    done: "新增语音录入和常吃食物快捷补全，支持模糊匹配",
-    impact: "记录耗时从 22 秒降到 11 秒，7 日使用率提升明显",
-    next: "优化目标达成提醒体验，增加体脂率趋势卡片",
-  },
-  {
-    id: "card-game-v0-7-2",
-    product: "卡牌游戏",
-    version: "v0.7.2",
-    date: "1/15",
-    title: "卡牌游戏 v0.7.2 - 卡组编辑体验",
-    done: "支持拖拽排序和一键清空，补齐卡牌稀有度筛选",
-    impact: "构建卡组的平均耗时下降 42%，重复编辑率下降",
-    next: "继续迭代匹配策略，降低低段位对战等待时间",
-  },
-  {
-    id: "calorie-app-v0-3-0",
-    product: "热量摄入 app",
-    version: "v0.3.0",
-    date: "12/15",
-    title: "热量摄入 app v0.3.0 - 周报功能上线",
-    done: "新增每周摄入趋势图和营养结构分布，支持分享图片",
-    impact: "用户周活提升 24%，连续打卡天数显著增加",
-    next: "补充数据对比维度，加入节假日饮食标签",
-  },
-];
-
 const resolveRoute = (pathname: string): Route => {
   const path = normalizePath(pathname);
+
   if (path === "/") {
     return { name: "home" };
   }
@@ -176,6 +81,12 @@ const resolveRoute = (pathname: string): Route => {
   if (path === "/about") {
     return { name: "about" };
   }
+
+  const productDetailMatch = path.match(/^\/products\/([^/]+)$/);
+  if (productDetailMatch?.[1]) {
+    return { name: "product-detail", productId: decodeURIComponent(productDetailMatch[1]) };
+  }
+
   return { name: "not-found" };
 };
 
@@ -191,6 +102,40 @@ const usePathname = () => {
   return pathname;
 };
 
+const formatDateMonthDay = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+};
+
+const formatDateFull = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+};
+
+const resolveImageUrl = (coverImage: string) => {
+  if (/^(https?:|data:|blob:)/i.test(coverImage)) {
+    return coverImage;
+  }
+  const normalized = coverImage.startsWith("/") ? coverImage : `/${coverImage}`;
+  return withBase(normalized);
+};
+
+const sortByDateDesc = <T,>(items: T[], getDate: (item: T) => string) => {
+  return [...items].sort(
+    (a, b) => new Date(getDate(b)).getTime() - new Date(getDate(a)).getTime(),
+  );
+};
+
 const CalendarIcon = () => (
   <svg className="size-3" viewBox="0 0 24 24" fill="none" aria-hidden>
     <path
@@ -204,16 +149,23 @@ const CalendarIcon = () => (
 );
 
 const ArrowIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className ?? "size-3.5"}
-    viewBox="0 0 16 16"
-    fill="none"
-    aria-hidden
-  >
+  <svg className={className ?? "size-3.5"} viewBox="0 0 16 16" fill="none" aria-hidden>
     <path
       d="M3.5 8H12.5M12.5 8L9 4.5M12.5 8L9 11.5"
       stroke="currentColor"
       strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const CubeIcon = () => (
+  <svg className="size-[18px]" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <path
+      d="M12 3L20 7.5L12 12L4 7.5L12 3ZM4 7.5V16.5L12 21V12M20 7.5V16.5L12 21"
+      stroke="currentColor"
+      strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
@@ -320,7 +272,7 @@ const NavIcon = ({
   );
 };
 
-const AreaIcon = ({ icon }: { icon: NavItem["icon"] }) => {
+const AreaIcon = ({ icon }: { icon: "product" | "idea" | "review" }) => {
   if (icon === "product") {
     return (
       <svg className="size-4" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -363,19 +315,13 @@ const AreaIcon = ({ icon }: { icon: NavItem["icon"] }) => {
 };
 
 const statusClassName: Record<ProductStatus, string> = {
-  Active: "bg-emerald-50 border-emerald-200 text-emerald-700",
-  Shipped: "bg-blue-50 border-blue-200 text-blue-700",
-};
-
-const ideaBadgeClassName: Record<IdeaTag, string> = {
-  Idea: "bg-amber-100 text-amber-700",
-  Prototype: "bg-violet-100 text-violet-700",
-  Lab: "bg-sky-100 text-sky-700",
+  active: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  archived: "bg-neutral-100 border-neutral-300 text-neutral-600",
 };
 
 const AppHeader = ({ routeName }: { routeName: Route["name"] }) => (
-  <header className="sticky top-0 z-30 border-b border-[#e5e5e5] bg-[#fafafa]/95 backdrop-blur-sm">
-    <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center justify-between px-4 md:px-8">
+  <header className="sticky top-0 z-30 border-b border-[#e5e5e5] bg-white/95 backdrop-blur-sm">
+    <div className="mx-auto flex h-16 w-full max-w-[1216px] items-center justify-between">
       <Link
         to="/"
         className="inline-flex items-center gap-2 rounded px-1 py-1 text-neutral-900"
@@ -389,7 +335,9 @@ const AppHeader = ({ routeName }: { routeName: Route["name"] }) => (
 
       <nav className="flex items-center gap-1">
         {NAV_ITEMS.map((item) => {
-          const active = routeName === item.routeName;
+          const active =
+            routeName === item.routeName ||
+            (routeName === "product-detail" && item.routeName === "products");
           return (
             <Link
               key={item.to}
@@ -402,27 +350,15 @@ const AppHeader = ({ routeName }: { routeName: Route["name"] }) => (
             >
               <NavIcon icon={item.icon} active={active} />
               {item.label}
-              {active && (
+              {active ? (
                 <span className="absolute bottom-0 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-[#009966]" />
-              )}
+              ) : null}
             </Link>
           );
         })}
       </nav>
     </div>
   </header>
-);
-
-const CubeIcon = () => (
-  <svg className="size-[18px]" viewBox="0 0 24 24" fill="none" aria-hidden>
-    <path
-      d="M12 3L20 7.5L12 12L4 7.5L12 3ZM4 7.5V16.5L12 21V12M20 7.5V16.5L12 21"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
 );
 
 const SectionTitle = ({
@@ -436,12 +372,8 @@ const SectionTitle = ({
 }) => (
   <div className="flex items-end justify-between gap-4">
     <div>
-      <h2 className="text-[24px] font-medium leading-8 tracking-[0.0703px] text-[#171717]">
-        {title}
-      </h2>
-      <p className="mt-1 text-base leading-6 tracking-[-0.3125px] text-[#525252]">
-        {subtitle}
-      </p>
+      <h2 className="text-[24px] font-medium leading-8 tracking-[0.0703px] text-[#171717]">{title}</h2>
+      <p className="mt-1 text-base leading-6 tracking-[-0.3125px] text-[#525252]">{subtitle}</p>
     </div>
     {action ? (
       <Link
@@ -459,53 +391,19 @@ const ProductStatusBadge = ({ status }: { status: ProductStatus }) => (
   <span
     className={`inline-flex h-[22px] items-center rounded-full border px-2 text-xs font-medium ${statusClassName[status]}`}
   >
-    {status}
+    {status === "active" ? "Active" : "Archived"}
   </span>
 );
 
-const ProductCover = ({ product }: { product: Product }) => {
-  if (product.cover) {
-    return (
+const ProductCard = ({ product }: { product: Product }) => (
+  <article className="overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white">
+    <div className="relative h-[334px] bg-neutral-100">
       <img
-        src={product.cover}
-        alt={product.title}
+        src={resolveImageUrl(product.coverImage)}
+        alt={product.name}
         className="h-full w-full object-cover"
         loading="lazy"
       />
-    );
-  }
-
-  const from = product.mockCover?.from ?? "#0f766e";
-  const to = product.mockCover?.to ?? "#0f172a";
-  const accent = product.mockCover?.accent ?? "#fb923c";
-
-  return (
-    <div
-      className="relative h-full w-full overflow-hidden"
-      style={{ backgroundImage: `linear-gradient(135deg, ${from}, ${to})` }}
-    >
-      <div
-        className="absolute -right-8 -top-8 size-32 rounded-full opacity-60"
-        style={{ backgroundColor: accent }}
-      />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.24),transparent_65%)]" />
-      <div className="absolute inset-x-6 bottom-6">
-        <p className="text-xs uppercase tracking-[0.16em] text-white/75">Mock Cover</p>
-        <p className="mt-1 text-2xl font-semibold tracking-tight text-white">
-          {product.mockCover?.title ?? product.title}
-        </p>
-        {product.mockCover?.subtitle ? (
-          <p className="mt-1 text-sm text-white/85">{product.mockCover.subtitle}</p>
-        ) : null}
-      </div>
-    </div>
-  );
-};
-
-const ProductCard = ({ product }: { product: Product }) => (
-  <article className="overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white">
-    <div className="relative h-56 bg-neutral-100">
-      <ProductCover product={product} />
       <div className="absolute left-3 top-3">
         <ProductStatusBadge status={product.status} />
       </div>
@@ -515,23 +413,22 @@ const ProductCard = ({ product }: { product: Product }) => (
       <div className="flex items-center justify-between text-xs text-[#737373]">
         <div className="flex items-center gap-2">
           <span className="rounded bg-[#f5f5f5] px-2 py-0.5 text-[#525252]">
-            {product.version}
+            {product.currentVersion}
           </span>
           <span>·</span>
           <span className="inline-flex items-center gap-1">
             <CalendarIcon />
-            {product.lastUpdatedLabel}
+            {formatDateMonthDay(product.currentVersionCommitDate)}
           </span>
         </div>
-        <span className="text-[#a3a3a3]">{product.category}</span>
       </div>
 
       <h3 className="text-[18px] font-semibold leading-[24.75px] tracking-[-0.02em] text-[#171717]">
-        {product.title}
+        {product.name}
       </h3>
       <p className="text-sm leading-6 text-[#525252]">{product.summary}</p>
       <Link
-        to={product.url}
+        to={`/products/${product.id}`}
         className="inline-flex items-center gap-1 text-sm font-medium text-[#009966]"
       >
         查看详情
@@ -541,84 +438,48 @@ const ProductCard = ({ product }: { product: Product }) => (
   </article>
 );
 
-const ReviewCard = ({ item }: { item: Review }) => (
-  <article className="rounded-2xl border border-[#e5e5e5] bg-white p-5 shadow-[inset_3px_0_0_0_#3b82f6]">
-    <div className="flex flex-wrap items-center gap-2 text-xs text-[#737373]">
-      <span className="rounded bg-[#f5f5f5] px-2 py-0.5 text-[#404040]">{item.product}</span>
-      <span className="rounded bg-blue-50 px-2 py-0.5 text-blue-700">{item.version}</span>
-      <span className="inline-flex items-center gap-1">
-        <CalendarIcon />
-        {item.date}
-      </span>
-    </div>
+const ReviewCard = ({ item }: { item: Review }) => {
+  const summaryOne = item.dataChanges[0] ?? "-";
+  const summaryTwo = item.dataChanges[1] ?? "-";
 
-    <h3 className="mt-3 text-[18px] font-semibold leading-[24.75px] tracking-[-0.02em] text-[#171717]">
-      {item.title}
-    </h3>
+  return (
+    <article className="rounded-2xl border border-[#e5e5e5] bg-white p-5 shadow-[inset_3px_0_0_0_#3b82f6]">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-[#737373]">
+        <span className="rounded bg-[#f5f5f5] px-2 py-0.5 text-[#404040]">{item.productName}</span>
+        <span className="rounded bg-blue-50 px-2 py-0.5 text-blue-700">{item.version}</span>
+        <span className="inline-flex items-center gap-1">
+          <CalendarIcon />
+          {formatDateMonthDay(item.publishDate)}
+        </span>
+      </div>
 
-    <div className="mt-3 grid gap-4 text-xs leading-[19.5px] text-[#404040] md:grid-cols-3">
-      <div>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.3px] text-[#009966]">
-          做了什么
-        </p>
-        <p>{item.done}</p>
-      </div>
-      <div>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.3px] text-blue-600">
-          影响
-        </p>
-        <p>{item.impact}</p>
-      </div>
-      <div>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.3px] text-orange-500">
-          下一步
-        </p>
-        <p>{item.next}</p>
-      </div>
-    </div>
-  </article>
-);
+      <h3 className="mt-3 text-[18px] font-semibold leading-[24.75px] tracking-[-0.02em] text-[#171717]">
+        {item.productName} {item.version} - 数据复盘
+      </h3>
 
-const FilterBar = ({
-  label,
-  items,
-}: {
-  label: string;
-  items: Array<{ label: string; active?: boolean }>;
-}) => (
-  <div className="rounded-xl border border-[#e5e5e5] bg-[#fafafa] px-4 py-4">
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="inline-flex items-center gap-1 text-sm font-medium text-[#404040]">
-        <svg className="size-4" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path
-            d="M4 6H20L14 13V19L10 21V13L4 6Z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-        {label}
-      </span>
-      {items.map((item) => (
-        <button
-          key={item.label}
-          type="button"
-          className={`rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors ${
-            item.active
-              ? "border-[#009966] bg-[#009966] text-white shadow-sm"
-              : "border-[#d4d4d4] bg-white text-[#404040]"
-          }`}
-        >
-          {item.label}
-        </button>
-      ))}
-    </div>
-  </div>
-);
+      <div className="mt-3 grid gap-4 text-xs leading-[19.5px] text-[#404040] md:grid-cols-3">
+        <div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.3px] text-[#009966]">数据变化</p>
+          <p>{summaryOne}</p>
+        </div>
+        <div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.3px] text-blue-600">影响</p>
+          <p>{summaryTwo}</p>
+        </div>
+        <div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.3px] text-orange-500">下一步</p>
+          <p>{item.nextPlan}</p>
+        </div>
+      </div>
+    </article>
+  );
+};
 
 const HomePage = () => {
-  const latestReviews = REVIEWS.slice(0, 3);
+  const latestReviews = useMemo(
+    () => sortByDateDesc(REVIEWS, (item) => item.publishDate).slice(0, 3),
+    [],
+  );
 
   return (
     <section className="pb-14">
@@ -658,12 +519,12 @@ const HomePage = () => {
 
       <div className="border-b border-[#e5e5e5] pb-20 pt-20">
         <SectionTitle title="三个专区" subtitle="不同阶段的内容，统一的品质追求" />
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-5 md:grid-cols-3">
           {HOME_AREAS.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className="group rounded-2xl border border-[#e5e5e5] bg-white px-6 pb-6 pt-6 transition hover:-translate-y-0.5 hover:border-[#d4d4d4]"
+              className={`group rounded-2xl px-6 pb-6 pt-6 transition hover:-translate-y-0.5 ${item.className}`}
             >
               <div className="mb-4 flex items-start justify-between">
                 <span
@@ -713,185 +574,147 @@ const HomePage = () => {
   );
 };
 
-const ProductsPage = () => (
-  <section className="space-y-6 pb-14 pt-8">
-    <div>
-      <h1 className="text-[36px] font-semibold leading-[40px] tracking-[-0.03em] text-[#171717]">
-        产品
-      </h1>
-      <p className="mt-3 text-base text-[#525252]">已上线且持续迭代的项目</p>
-    </div>
+const ProductsPage = () => {
+  const products = useMemo(
+    () => sortByDateDesc(PRODUCTS, (item) => item.currentVersionCommitDate),
+    [],
+  );
 
-    <FilterBar
-      label="状态"
-      items={[
-        { label: "全部", active: true },
-        { label: "Active" },
-        { label: "Shipped" },
-        { label: "Archived" },
-      ]}
-    />
-    <FilterBar
-      label="分类"
-      items={[
-        { label: "全部", active: true },
-        { label: "游戏" },
-        { label: "健康" },
-        { label: "工具" },
-      ]}
-    />
+  return (
+    <section className="space-y-6 pb-14 pt-8">
+      <div>
+        <h1 className="text-[36px] font-semibold leading-[40px] tracking-[-0.03em] text-[#171717]">产品</h1>
+        <p className="mt-3 text-base text-[#525252]">已上线且持续迭代的项目</p>
+      </div>
 
-    <div className="grid gap-5 lg:grid-cols-2">
-      {PRODUCTS.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </div>
-  </section>
-);
+      <div className="grid gap-5 lg:grid-cols-2">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    </section>
+  );
+};
 
-const IdeasPage = () => (
-  <section className="space-y-6 pb-14 pt-8">
-    <div>
-      <h1 className="text-[36px] font-semibold leading-[40px] tracking-[-0.03em] text-[#171717]">
-        想法
-      </h1>
-      <p className="mt-3 text-base text-[#525252]">想法、实验和原型，还在探索中的创意</p>
-    </div>
+const ProductDetailPage = ({ productId }: { productId: string }) => {
+  const product = PRODUCTS.find((item) => item.id === productId);
 
-    <FilterBar
-      label="阶段"
-      items={[
-        { label: "全部", active: true },
-        { label: "Idea" },
-        { label: "Prototype" },
-        { label: "Lab" },
-      ]}
-    />
+  if (!product) {
+    return (
+      <section className="space-y-4 pb-14 pt-8">
+        <h1 className="text-2xl font-semibold text-[#171717]">产品不存在</h1>
+        <p className="text-[#525252]">未找到对应产品，请返回产品列表查看。</p>
+        <div>
+          <Link
+            to="/products"
+            className="inline-flex h-10 items-center rounded-xl bg-[#009966] px-4 text-sm font-medium text-white"
+          >
+            返回产品列表
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
-    <div className="grid gap-4 md:grid-cols-2">
-      {IDEAS.map((idea) => (
-        <article key={idea.id} className="rounded-2xl border border-[#cfcfcf] bg-white p-4">
-          <div className="flex items-start justify-between">
-            <span
-              className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${ideaBadgeClassName[idea.type]}`}
-            >
-              {idea.type}
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs text-[#737373]">
-              <CalendarIcon />
-              {idea.date}
-            </span>
+  return (
+    <section className="space-y-6 pb-14 pt-8">
+      <div>
+        <Link to="/products" className="inline-flex items-center gap-1 text-sm font-medium text-[#525252]">
+          <ArrowIcon />
+          返回产品列表
+        </Link>
+      </div>
+
+      <article className="overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white">
+        <div className="h-[420px] w-full overflow-hidden bg-neutral-100">
+          <img src={resolveImageUrl(product.coverImage)} alt={product.name} className="h-full w-full object-cover" />
+        </div>
+
+        <div className="space-y-4 px-6 py-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-3xl font-semibold tracking-tight text-[#171717]">{product.name}</h1>
+            <ProductStatusBadge status={product.status} />
           </div>
 
-          <h3 className="mt-3 text-[18px] font-semibold leading-[24.75px] tracking-[-0.02em] text-[#171717]">
-            {idea.title}
-          </h3>
-          <p className="mt-2 text-sm leading-6 text-[#525252]">{idea.summary}</p>
+          <p className="text-sm leading-7 text-[#525252]">{product.summary}</p>
 
-          <div className="mt-3 rounded border-l-2 border-amber-400 bg-[linear-gradient(90deg,#fff7d6,rgba(255,247,214,0.25))] px-3 py-2">
-            <p className="text-xs font-semibold text-orange-500">↗ 下一步</p>
-            <p className="mt-1 text-xs leading-5 text-[#525252]">{idea.nextStep}</p>
+          <div className="grid gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700 sm:grid-cols-2">
+            <div>
+              <p className="text-xs text-neutral-500">当前版本</p>
+              <p className="mt-1 font-medium text-neutral-900">{product.currentVersion}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-500">版本提交日期</p>
+              <p className="mt-1 font-medium text-neutral-900">
+                {formatDateFull(product.currentVersionCommitDate)}
+              </p>
+            </div>
           </div>
+        </div>
+      </article>
+    </section>
+  );
+};
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {idea.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-md border border-[#e5e5e5] bg-[#f5f5f5] px-2 py-0.5 text-xs text-[#525252]"
-              >
-                {tag}
+const IdeasPage = () => {
+  const ideas = useMemo(() => sortByDateDesc(IDEAS, (item) => item.ideaDate), []);
+
+  return (
+    <section className="space-y-6 pb-14 pt-8">
+      <div>
+        <h1 className="text-[36px] font-semibold leading-[40px] tracking-[-0.03em] text-[#171717]">想法</h1>
+        <p className="mt-3 text-base text-[#525252]">想法、实验和原型，还在探索中的创意</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {ideas.map((idea) => (
+          <article key={idea.id} className="rounded-2xl border border-[#e5e5e5] bg-white p-5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-[18px] font-semibold leading-[24.75px] tracking-[-0.02em] text-[#171717]">
+                {idea.name}
+              </h2>
+              <span className="inline-flex items-center gap-1 text-xs text-[#737373]">
+                <CalendarIcon />
+                {formatDateMonthDay(idea.ideaDate)}
               </span>
-            ))}
-          </div>
-        </article>
-      ))}
-    </div>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-[#525252]">{idea.summary}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+};
 
-    <div className="rounded-2xl border border-amber-300 bg-[#fffdf5] px-4 py-3 text-sm text-[#404040]">
-      <p>
-        💡 <span className="font-semibold">关于想法专区：</span>
-        这里展示的是正在探索中的想法和实验。它们可能会变成正式产品，也可能只是一次尝试。
-      </p>
-    </div>
-  </section>
-);
+const ReviewsPage = () => {
+  const reviews = useMemo(() => sortByDateDesc(REVIEWS, (item) => item.publishDate), []);
 
-const ReviewsPage = () => (
-  <section className="space-y-6 pb-14 pt-8">
-    <div>
-      <h1 className="text-[36px] font-semibold leading-[40px] tracking-[-0.03em] text-[#171717]">
-        复盘
-      </h1>
-      <p className="mt-3 text-base text-[#525252]">
-        每次发版的复盘与反思，记录产品迭代的思考过程
-      </p>
-    </div>
+  return (
+    <section className="space-y-6 pb-14 pt-8">
+      <div>
+        <h1 className="text-[36px] font-semibold leading-[40px] tracking-[-0.03em] text-[#171717]">复盘</h1>
+        <p className="mt-3 text-base text-[#525252]">每次发版的复盘与反思，记录产品迭代的思考过程</p>
+      </div>
 
-    <FilterBar
-      label="产品"
-      items={[
-        { label: "全部产品", active: true },
-        { label: "卡牌游戏" },
-        { label: "热量摄入 app" },
-      ]}
-    />
-
-    <div className="space-y-4">
-      {REVIEWS.map((item) => (
-        <ReviewCard key={item.id} item={item} />
-      ))}
-    </div>
-  </section>
-);
+      <div className="space-y-4">
+        {reviews.map((item) => (
+          <ReviewCard key={item.id} item={item} />
+        ))}
+      </div>
+    </section>
+  );
+};
 
 const AboutPage = () => (
   <section className="space-y-6 pb-14 pt-8">
     <div>
-      <h1 className="text-[36px] font-semibold leading-[40px] tracking-[-0.03em] text-[#171717]">
-        关于
-      </h1>
-      <p className="mt-3 text-base text-[#525252]">
-        个人产品实践者，持续用设计和开发把想法变成可用的产品
-      </p>
+      <h1 className="text-[36px] font-semibold leading-[40px] tracking-[-0.03em] text-[#171717]">关于</h1>
+      <p className="mt-3 text-base text-[#525252]">个人产品实践者，持续用设计和开发把想法变成可用的产品</p>
     </div>
 
     <article className="rounded-2xl border border-[#e5e5e5] bg-white p-6">
-      <h2 className="text-2xl font-semibold text-[#171717]">我是谁</h2>
-      <p className="mt-3 text-sm leading-7 text-[#525252]">
-        我是一个偏产品工程方向的独立开发者，关注从想法验证、交互设计到上线迭代的完整流程。
-        这里记录的是“做出来”的过程，而不只是“想一想”。
-      </p>
-    </article>
-
-    <article className="rounded-2xl border border-[#e5e5e5] bg-white p-6">
-      <h2 className="text-2xl font-semibold text-[#171717]">我在做什么</h2>
-      <div className="mt-3 grid gap-3 md:grid-cols-3">
-        <div className="rounded-xl border border-[#e5e5e5] bg-[#fafafa] p-4">
-          <p className="text-sm font-semibold text-[#009966]">产品</p>
-          <p className="mt-1 text-sm leading-6 text-[#525252]">
-            当前主要产品为卡牌游戏与热量摄入 app，持续迭代体验和留存。
-          </p>
-        </div>
-        <div className="rounded-xl border border-[#e5e5e5] bg-[#fafafa] p-4">
-          <p className="text-sm font-semibold text-blue-600">想法</p>
-          <p className="mt-1 text-sm leading-6 text-[#525252]">
-            定期做小型实验和快速原型，验证新交互与新功能是否值得投入。
-          </p>
-        </div>
-        <div className="rounded-xl border border-[#e5e5e5] bg-[#fafafa] p-4">
-          <p className="text-sm font-semibold text-orange-500">复盘</p>
-          <p className="mt-1 text-sm leading-6 text-[#525252]">
-            每次发版都记录“做了什么、带来什么影响、下一步做什么”。
-          </p>
-        </div>
-      </div>
-    </article>
-
-    <article className="rounded-2xl border border-[#e5e5e5] bg-white p-6">
       <h2 className="text-2xl font-semibold text-[#171717]">联系方式</h2>
-      <p className="mt-3 text-sm leading-7 text-[#525252]">
-        欢迎交流产品、设计和工程实现。你可以通过下面方式联系我。
-      </p>
+      <p className="mt-3 text-sm leading-7 text-[#525252]">欢迎交流产品、设计和工程实现。</p>
 
       <div className="mt-5 flex flex-wrap gap-3">
         <Link
@@ -907,19 +730,6 @@ const AboutPage = () => (
         >
           <GitHubIcon />
           GitHub
-          <ExternalIcon />
-        </Link>
-        <Link
-          to={TWITTER_LINK}
-          className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#e5e5e5] bg-white px-4 text-sm font-medium text-[#404040]"
-        >
-          <svg className="size-4" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path
-              d="M18 4H21L14 11L22 20H16L11 14.5L6.5 20H3.5L11 11L3.5 4H9.5L14 9L18 4Z"
-              fill="currentColor"
-            />
-          </svg>
-          Twitter
           <ExternalIcon />
         </Link>
       </div>
@@ -950,9 +760,7 @@ const AppFooter = () => (
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div>
           <h3 className="text-xl font-semibold text-[#171717]">产品实验室</h3>
-          <p className="mt-2 text-sm text-[#525252]">
-            打磨有趣的产品，记录开发过程，分享设计思考
-          </p>
+          <p className="mt-2 text-sm text-[#525252]">打磨有趣的产品，记录开发过程，分享设计思考</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -986,7 +794,13 @@ export const App = () => {
   const route = useMemo(() => resolveRoute(pathname), [pathname]);
 
   useEffect(() => {
-    const titleMap: Record<Route["name"], string> = {
+    if (route.name === "product-detail") {
+      const product = PRODUCTS.find((item) => item.id === route.productId);
+      document.title = product ? `${product.name} - 产品详情` : "产品详情";
+      return;
+    }
+
+    const titleMap: Record<Exclude<Route["name"], "product-detail">, string> = {
       home: "产品实验室",
       products: "产品 - 产品实验室",
       ideas: "想法 - 产品实验室",
@@ -995,7 +809,7 @@ export const App = () => {
       "not-found": "404 - 产品实验室",
     };
     document.title = titleMap[route.name];
-  }, [route.name]);
+  }, [route]);
 
   return (
     <div className="min-h-screen bg-[#fafafa] font-[Inter,Noto_Sans_SC,PingFang_SC,Microsoft_YaHei,sans-serif] text-[#171717]">
@@ -1003,6 +817,7 @@ export const App = () => {
       <main className="mx-auto w-full max-w-[1280px] px-4 md:px-8">
         {route.name === "home" ? <HomePage /> : null}
         {route.name === "products" ? <ProductsPage /> : null}
+        {route.name === "product-detail" ? <ProductDetailPage productId={route.productId} /> : null}
         {route.name === "ideas" ? <IdeasPage /> : null}
         {route.name === "reviews" ? <ReviewsPage /> : null}
         {route.name === "about" ? <AboutPage /> : null}

@@ -1,25 +1,27 @@
-export type ProductStatus = "Active" | "Shipped";
-export type ProductCategory = "游戏" | "健康";
-
-export type ProductMockCover = {
-  title: string;
-  subtitle: string;
-  from: string;
-  to: string;
-  accent: string;
-};
+export type ProductStatus = "active" | "archived";
 
 export type Product = {
   id: string;
-  title: string;
+  name: string;
   summary: string;
-  description: string;
-  url: string;
-  cover?: string;
-  mockCover?: ProductMockCover;
-  category: ProductCategory;
+  coverImage: string;
+  currentVersion: string;
+  currentVersionCommitDate: string;
   status: ProductStatus;
+};
+
+export type Idea = {
+  id: string;
+  name: string;
+  summary: string;
+  ideaDate: string;
+};
+
+export type Review = {
+  id: string;
+  productName: string;
   version: string;
-  lastUpdated: string;
-  lastUpdatedLabel: string;
+  publishDate: string;
+  dataChanges: string[];
+  nextPlan: string;
 };

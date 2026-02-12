@@ -1,0 +1,20 @@
+[
+  {
+    "id": "task-studio",
+    "name": "Task Studio",
+    "summary": "为独立开发者设计的任务管理工具",
+    "coverImage": "https://www.figma.com/api/mcp/asset/251b2b84-13b0-4ec3-8ea8-8525908e6374",
+    "currentVersion": "v2.3.1",
+    "currentVersionCommitDate": "2026-02-05",
+    "status": "active"
+  },
+  {
+    "id": "moment-log",
+    "name": "Moment Log",
+    "summary": "记录生活中值得回味的瞬间",
+    "coverImage": "https://www.figma.com/api/mcp/asset/b33898a4-918c-437b-b787-6d5beddf417f",
+    "currentVersion": "v1.5.2",
+    "currentVersionCommitDate": "2026-01-28",
+    "status": "active"
+  }
+]
