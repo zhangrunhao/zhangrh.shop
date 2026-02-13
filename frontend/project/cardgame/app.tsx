@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { track } from '../../common/track'
+import { SurveyModal } from './components/survey-modal'
 
 type CardType = 'A' | 'D' | 'R'
 
@@ -153,6 +154,8 @@ const App = () => {
   const [playerId, setPlayerId] = useState('')
   const [playerName, setPlayerName] = useState('')
   const [joinRoomCode, setJoinRoomCode] = useState('')
+  const [surveyOpen, setSurveyOpen] = useState(false)
+  const [surveyRenderKey, setSurveyRenderKey] = useState(0)
 
   const pendingMessageRef = useRef<string | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
@@ -195,6 +198,15 @@ const App = () => {
   useEffect(() => {
     sessionActiveRef.current = Boolean(roomId && playerId)
   }, [roomId, playerId])
+
+  const openSurvey = () => {
+    setSurveyRenderKey((prev) => prev + 1)
+    setSurveyOpen(true)
+  }
+
+  const closeSurvey = () => {
+    setSurveyOpen(false)
+  }
 
   const buildWsUrls = () => {
     const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws'
@@ -614,6 +626,10 @@ const App = () => {
       </div>
 
       <div className="app-shell">
+        <button className="survey-fab" onClick={openSurvey} type="button">
+          问卷
+        </button>
+
         {route === 'entry' && (
           <section className="entry-wrap">
             <header className="entry-header">
@@ -1211,33 +1227,38 @@ const App = () => {
                   跳过动画
                 </button>
               ) : (
-                <button
-                  className="primary-button"
-                  onClick={() => {
-                    trackCardgameClick('round_confirm')
-                    if (roomState && playerId && !gameOver) {
-                      sendMessage({
-                        type: 'round_confirm',
-                        payload: {
-                          roomId: roomState.roomId,
-                          playerId,
-                          round: roomState.round,
-                        },
-                      })
-                    }
-                    setModalOpen(false)
-                    setShowDelta(false)
-                    setStepIndex(0)
-                    setRoundResult(null)
-                    setRoundHand(null)
-                    if (gameOver) {
-                      setRoute('result')
-                    }
-                  }}
-                  type="button"
-                >
-                  继续游戏
-                </button>
+                <div className="modal-actions">
+                  <button
+                    className="primary-button"
+                    onClick={() => {
+                      trackCardgameClick('round_confirm')
+                      if (roomState && playerId && !gameOver) {
+                        sendMessage({
+                          type: 'round_confirm',
+                          payload: {
+                            roomId: roomState.roomId,
+                            playerId,
+                            round: roomState.round,
+                          },
+                        })
+                      }
+                      setModalOpen(false)
+                      setShowDelta(false)
+                      setStepIndex(0)
+                      setRoundResult(null)
+                      setRoundHand(null)
+                      if (gameOver) {
+                        setRoute('result')
+                      }
+                    }}
+                    type="button"
+                  >
+                    继续游戏
+                  </button>
+                  <button className="survey-inline-button" onClick={openSurvey} type="button">
+                    问卷
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -1269,6 +1290,9 @@ const App = () => {
                 <button className="primary-button" onClick={handleRematch} type="button">
                   再来一局
                 </button>
+                <button className="survey-inline-button" onClick={openSurvey} type="button">
+                  问卷
+                </button>
                 <button className="ghost-button" onClick={handleLeaveGame} type="button">
                   返回首页
                 </button>
@@ -1276,6 +1300,8 @@ const App = () => {
             </div>
           </section>
         )}
+
+        <SurveyModal key={surveyRenderKey} isOpen={surveyOpen} onClose={closeSurvey} />
       </div>
     </div>
   )
