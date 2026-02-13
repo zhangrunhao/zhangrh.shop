@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { track } from '../../common/track'
 
 type CardType = 'A' | 'D' | 'R'
 
@@ -123,6 +124,14 @@ const ENTRY_MODES: Array<{ mode: EntryMode; title: string; subtitle: string; ico
   { mode: 'join', title: '加入房间', subtitle: '输入房间号加入', icon: ICON_ENTRY_JOIN },
   { mode: 'ai', title: '人机对战', subtitle: '与 AI 练习', icon: ICON_ENTRY_BOT },
 ]
+
+const trackCardgameClick = (button: string) => {
+  track({
+    event: 'click',
+    project: 'cardgame',
+    params: { button },
+  })
+}
 
 const App = () => {
   const [route, setRoute] = useState<Route>('entry')
@@ -416,13 +425,16 @@ const App = () => {
 
   const handleEntryAction = () => {
     if (entryMode === 'create') {
+      trackCardgameClick('create_room')
       handleCreateRoom()
       return
     }
     if (entryMode === 'join') {
+      trackCardgameClick('join_room')
       handleJoinRoom()
       return
     }
+    trackCardgameClick('ai_battle')
     handleStartBotMatch()
   }
 
@@ -435,6 +447,7 @@ const App = () => {
     if (picks.length !== required) {
       return
     }
+    trackCardgameClick('play_cards')
     sendMessage({
       type: 'play_cards',
       payload: {
@@ -447,6 +460,7 @@ const App = () => {
   }
 
   const handleRematch = () => {
+    trackCardgameClick('play_again')
     if (!roomId || !playerId) {
       return
     }
@@ -1200,6 +1214,7 @@ const App = () => {
                 <button
                   className="primary-button"
                   onClick={() => {
+                    trackCardgameClick('round_confirm')
                     if (roomState && playerId && !gameOver) {
                       sendMessage({
                         type: 'round_confirm',
