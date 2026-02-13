@@ -126,6 +126,16 @@ const ENTRY_MODES: Array<{ mode: EntryMode; title: string; subtitle: string; ico
   { mode: 'ai', title: '人机对战', subtitle: '与 AI 练习', icon: ICON_ENTRY_BOT },
 ]
 
+const NICKNAME_PREFIX = ['疾风', '烈焰', '寒霜', '星尘', '黑曜', '青岚', '赤羽', '流光']
+const NICKNAME_SUFFIX = ['牌手', '谋士', '旅人', '先锋', '骑士', '猎人', '学徒', '守卫']
+
+const randomPick = (items: string[]) => items[Math.floor(Math.random() * items.length)]
+
+const generateRecommendedNickname = () => {
+  const serial = Math.floor(Math.random() * 90) + 10
+  return `${randomPick(NICKNAME_PREFIX)}${randomPick(NICKNAME_SUFFIX)}${serial}`
+}
+
 const trackCardgameClick = (button: string) => {
   track({
     event: 'click',
@@ -152,7 +162,7 @@ const App = () => {
   const [connectionState, setConnectionState] = useState<'idle' | 'connecting' | 'connected'>('idle')
   const [roomId, setRoomId] = useState('')
   const [playerId, setPlayerId] = useState('')
-  const [playerName, setPlayerName] = useState('')
+  const [playerName, setPlayerName] = useState(() => generateRecommendedNickname())
   const [joinRoomCode, setJoinRoomCode] = useState('')
   const [surveyOpen, setSurveyOpen] = useState(false)
   const [surveyRenderKey, setSurveyRenderKey] = useState(0)
@@ -206,6 +216,10 @@ const App = () => {
 
   const closeSurvey = () => {
     setSurveyOpen(false)
+  }
+
+  const refreshRecommendedNickname = () => {
+    setPlayerName(generateRecommendedNickname())
   }
 
   const buildWsUrls = () => {
@@ -645,7 +659,12 @@ const App = () => {
             </header>
 
             <div className="entry-panel">
-              <label className="field-label">游戏昵称</label>
+              <div className="field-head">
+                <label className="field-label">游戏昵称</label>
+                <button className="field-action" onClick={refreshRecommendedNickname} type="button">
+                  换一个
+                </button>
+              </div>
               <input
                 className="text-input"
                 value={playerName}

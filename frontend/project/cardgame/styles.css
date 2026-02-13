@@ -108,6 +108,23 @@ input {
   color: #2b2622;
 }
 
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-action {
+  border: 0;
+  background: transparent;
+  color: #2b2622;
+  font-size: 13px;
+  line-height: 20px;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .text-input {
   width: 100%;
   height: 48px;
