@@ -6,7 +6,7 @@ import {
   buildPublishChoices,
   pickDefaultChoice,
   sanitizeState,
-} from '../tools/workspace-runner-lib.mjs'
+} from './workspace-runner-lib.mjs'
 
 test('buildDevChoices includes backend and all frontend projects', () => {
   const choices = buildDevChoices(['hub', 'cardgame'])

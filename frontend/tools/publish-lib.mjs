@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import readline from 'node:readline'
-import { buildMenuLines, getMenuRewindLineCount } from '../../tools/terminal-menu-lib.mjs'
+import { buildMenuLines, getMenuRewindLineCount } from '../../automation/publish/terminal-menu-lib.mjs'
 
 export const STATE_FILE_RELATIVE_PATH = path.join('.cache', 'frontend-publish-state.json')
 

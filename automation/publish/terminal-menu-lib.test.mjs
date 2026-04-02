@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { buildMenuLines, getMenuRewindLineCount } from '../tools/terminal-menu-lib.mjs'
+import { buildMenuLines, getMenuRewindLineCount } from './terminal-menu-lib.mjs'
 
 test('getMenuRewindLineCount rewinds one less than rendered lines', () => {
   assert.equal(getMenuRewindLineCount(0), 0)

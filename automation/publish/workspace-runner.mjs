@@ -17,7 +17,7 @@ import {
 import { buildMenuLines, getMenuRewindLineCount } from './terminal-menu-lib.mjs'
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
-const repoRoot = path.resolve(scriptDir, '..')
+const repoRoot = path.resolve(scriptDir, '..', '..')
 const backendRoot = path.join(repoRoot, 'backend')
 const frontendRoot = path.join(repoRoot, 'frontend')
 const frontendProjectRoot = path.join(frontendRoot, 'project')

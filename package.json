@@ -2,8 +2,8 @@
   "name": "zhangrh-shop",
   "private": true,
   "scripts": {
-    "dev": "node tools/workspace-runner.mjs dev",
-    "publish": "node tools/workspace-runner.mjs publish",
-    "test": "node --test tests/*.test.mjs"
+    "dev": "node automation/publish/workspace-runner.mjs dev",
+    "publish": "node automation/publish/workspace-runner.mjs publish",
+    "test": "node --test automation/publish/*.test.mjs"
   }
 }
