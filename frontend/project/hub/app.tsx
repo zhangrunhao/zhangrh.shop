@@ -8,6 +8,7 @@ import { NotFoundPage } from "./pages/not-found-page";
 import { ProductDetailPage } from "./pages/product-detail-page";
 import { ProductsPage } from "./pages/products-page";
 import { ReviewsPage } from "./pages/reviews-page";
+import { ZhengtianPage } from "./pages/zhengtian-page";
 import { PRODUCTS } from "./shared/data";
 import { resolvePageName, trackHubLoadPage } from "./shared/tracking";
 import { resolveRoute, usePathname } from "./shared/route";
@@ -29,6 +30,7 @@ export const App = () => {
       ideas: "想法 - 产品实验室",
       reviews: "复盘 - 产品实验室",
       about: "关于 - 产品实验室",
+      zhengtian: "时间线web - 组件库",
       "not-found": "404 - 产品实验室",
     } as const;
     document.title = titleMap[route.name];
@@ -37,6 +39,14 @@ export const App = () => {
   useEffect(() => {
     trackHubLoadPage(resolvePageName(route));
   }, [route]);
+
+  if (route.name === "zhengtian") {
+    return (
+      <div className="min-h-screen bg-white font-['SF_Pro_Text','SF_Pro_Display','PingFang_SC','Hiragino_Sans_GB','Microsoft_YaHei',sans-serif] text-[#333333]">
+        <ZhengtianPage />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fafafa] font-[Inter,Noto_Sans_SC,PingFang_SC,Microsoft_YaHei,sans-serif] text-[#171717]">

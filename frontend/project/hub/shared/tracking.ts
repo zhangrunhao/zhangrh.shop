@@ -10,6 +10,7 @@ export type HubPageName =
   | "ideas"
   | "reviews"
   | "about"
+  | "zhengtian"
   | "not_found";
 
 export type HubButton =
