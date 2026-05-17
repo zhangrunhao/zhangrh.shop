@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  APP_NAME,
+  CONTACT_EMAIL,
+  DEVELOPER,
+  LAST_UPDATED,
+  privacyPage,
+  supportPage,
+  type ContentBlock,
+  type ShotMarkerPage,
+} from "./content";
 import { resolveRoute, withBase } from "./shared/route";
-
-const supportItems = [
-  "App Store support URL endpoint",
-  "Contact and troubleshooting content placeholder",
-  "Privacy policy cross-link placeholder",
-];
-
-const privacyItems = [
-  "App Store privacy policy URL endpoint",
-  "Data collection summary placeholder",
-  "Data deletion and contact placeholder",
-];
 
 const usePathname = () => {
   const [pathname, setPathname] = useState(() => window.location.pathname);
@@ -25,61 +23,83 @@ const usePathname = () => {
   return pathname;
 };
 
-const NavLink = ({
-  active,
-  children,
-  to,
-}: {
-  active: boolean;
-  children: string;
-  to: string;
-}) => (
-  <a className={active ? "nav-link active" : "nav-link"} href={withBase(to)}>
-    {children}
-  </a>
+const EmailLink = ({ email }: { email: string }) => (
+  <a href={`mailto:${email}`}>{email}</a>
 );
 
-const PlaceholderList = ({ items }: { items: string[] }) => (
-  <ul className="placeholder-list">
-    {items.map((item) => (
-      <li key={item}>{item}</li>
+const Block = ({ block }: { block: ContentBlock }) => {
+  if (block.kind === "heading") {
+    return <h3>{block.text}</h3>;
+  }
+
+  if (block.kind === "list") {
+    return (
+      <ul>
+        {block.items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (block.kind === "email") {
+    return (
+      <p className={block.className}>
+        {block.prefix}
+        <EmailLink email={block.email} />
+        {block.suffix}
+      </p>
+    );
+  }
+
+  if (block.kind === "internalLink") {
+    return (
+      <p className={block.className}>
+        {block.prefix}
+        <a href={block.href}>{block.label}</a>
+        {block.suffix}
+      </p>
+    );
+  }
+
+  return <p className={block.className}>{block.text}</p>;
+};
+
+const ContentPage = ({ page }: { page: ShotMarkerPage }) => (
+  <main>
+    <header>
+      <h1>{page.title}</h1>
+      {page.muted ? <p className="muted">{page.muted}</p> : null}
+      {page.summary ? <p className="summary">{page.summary}</p> : null}
+      {page.summaryZh ? <p className="language-block">{page.summaryZh}</p> : null}
+    </header>
+
+    {page.sections.map((section) => (
+      <section key={section.id} aria-labelledby={section.id}>
+        <h2 id={section.id}>{section.title}</h2>
+        {section.blocks.map((block, index) => (
+          <Block key={`${section.id}-${index}`} block={block} />
+        ))}
+      </section>
     ))}
-  </ul>
-);
 
-const SupportPage = () => (
-  <section className="panel">
-    <p className="eyebrow">Support</p>
-    <h1>Shotmaker Support</h1>
-    <p className="lede">
-      This page is reserved for Shotmaker support information required by App
-      Store Connect.
-    </p>
-    <PlaceholderList items={supportItems} />
-  </section>
-);
-
-const PrivacyPage = () => (
-  <section className="panel">
-    <p className="eyebrow">Privacy Policy</p>
-    <h1>Shotmaker Privacy Policy</h1>
-    <p className="lede">
-      This page is reserved for the Shotmaker privacy policy required by App
-      Store Connect.
-    </p>
-    <PlaceholderList items={privacyItems} />
-  </section>
+    <footer>
+      <p>Last updated: {LAST_UPDATED}</p>
+      <p>Developer: {DEVELOPER}</p>
+    </footer>
+  </main>
 );
 
 const NotFoundPage = () => (
-  <section className="panel">
-    <p className="eyebrow">404</p>
-    <h1>Page not found</h1>
-    <p className="lede">The requested Shotmaker page does not exist.</p>
-    <a className="primary-link" href={withBase("/support")}>
-      Go to support
-    </a>
-  </section>
+  <main>
+    <section>
+      <h1>Page not found</h1>
+      <p>The requested {APP_NAME} page does not exist.</p>
+      <p>
+        <a href={withBase("/support")}>Go to support</a>
+      </p>
+    </section>
+  </main>
 );
 
 export const App = () => {
@@ -88,35 +108,24 @@ export const App = () => {
 
   useEffect(() => {
     const titleMap = {
-      support: "Shotmaker Support",
-      privacy: "Shotmaker Privacy Policy",
-      "not-found": "Shotmaker - Page Not Found",
+      support: supportPage.title,
+      privacy: privacyPage.title,
+      "not-found": `${APP_NAME} - Page Not Found`,
     } as const;
     document.title = titleMap[route.name];
+    const description =
+      route.name === "privacy" ? privacyPage.description : supportPage.description;
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", description);
   }, [route.name]);
 
   return (
-    <div className="app-shell">
-      <header className="site-header">
-        <a className="brand" href={withBase("/support")} aria-label="Shotmaker">
-          <span className="brand-mark">S</span>
-          <span>Shotmaker</span>
-        </a>
-        <nav className="site-nav" aria-label="Shotmaker pages">
-          <NavLink active={route.name === "support"} to="/support">
-            Support
-          </NavLink>
-          <NavLink active={route.name === "privacy"} to="/privacy">
-            Privacy
-          </NavLink>
-        </nav>
-      </header>
-
-      <main className="main-content">
-        {route.name === "support" ? <SupportPage /> : null}
-        {route.name === "privacy" ? <PrivacyPage /> : null}
-        {route.name === "not-found" ? <NotFoundPage /> : null}
-      </main>
-    </div>
+    <>
+      {route.name === "support" ? <ContentPage page={supportPage} /> : null}
+      {route.name === "privacy" ? <ContentPage page={privacyPage} /> : null}
+      {route.name === "not-found" ? <NotFoundPage /> : null}
+      <span className="sr-only">Support contact: {CONTACT_EMAIL}</span>
+    </>
   );
 };
