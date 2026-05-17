@@ -7,7 +7,7 @@
     "dev": "nodemon server.js",
     "publish": "node tools/publish.mjs",
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test tools/*.test.mjs"
   },
   "keywords": [],
   "author": "",

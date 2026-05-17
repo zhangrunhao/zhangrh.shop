@@ -11,11 +11,11 @@ import {
   shellEscape,
 } from './deploy-static.mjs'
 
-test('defaults use server rsync target', () => {
+test('defaults use compose site rsync target', () => {
   assert.equal(DEFAULT_PROJECT_NAME, 'hub')
   assert.equal(DEFAULT_RSYNC_USER, 'root')
   assert.equal(DEFAULT_RSYNC_HOST, '101.200.185.29')
-  assert.equal(DEFAULT_RSYNC_DEST, '/var/www/zhangrh.shop')
+  assert.equal(DEFAULT_RSYNC_DEST, '/opt/zhangrh-shop/site')
 })
 
 test('distDirForProject points to dist/<project>', () => {
@@ -23,16 +23,16 @@ test('distDirForProject points to dist/<project>', () => {
 })
 
 test('remoteDirForProject joins base and project', () => {
-  assert.equal(remoteDirForProject('/var/www/zhangrh.shop', 'hub'), '/var/www/zhangrh.shop/hub')
-  assert.equal(remoteDirForProject('/var/www/zhangrh.shop/', 'hub'), '/var/www/zhangrh.shop/hub')
+  assert.equal(remoteDirForProject('/opt/zhangrh-shop/site', 'hub'), '/opt/zhangrh-shop/site/hub')
+  assert.equal(remoteDirForProject('/opt/zhangrh-shop/site/', 'hub'), '/opt/zhangrh-shop/site/hub')
 })
 
 test('ensureTrailingSlash appends once', () => {
-  assert.equal(ensureTrailingSlash('/var/www/zhangrh.shop/hub'), '/var/www/zhangrh.shop/hub/')
-  assert.equal(ensureTrailingSlash('/var/www/zhangrh.shop/hub/'), '/var/www/zhangrh.shop/hub/')
+  assert.equal(ensureTrailingSlash('/opt/zhangrh-shop/site/hub'), '/opt/zhangrh-shop/site/hub/')
+  assert.equal(ensureTrailingSlash('/opt/zhangrh-shop/site/hub/'), '/opt/zhangrh-shop/site/hub/')
 })
 
 test('shellEscape quotes safely', () => {
-  assert.equal(shellEscape("/var/www/zhangrh.shop/hub"), "'/var/www/zhangrh.shop/hub'")
+  assert.equal(shellEscape('/opt/zhangrh-shop/site/hub'), "'/opt/zhangrh-shop/site/hub'")
   assert.equal(shellEscape("abc'def"), "'abc'\\''def'")
 })

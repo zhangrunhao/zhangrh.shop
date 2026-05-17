@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 export const DEFAULT_PROJECT_NAME = 'hub'
 export const DEFAULT_RSYNC_USER = 'root'
 export const DEFAULT_RSYNC_HOST = '101.200.185.29'
-export const DEFAULT_RSYNC_DEST = '/var/www/zhangrh.shop'
+export const DEFAULT_RSYNC_DEST = '/opt/zhangrh-shop/site'
 
 export const distDirForProject = (projectName) => path.join('dist', projectName)
 
