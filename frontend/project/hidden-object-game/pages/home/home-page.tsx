@@ -38,9 +38,6 @@ export const HomePage = ({ openVenue, openLotteryInitially = false, onLotteryIni
     if (!openLotteryInitially) {
       return
     }
-    window.setTimeout(() => {
-      setLotteryVisible(true)
-    }, 0)
     onLotteryInitialOpenConsumed?.()
   }, [onLotteryInitialOpenConsumed, openLotteryInitially])
 
