@@ -1,4 +1,3 @@
-/* eslint-disable no-debugger */
 // 整合所有
 import {
   isFunc

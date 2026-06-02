@@ -26,7 +26,7 @@ const app = {
   },
   initAudio: function () {
     var myaudio = Global.myAudio = new Hilo.HTMLAudio({
-      src: new URL('../asset/audio/audio.mp3', import.meta.url).href,
+      src: new URL('./asset/audio/audio.mp3', window.location.href).href,
       loop: true
     })
     myaudio.load()

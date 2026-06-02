@@ -185,8 +185,6 @@ export default class Topic3 extends Topic {
     document.getElementById('app').appendChild(gif)
     new NewDom(gif, domParams).listenChange()
 
-    document.getElementById('videoQ4').play()
-    document.getElementById('videoQ4').pause()
     this.fire('chooseAnswer', {
       instance: this,
       topic: 'q3',

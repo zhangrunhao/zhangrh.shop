@@ -1,5 +1,3 @@
-/* eslint-disable no-debugger */
-
 import $ from '$'
 import Hilo from 'hilo'
 import NewDom from './NewDom'

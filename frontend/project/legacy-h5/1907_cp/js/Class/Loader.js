@@ -1,4 +1,3 @@
-/* eslint-disable no-debugger */
 // 依靠外部传入所有页面中资源路径, 提供, 开始加载, 实时百分比, 加载完成的功能
 import Hilo from 'hilo'
 import {
