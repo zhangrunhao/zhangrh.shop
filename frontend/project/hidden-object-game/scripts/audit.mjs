@@ -26,6 +26,7 @@ const requiredFiles = [
   'utils/storage.ts',
   'components/popup.tsx',
   'components/toast.tsx',
+  'components/toast-context.ts',
   'components/loading.tsx',
   'pages/home/home-page.tsx',
   'pages/home/home-page.css',
@@ -74,6 +75,52 @@ const listFiles = (dir) => {
   })
 }
 
+const extractImportSpecifiers = (content) => {
+  const specifiers = []
+  const patterns = [
+    /\bimport\s+(?:type\s+)?[\s\S]*?\bfrom\s*(['"])([^'"]+)\1/g,
+    /\bimport\s*(['"])([^'"]+)\1/g,
+    /\bexport\s+(?:type\s+)?[\s\S]*?\bfrom\s*(['"])([^'"]+)\1/g,
+    /\bimport\s*\(\s*(['"])([^'"]+)\1\s*\)/g,
+    /\brequire\s*\(\s*(['"])([^'"]+)\1\s*\)/g,
+  ]
+
+  for (const pattern of patterns) {
+    for (const match of content.matchAll(pattern)) {
+      specifiers.push(match[2])
+    }
+  }
+
+  return specifiers
+}
+
+const isRelativeSpecifier = (specifier) => specifier.startsWith('./') || specifier.startsWith('../')
+
+const hasPathSegment = (specifier, segment) => specifier.split('/').includes(segment)
+
+const isForbiddenImportSpecifier = (specifier, file) => {
+  if (
+    specifier.includes('re-activity') ||
+    specifier === 'axios' ||
+    specifier.startsWith('axios/') ||
+    specifier === '@sohu' ||
+    specifier.startsWith('@sohu/')
+  ) {
+    return true
+  }
+
+  if (!isRelativeSpecifier(specifier)) {
+    return specifier === 'common' || specifier.startsWith('common/') || specifier === 'components' || specifier.startsWith('components/')
+  }
+
+  const resolvedPath = path.resolve(path.dirname(file), specifier)
+  if (path.relative(projectRoot, resolvedPath).startsWith('..')) {
+    return hasPathSegment(path.normalize(resolvedPath), 'common') || hasPathSegment(path.normalize(resolvedPath), 'components')
+  }
+
+  return false
+}
+
 const failures = []
 
 for (const file of requiredFiles) {
@@ -95,22 +142,14 @@ for (const file of listFiles(projectRoot)) {
   }
 }
 
-const forbiddenImportPatterns = [
-  /from ['"].*re-activity/,
-  /from ['"].*common\//,
-  /from ['"].*components\//,
-  /from ['"].*@sohu/,
-  /import .*axios/,
-]
-
 for (const file of listFiles(projectRoot)) {
   if (!/\.(ts|tsx|js|jsx)$/.test(file)) {
     continue
   }
   const content = fs.readFileSync(file, 'utf8')
-  for (const pattern of forbiddenImportPatterns) {
-    if (pattern.test(content)) {
-      failures.push(`Forbidden import ${pattern} found in ${path.relative(projectRoot, file)}`)
+  for (const specifier of extractImportSpecifiers(content)) {
+    if (isForbiddenImportSpecifier(specifier, file)) {
+      failures.push(`Forbidden import "${specifier}" found in ${path.relative(projectRoot, file)}`)
     }
   }
 }

@@ -68,7 +68,10 @@ export const resetMockGame = () => {
 
 export const getHome = async () => wait(clone((homeJson as ApiResponse<HomeData>).data))
 
-export const getVenue = async (_barrierId: number | string) => wait(state.venue)
+export const getVenue = async (barrierId: number | string) => {
+  void barrierId
+  return wait(state.venue)
+}
 
 export const submitTarget = async (eid: string) => {
   const target = state.venue.elementPic.find((item: TargetElement) => item.eid === eid)

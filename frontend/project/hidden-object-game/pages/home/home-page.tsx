@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loading } from '../../components'
+import { Loading } from '../../components/loading'
 import { getHome, getUserInfo, type HomeData } from '../../mock/mock-service'
 import { LotteryDialog } from './lottery-dialog'
 import { PrizeDialog } from './prize-dialog'
