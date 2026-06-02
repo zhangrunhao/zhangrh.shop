@@ -1,29 +1,46 @@
 {
   "statusMsg": "success",
   "data": {
-    "rewardLogo": "",
-    "rewardName": "大转盘抽奖次数",
-    "brandName": "",
+    "rewardLogo": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171636648951326661.PNG",
+    "rewardName": "0.1",
+    "brandName": "现金红包",
     "debug": {
-      "activityId": 6,
-      "ctime": 1716901779072,
-      "ext": "{}",
-      "fromId": 60003,
-      "fromType": 60003,
-      "giftCodeExt": {
-        "ticketId": 0
-      },
-      "id": 18404173,
-      "pid": 6491589146824847477,
-      "rechargeOK": false,
-      "value": 0,
-      "valueType": 1
+      "result": 1,
+      "rewardInfo": {
+        "amount": 1,
+        "brandName": "现金红包",
+        "canDraw": false,
+        "costScore": 0,
+        "ctime": 1716536278157,
+        "currentSize": 0,
+        "endTime": 1782811800000,
+        "giftType": 2,
+        "lotteryType": 1,
+        "moduleId": 0,
+        "poolSize": 0,
+        "putTimeText": "",
+        "rewardId": 0,
+        "rewardLogo": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171636648951326661.PNG",
+        "rewardName": "0.1",
+        "rewardNum": "8c8156dcdc7944b9b2fe090bb0a1cc5a",
+        "rule": "<p>-</p>",
+        "showWeight": 0,
+        "startTime": 1779438600000,
+        "tgId": 709,
+        "ticketId": 18230257,
+        "ticketName": "0.1",
+        "totalScore": 0,
+        "type": 0,
+        "unusedCount": 0
+      }
     },
     "hasReward": true,
-    "giftNum": 2,
-    "elementAllNum": 5,
-    "giftType": 5,
-    "elementFoundNum": 5
+    "giftNum": 1,
+    "elementAllNum": 10,
+    "giftType": 2,
+    "elementFoundNum": 1,
+    "rewardReceivedNum": 1,
+    "rewardAllNum": 5
   },
   "statusCode": "10000000"
 }

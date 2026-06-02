@@ -12,38 +12,36 @@
     "homepageWidth": 750,
     "largeTurntableImage": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171637007544851459.PNG",
     "largeTurntableLotteryId": 636,
-    "largeTurntableLotteryNumber": 0,
+    "largeTurntableLotteryNumber": 8,
     "lotteryInfo": [
       {
-        "name": "实物奖品",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/25/171930397266122945.PNG",
-        "id": 811
+        "name": "20积分",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/29/171695081368053691.PNG",
+        "id": 723
       },
       {
-        "name": "60积分",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/25/171930391918739729.PNG",
-        "id": 810
+        "name": "小狐狸",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/29/171695078125395410.PNG",
+        "id": 722
       },
       {
-        "name": "25积分",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/25/171930386315439431.PNG",
-        "id": 809
+        "name": "10积分",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/29/171695072540214161.PNG",
+        "id": 721
       },
       {
-        "name": "0.5红包",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/25/171930378623661502.PNG",
-        "id": 808
+        "name": "优惠券",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/29/171695067048065680.PNG",
+        "id": 720
       },
       {
-        "name": "优惠劵",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/25/171930363217719135.PNG",
-        "id": 807
+        "name": "1分",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/29/171695057954214120.PNG",
+        "id": 719
       },
       {
-        "rewardLogo": "https://n1.itc.cn/img8/wb/common/20240618/1718702525852.png",
-        "rewardName": "50积分",
-        "name": "50积分",
-        "icon": "https://n1.itc.cn/img8/wb/common/20240618/1718702525852.png",
+        "name": "积分",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/21/171626105529499318.PNG",
         "id": 0,
         "value": 50
       }

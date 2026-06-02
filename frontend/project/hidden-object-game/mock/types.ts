@@ -96,10 +96,12 @@ export type RewardDialogData = {
 
 export type PrizeItem = {
   giftType: number
+  prizeIconUrl?: string
   recharged: boolean
   rewardId: number
   rewardLogo?: string
   rewardName: string
+  tgId?: number
   ticketId: number
   ticketName?: string
   unchargedTitle?: string
@@ -122,11 +124,16 @@ export type LotteryReward = {
   periodId: number
   times: number
   rewardInfo: {
+    rewardId?: number
     rewardLogo: string
     rewardName: string
     giftType: number
     tgId: number
     ticketId: number
     ticketName: string
+    amount?: number
+    brandName?: string
+    lotteryType?: number
+    canDraw?: boolean
   }
 }

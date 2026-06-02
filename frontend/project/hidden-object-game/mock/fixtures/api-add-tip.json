@@ -1,6 +1,12 @@
 {
   "statusMsg": "success",
   "data": {
+    "shareData": {
+      "uid": 1712639645674,
+      "name": "1163_653.png",
+      "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/04/09/171263964532211233.PNG",
+      "status": "success"
+    },
     "tipNum": 1
   },
   "statusCode": "10000000"
