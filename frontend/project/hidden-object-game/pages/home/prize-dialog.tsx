@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Popup } from '../../components/popup'
-import { useToast } from '../../components/toast'
+import { Popup, useToast } from '../../components'
 import { getPrizeList, type PrizeItem } from '../../mock/mock-service'
 
 type PrizeDialogProps = {

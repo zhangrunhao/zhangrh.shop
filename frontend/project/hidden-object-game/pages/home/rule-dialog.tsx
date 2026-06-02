@@ -1,4 +1,4 @@
-import { Popup } from '../../components/popup'
+import { Popup } from '../../components'
 
 type RuleDialogProps = {
   visible: boolean

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Loading } from '../../components/loading'
-import { useToast } from '../../components/toast'
+import { Loading, useToast } from '../../components'
 import {
   getVenue,
   reduceTip,

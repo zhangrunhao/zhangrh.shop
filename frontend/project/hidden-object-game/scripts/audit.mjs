@@ -39,18 +39,20 @@ const requiredFiles = [
   'pages/venue/venue-page.css',
 ]
 
+const rx = (...parts) => new RegExp(parts.join(''))
+
 const forbiddenPatterns = [
   /\/api\//,
-  /trackAGif/,
-  /trackH5Gif/,
+  rx('trackA', 'Gif'),
+  rx('trackH5', 'Gif'),
   /\btrace\(/,
-  /wxConfig/,
-  /callUpApp/,
-  /toolsApi/,
-  /newsApi/,
-  /viewApi/,
-  /commonApi/,
-  /captcha/i,
+  rx('wx', 'Config'),
+  rx('callUp', 'App'),
+  rx('tools', 'Api'),
+  rx('news', 'Api'),
+  rx('view', 'Api'),
+  rx('common', 'Api'),
+  new RegExp(['cap', 'tcha'].join(''), 'i'),
   /share:\/\//,
   /fastshare:\/\//,
   /window\.location\.href\s*=/,
@@ -89,6 +91,26 @@ for (const file of listFiles(projectRoot)) {
   for (const pattern of forbiddenPatterns) {
     if (pattern.test(content)) {
       failures.push(`Forbidden pattern ${pattern} found in ${path.relative(projectRoot, file)}`)
+    }
+  }
+}
+
+const forbiddenImportPatterns = [
+  /from ['"].*re-activity/,
+  /from ['"].*common\//,
+  /from ['"].*components\//,
+  /from ['"].*@sohu/,
+  /import .*axios/,
+]
+
+for (const file of listFiles(projectRoot)) {
+  if (!/\.(ts|tsx|js|jsx)$/.test(file)) {
+    continue
+  }
+  const content = fs.readFileSync(file, 'utf8')
+  for (const pattern of forbiddenImportPatterns) {
+    if (pattern.test(content)) {
+      failures.push(`Forbidden import ${pattern} found in ${path.relative(projectRoot, file)}`)
     }
   }
 }

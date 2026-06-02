@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Popup } from '../../components/popup'
+import { Popup } from '../../components'
 import { drawLottery, getLotteryInfo, type LotteryInfo, type LotteryReward } from '../../mock/mock-service'
 
 type LotteryDialogProps = {

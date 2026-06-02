@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ToastProvider } from './components/toast'
+import { ToastProvider } from './components'
 import { HomePage } from './pages/home/home-page'
 import { VenuePage } from './pages/venue/venue-page'
 import { refreshRootFont } from './utils/rem'
