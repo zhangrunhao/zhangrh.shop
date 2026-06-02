@@ -1,23 +1,26 @@
 import { useEffect, useState } from 'react'
+import { ToastProvider } from './components/toast'
+import { HomePage } from './pages/home/home-page'
+import { refreshRootFont } from './utils/rem'
 
-type View = 'home' | 'venue'
+type View =
+  | { name: 'home' }
+  | { name: 'venue'; venueId: number }
 
 export const App = () => {
-  const [view, setView] = useState<View>('home')
+  const [view, setView] = useState<View>({ name: 'home' })
 
   useEffect(() => {
-    document.title = view === 'home' ? '隐藏物品游戏' : '隐藏物品游戏 - 场馆'
-  }, [view])
+    refreshRootFont()
+    const handleResize = () => refreshRootFont()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   return (
-    <main className="app-shell">
-      <section className="debug-panel">
-        <h1>隐藏物品游戏</h1>
-        <p>Migration shell is ready.</p>
-        <button type="button" onClick={() => setView(view === 'home' ? 'venue' : 'home')}>
-          Toggle view: {view}
-        </button>
-      </section>
-    </main>
+    <ToastProvider>
+      {view.name === 'home' ? <HomePage openVenue={(venueId) => setView({ name: 'venue', venueId })} /> : null}
+      {view.name === 'venue' ? <div className="debug-panel">Venue {view.venueId}</div> : null}
+    </ToastProvider>
   )
 }

@@ -27,6 +27,11 @@ const requiredFiles = [
   'components/popup.tsx',
   'components/toast.tsx',
   'components/loading.tsx',
+  'pages/home/home-page.tsx',
+  'pages/home/home-page.css',
+  'pages/home/rule-dialog.tsx',
+  'pages/home/prize-dialog.tsx',
+  'pages/home/lottery-dialog.tsx',
 ]
 
 const forbiddenPatterns = [
