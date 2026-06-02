@@ -2,11 +2,25 @@
 <html lang="zh-Hans">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>被遗忘的童话故事</title>
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="./main.js"></script>
+    <h1 style="display: none">被遗忘的童话故事</h1>
+    <div id="app">
+      <div id="loading">
+        <div class="rotate_bg">
+          <img class="rotateImages" src="./asset/image/other/loading.png" alt="" />
+          <div id="loadingRate"></div>
+        </div>
+      </div>
+      <div id="stage"></div>
+    </div>
+    <script src="../script/hilo/1.6.0/hilo-min.js"></script>
+    <script src="../script/zepto/1.2.0/zepto.min.js"></script>
+    <script src="../script/scroller/1.2.2/Animate.js"></script>
+    <script src="../script/scroller/1.2.2/Scroller.js"></script>
+    <script type="module" src="./js/index.js"></script>
   </body>
 </html>
