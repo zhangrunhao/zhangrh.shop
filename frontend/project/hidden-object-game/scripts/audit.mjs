@@ -32,6 +32,11 @@ const requiredFiles = [
   'pages/home/rule-dialog.tsx',
   'pages/home/prize-dialog.tsx',
   'pages/home/lottery-dialog.tsx',
+  'pages/venue/venue-page.tsx',
+  'pages/venue/stage.tsx',
+  'pages/venue/touch-mask.tsx',
+  'pages/venue/reward-dialog.tsx',
+  'pages/venue/venue-page.css',
 ]
 
 const forbiddenPatterns = [

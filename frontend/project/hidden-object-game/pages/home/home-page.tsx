@@ -8,9 +8,11 @@ import './home-page.css'
 
 type HomePageProps = {
   openVenue: (venueId: number) => void
+  openLotteryInitially?: boolean
+  onLotteryInitialOpenConsumed?: () => void
 }
 
-export const HomePage = ({ openVenue }: HomePageProps) => {
+export const HomePage = ({ openVenue, openLotteryInitially = false, onLotteryInitialOpenConsumed }: HomePageProps) => {
   const [data, setData] = useState<HomeData | null>(null)
   const [avatar, setAvatar] = useState('')
   const [ruleVisible, setRuleVisible] = useState(false)
@@ -31,6 +33,14 @@ export const HomePage = ({ openVenue }: HomePageProps) => {
       mounted = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!openLotteryInitially) {
+      return
+    }
+    setLotteryVisible(true)
+    onLotteryInitialOpenConsumed?.()
+  }, [onLotteryInitialOpenConsumed, openLotteryInitially])
 
   if (!data) {
     return <Loading progress={0.4} />
