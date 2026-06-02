@@ -3,39 +3,29 @@
   "data": {
     "lotteryInfo": [
       {
-        "name": "抽奖一",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/07/29/172222403204256116.PNG",
-        "id": 838
+        "name": "实物奖品",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/25/171930397266122945.PNG",
+        "id": 811
       },
       {
-        "name": "实物礼品",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/07/29/172222381823056509.PNG",
-        "id": 837
+        "name": "60积分",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/25/171930391918739729.PNG",
+        "id": 810
       },
       {
-        "name": "0.5元",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/07/29/172222374456050042.PNG",
-        "id": 836
+        "name": "25积分",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/25/171930386315439431.PNG",
+        "id": 809
       },
       {
-        "name": "0.3元",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/07/29/172222369708667249.PNG",
-        "id": 835
+        "name": "0.5红包",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/25/171930378623661502.PNG",
+        "id": 808
       },
       {
-        "name": "0.1元",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/07/29/172222365017881159.PNG",
-        "id": 834
-      },
-      {
-        "name": "150积分",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/07/29/172222359807774025.PNG",
-        "id": 833
-      },
-      {
-        "name": "50积分",
-        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/07/29/172222352881795771.PNG",
-        "id": 832
+        "name": "优惠劵",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/25/171930363217719135.PNG",
+        "id": 807
       },
       {
         "rewardLogo": "https://n1.itc.cn/img8/wb/common/20240618/1718702525852.png",
@@ -46,7 +36,7 @@
         "value": 50
       }
     ],
-    "times": 6
+    "times": 0
   },
   "statusCode": "10000000"
 }

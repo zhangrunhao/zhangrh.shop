@@ -50,6 +50,8 @@ export type HomeData = {
     icon: string
     id: number
     value?: number
+    rewardLogo?: string
+    rewardName?: string
   }>
   simpleBarrierInfos: VenueSummary[]
   status: number
