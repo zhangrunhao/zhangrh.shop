@@ -26,6 +26,10 @@ type RewardState = {
   type: number
 }
 
+type SubmitLockToken = number
+
+const TARGET_CLICK_SUBMIT_DELAY_MS = 650
+
 const getScrollLimit = (stageSize: number, viewportSize: number) => Math.max(0, stageSize - viewportSize)
 
 const getTargetScrollPosition = (
@@ -49,6 +53,11 @@ const rewardFromResponse = (reward: RewardDialogData): RewardState => ({
   type: reward.giftType,
 })
 
+const wait = (milliseconds: number) =>
+  new Promise<void>((resolve) => {
+    window.setTimeout(resolve, milliseconds)
+  })
+
 export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
   const { showToast } = useToast()
   const [data, setData] = useState<VenueData | null>(null)
@@ -64,21 +73,27 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const mountedRef = useRef(false)
   const requestSeqRef = useRef(0)
-  const submitLockRef = useRef(false)
+  const submitLockRef = useRef<SubmitLockToken | null>(null)
+  const nextSubmitLockTokenRef = useRef(0)
 
   const acquireSubmitLock = useCallback(() => {
-    if (submitLockRef.current) {
-      return false
+    if (submitLockRef.current !== null) {
+      return null
     }
-    submitLockRef.current = true
+    const token = nextSubmitLockTokenRef.current + 1
+    nextSubmitLockTokenRef.current = token
+    submitLockRef.current = token
     if (mountedRef.current) {
       setSubmitting(true)
     }
-    return true
+    return token
   }, [])
 
-  const releaseSubmitLock = useCallback(() => {
-    submitLockRef.current = false
+  const releaseSubmitLock = useCallback((token: SubmitLockToken) => {
+    if (submitLockRef.current !== token) {
+      return
+    }
+    submitLockRef.current = null
     if (mountedRef.current) {
       setSubmitting(false)
     }
@@ -109,7 +124,7 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
     return () => {
       mountedRef.current = false
       requestSeqRef.current += 1
-      submitLockRef.current = false
+      submitLockRef.current = null
       audioRef.current?.pause()
     }
   }, [venueId])
@@ -125,15 +140,21 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
   }, [])
 
   const runSubmitTarget = useCallback(
-    async (eid: string, lockAlreadyAcquired = false) => {
-      const didAcquireLock = lockAlreadyAcquired || acquireSubmitLock()
-      if (!didAcquireLock) {
+    async (eid: string, ownerToken?: SubmitLockToken, delayBeforeSubmit = 0) => {
+      const lockToken = ownerToken ?? acquireSubmitLock()
+      if (lockToken === null) {
         return
       }
       try {
+        if (delayBeforeSubmit > 0) {
+          await wait(delayBeforeSubmit)
+        }
+        if (!mountedRef.current || submitLockRef.current !== lockToken) {
+          return
+        }
         const submitResult = await submitTargetService(eid)
-        await refreshVenue()
-        if (!mountedRef.current) {
+        const refreshedVenue = await refreshVenue()
+        if (!refreshedVenue || !mountedRef.current || submitLockRef.current !== lockToken) {
           return
         }
         if (submitResult.hasReward) {
@@ -142,7 +163,7 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
         }
         setScaleEid('')
       } finally {
-        releaseSubmitLock()
+        releaseSubmitLock(lockToken)
       }
     },
     [acquireSubmitLock, refreshVenue, releaseSubmitLock],
@@ -150,7 +171,7 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
 
   const handleSubmitTarget = useCallback(
     async (eid: string) => {
-      if (submitting || submitLockRef.current) {
+      if (submitting || submitLockRef.current !== null) {
         return
       }
       if (!data?.nextFind || eid !== data.nextFind.eid) {
@@ -158,9 +179,13 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
         return
       }
 
-      await runSubmitTarget(eid)
+      const lockToken = acquireSubmitLock()
+      if (lockToken === null) {
+        return
+      }
+      await runSubmitTarget(eid, lockToken, TARGET_CLICK_SUBMIT_DELAY_MS)
     },
-    [data, runSubmitTarget, showToast, submitting],
+    [acquireSubmitLock, data, runSubmitTarget, showToast, submitting],
   )
 
   const handleWrongTarget = useCallback(() => {
@@ -168,7 +193,7 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
   }, [data?.nextFind, showToast])
 
   const tipMove = useCallback(async () => {
-    if (submitting || submitLockRef.current) {
+    if (submitting || submitLockRef.current !== null) {
       return
     }
     if (!data?.nextFind) {
@@ -179,7 +204,8 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
       showToast('提示次数不足')
       return
     }
-    if (!acquireSubmitLock()) {
+    const lockToken = acquireSubmitLock()
+    if (lockToken === null) {
       return
     }
 
@@ -193,18 +219,16 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
         return
       }
       if (!reduceResult.reduceResult) {
-        await refreshVenue()
-        if (mountedRef.current) {
+        const refreshedVenue = await refreshVenue()
+        if (refreshedVenue && mountedRef.current && submitLockRef.current === lockToken) {
           showToast('提示次数不足')
           setScaleEid('')
         }
         return
       }
-      await runSubmitTarget(nextFind.eid, true)
+      await runSubmitTarget(nextFind.eid, lockToken)
     } finally {
-      if (submitLockRef.current) {
-        releaseSubmitLock()
-      }
+      releaseSubmitLock(lockToken)
     }
   }, [acquireSubmitLock, data, refreshVenue, releaseSubmitLock, runSubmitTarget, scrollMaxX, scrollMaxY, showToast, submitting])
 

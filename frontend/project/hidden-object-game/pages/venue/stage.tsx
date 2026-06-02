@@ -41,7 +41,6 @@ export const Stage = ({
   const [faultIcon, setFaultIcon] = useState<FaultIcon | null>(null)
   const [localSubmitting, setLocalSubmitting] = useState(false)
   const timeoutIdRef = useRef<number | null>(null)
-  const submitTimeoutRef = useRef<number | null>(null)
   const stageRef = useRef<HTMLDivElement | null>(null)
   const submittingRef = useRef(false)
   const mountedRef = useRef(false)
@@ -58,10 +57,6 @@ export const Stage = ({
     return () => {
       mountedRef.current = false
       clearFaultTimeout()
-      if (submitTimeoutRef.current !== null) {
-        window.clearTimeout(submitTimeoutRef.current)
-        submitTimeoutRef.current = null
-      }
       submittingRef.current = false
     }
   }, [clearFaultTimeout])
@@ -87,7 +82,7 @@ export const Stage = ({
   )
 
   const handleTargetClick = useCallback(
-    (event: MouseEvent<HTMLButtonElement>, target: TargetElement) => {
+    async (event: MouseEvent<HTMLButtonElement>, target: TargetElement) => {
       event.stopPropagation()
       if (submitting || submittingRef.current) {
         return
@@ -99,19 +94,16 @@ export const Stage = ({
       submittingRef.current = true
       setLocalSubmitting(true)
       setScaleEid(target.eid)
-      submitTimeoutRef.current = window.setTimeout(async () => {
-        submitTimeoutRef.current = null
-        try {
-          await submitTarget(target.eid)
-        } catch {
-          return
-        } finally {
-          submittingRef.current = false
-          if (mountedRef.current) {
-            setLocalSubmitting(false)
-          }
+      try {
+        await submitTarget(target.eid)
+      } catch {
+        return
+      } finally {
+        submittingRef.current = false
+        if (mountedRef.current) {
+          setLocalSubmitting(false)
         }
-      }, 650)
+      }
     },
     [nextTargetId, setScaleEid, showWrongClick, submitTarget, submitting],
   )
@@ -154,7 +146,9 @@ export const Stage = ({
               left: element.abscissa,
               backgroundImage: `url(${element.url})`,
             }}
-            onClick={(event) => handleTargetClick(event, element)}
+            onClick={(event) => {
+              void handleTargetClick(event, element)
+            }}
           />
         ))}
         {faultIcon ? <div className="fault-icon" style={{ left: faultIcon.x, top: faultIcon.y }} /> : null}
