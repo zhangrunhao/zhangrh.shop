@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hans">
+
+<head>
+  <title>第二届拼字大会</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0,minimum-scale=1,maximum-scale=1">
+  <link rel="icon" href="data:,">
+  <script>
+    // 分辨率适配
+    (function() {
+        var winWidth = document.documentElement.clientWidth || window.screen.width || window.outerWidth || document.documentElement.scrollWidth;
+        var winHeight = document.documentElement.clientHeight || window.screen.height || window.outerHeight || document.documentElement.scrollHeight;
+        var ratio = 1080 / 1920
+        if ((winWidth / winHeight) < ratio) {
+          var fontSizeRoot = winWidth / 375 * (100 / (1080 / 375)) + 'px';
+        } else {
+          var fontSizeRoot = winHeight / 667 * (100 / (1920 / 667)) + 'px';
+        }
+        document.documentElement.style.fontSize = fontSizeRoot;
+    })();
+  </script>
+</head>
+
+<body>
+  <div class="bg">
+
+    <div class="pre-text">在这个提笔忘字的时代</div>
+    <div class="pre-text">小学语文的拆字连线题</div>
+    <div class="pre-text">你还能做对几道?</div>
+
+    <div class="item title"></div>
+    <div class="item tl"></div>
+    <div class="item tr"></div>
+    <div class="item bl"></div>
+    <div class="item br"></div>
+  </div>
+
+  <div id="home" class="page">
+    <div class="logo image"></div>
+    <div class="title image"></div>
+    <div class="main image"></div>
+    <div class="start">
+      <i class="line"></i>
+      <div class="inner">
+        开始
+      </div>
+    </div>
+    <div class="rank">
+      <div class="avatar">
+        <img class="inner" src="%BASE_URL%2002_spell/asset/home/main.png" alt="">
+      </div>
+      我的排名
+    </div>
+    <div class="demo"></div>
+  </div>
+
+  <div id="operation" class="page normal">
+    <div class="logo"></div>
+    <div class="subject">
+      <div class="count">已对<span>0</span>题</div>
+      <div class="help">下列哪三个部首可以组成一个汉字</div>
+      <div class="question">
+        <div class="option selected">亻</div>
+        <div class="option selected">丨</div>
+        <div class="option">丿</div>
+        <div class="option">匕</div>
+        <div class="result"></div>
+      </div>
+      <div class="time">15</div>
+    </div>
+    <div class="explain">
+      您选错了, 正确的答案是: <span class="answer">华</span><br>
+      点击 "再来一次" 重新挑战
+    </div>
+    <div class="btn">
+    </div>
+    <div class="btn_bottom_corner rank">我的排名</div>
+    <div class="btn_bottom_corner again">再来一次</div>
+  </div>
+
+  <div id="rank" class="page">
+    <div class="logo"></div>
+    <div class="stage">
+      <div class="title">
+        <div class="left">我的排名:</div>
+        <div class="right">22</div>
+      </div>
+      <div id="ScrollWrapper">
+        <ul class="list">
+        </ul>
+      </div>
+    </div>
+    <div class="code">
+      <img src="%BASE_URL%2002_spell/asset/rank/code.png" alt="">
+      截图保存分享
+    </div>
+    <div class="again">再来一次</div>
+  </div>
+
+  <div id="result" class="page">
+    <div class="logo"></div>
+    <div class="avatar"></div>
+    <div class="stage">
+    </div>
+    <div class="code">
+      <img src="%BASE_URL%2002_spell/asset/rank/code.png" alt="">
+      截图保存分享
+    </div>
+    <div class="again">再来一次</div>
+  </div>
+  <script src="%BASE_URL%script/hilo/1.6.0/hilo-min.js"></script>
+  <script src="%BASE_URL%script/jquery/3.4.1/jquery.min.js"></script>
+  <script type="module" src="./js/index.js"></script>
+</body>
+
+</html>

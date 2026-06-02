@@ -24,7 +24,7 @@
 | zhangrh.shop/ | 主页，短期可以继续 301 到 `/hub/` | 保留 |
 | zhangrh.shop/hub/ | 主项目 / 主入口 | 主用 |
 | zhangrh.shop/cardgame/ | 当前卡牌项目 | 先保留 |
-| zhangrh.shop/legacy-h5/ | 旧 H5 活动合集，包含 `1904_tale`、`1905_word`、`1907_cp`、`1908_parade` | 静态发布 |
+| zhangrh.shop/legacy-h5/ | 旧 H5 活动合集，包含 `1905_word`、`1907_cp`、`1908_parade`、`2002_spell`、`2007_picky` | 静态发布 |
 | zhangrh.shop/api/cardgame/ | 当前卡牌项目后端 API / WebSocket | Docker backend |
 | static.zhangrh.shop | OSS 静态资源 | 不参与当前应用发布 |
 | glitchtip.zhangrh.shop | GlitchTip 独立服务 | main 机器反代到 glitchtip 机器 |

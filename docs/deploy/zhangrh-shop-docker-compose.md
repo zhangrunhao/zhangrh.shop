@@ -113,10 +113,11 @@ docker compose up -d --build backend
 curl -k -I https://zhangrh.shop/hub/
 curl -k -I https://zhangrh.shop/cardgame/
 curl -k -I https://zhangrh.shop/legacy-h5/
-curl -k -I https://zhangrh.shop/legacy-h5/1904_tale/
 curl -k -I https://zhangrh.shop/legacy-h5/1905_word/
 curl -k -I https://zhangrh.shop/legacy-h5/1907_cp/
 curl -k -I https://zhangrh.shop/legacy-h5/1908_parade/
+curl -k -I https://zhangrh.shop/legacy-h5/2002_spell/
+curl -k -I https://zhangrh.shop/legacy-h5/2007_picky/
 curl -k https://zhangrh.shop/api/cardgame/health
 ```
 

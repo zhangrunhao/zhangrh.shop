@@ -20,10 +20,11 @@ const requiredPaths = [
   "script/scroller/1.2.2/Animate.js",
   "script/scroller/1.2.2/Scroller.js",
   "legacy/styles/reset.css",
-  "1904_tale/index.html",
   "1905_word/index.html",
   "1907_cp/index.html",
   "1908_parade/index.html",
+  "2002_spell/index.html",
+  "2007_picky/index.html",
 ];
 
 const forbiddenPatterns = [

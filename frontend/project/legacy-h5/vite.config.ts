@@ -14,10 +14,11 @@ const resolveProject = (...segments: string[]) => path.resolve(projectRoot, ...s
 
 const legacyStaticDirs = [
   "script",
-  "1904_tale/asset",
   "1905_word/asset",
   "1907_cp/asset",
   "1908_parade/asset",
+  "2002_spell/asset",
+  "2007_picky/asset",
 ];
 
 const previewBasePath = "/legacy-h5/";
@@ -142,10 +143,11 @@ export default defineConfig((env) =>
       rollupOptions: {
         input: {
           index: resolveProject("index.html"),
-          "1904_tale/index": resolveProject("1904_tale/index.html"),
           "1905_word/index": resolveProject("1905_word/index.html"),
           "1907_cp/index": resolveProject("1907_cp/index.html"),
           "1908_parade/index": resolveProject("1908_parade/index.html"),
+          "2002_spell/index": resolveProject("2002_spell/index.html"),
+          "2007_picky/index": resolveProject("2007_picky/index.html"),
         },
       },
     },

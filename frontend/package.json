@@ -12,6 +12,9 @@
     "deploy": "node scripts/deploy-static.mjs"
   },
   "dependencies": {
+    "@better-scroll/core": "^2.5.1",
+    "handlebars": "^4.7.9",
+    "lodash": "^4.18.1",
     "marked": "^12.0.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

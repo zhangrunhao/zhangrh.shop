@@ -7,6 +7,13 @@ export const getRandomElementFromArray = (arr) =>
 
 export const isWeixin = () => false;
 
+export const isSohu = () => false;
+
+export const isPC = () => {
+  const ua = navigator.userAgent;
+  return !/Android|Adr|iPhone|iPad|iPod|Mobile/i.test(ua);
+};
+
 export const isAndroid = () => {
   const ua = navigator.userAgent;
   return ua.includes("Android") || ua.includes("Adr");
