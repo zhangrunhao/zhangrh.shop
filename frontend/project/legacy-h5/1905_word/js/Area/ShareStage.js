@@ -8,9 +8,8 @@ export default class ShareStage {
     this.queue = resInfo.queue
 
     this.title = null // 标题
-    this.bottomBefore = null // 保存前的底部
+    this.bottomBefore = null
     this.bottomBefore_shade = null
-    this.bottomBefore_saveButton = null
     this.bottomBefore_continueButton = null
     this.bottomBefore_code = null
     this.bottomBefore_text2 = null
@@ -38,7 +37,6 @@ export default class ShareStage {
   drawStatic () {
     this.drawCommonStaticElement(this.content) // common
     this.drawComoonBottom(this.content) // common
-    this.drawShareTile() // common
     this.drawShareBottom() // common
     this.drawMain(this.resInfo, this.content)
     this.drawAvatar(this.content)
@@ -228,16 +226,9 @@ export default class ShareStage {
       background: 'black',
       alpha: 0.2
     }).addTo(bottomBefore)
-    this.bottomBefore_saveButton = new Hilo.Bitmap({ // 保存按钮
-      image: Global.asset.getAsset('share/common/btn-save.png'),
-      x: 270,
-      y: 50
-    }).addTo(bottomBefore).on(Hilo.event.POINTER_START, () => {
-      this.saveShareImage()
-    })
     this.bottomBefore_continueButton = new Hilo.Bitmap({ // 继续按钮
       image: Global.asset.getAsset('share/common/btn-continue.png'),
-      x: 60,
+      x: 270,
       y: 50
     }).addTo(bottomBefore).on(Hilo.event.POINTER_START, () => {
       this.continueGame()
@@ -295,32 +286,6 @@ export default class ShareStage {
       y: 175
     }).addTo(bottomShare)
   }
-  drawShareTile () {
-    this.shareAlertTile = new Hilo.Container({
-      background: 'white',
-      y: Global.height - 240,
-      width: 750,
-      height: 240
-    })
-    new Hilo.Text({
-      width: Global.width,
-      text: '长按图片, 进行保存',
-      textAlign: 'center',
-      maxWidth: 300,
-      align: Hilo.align.CENTER
-    }).setFont('28px arial').addTo(this.shareAlertTile)
-  }
-  saveShareImage () {
-    this.bottomBefore.removeFromParent()
-    this.shareAlertTile.addTo(this.content)
-    setTimeout(() => {
-      this.shareAlertTile.removeFromParent()
-      this.bottomShare.addTo(this.content)
-      Global.ticker.nextTick(() => {
-        this.showImage()
-      })
-    }, 1500)
-  }
   createStage () {
     let timer
     const stageScaleX = innerWidth / Global.width
@@ -368,19 +333,10 @@ export default class ShareStage {
     Global.ticker.addTick(stage)
     return content
   }
-  showImage () {
-    const shareDiv = document.getElementById('share_stage')
-    const canvas = shareDiv.getElementsByTagName('canvas')[0]
-    const img = document.getElementById('share_img')
-    img.src = canvas.toDataURL()
-    shareDiv.style.display = 'none'
-    img.style.display = 'block'
-  }
   removeAllElement () {
     this.title = null
     this.bottomBefore = null
     this.bottomBefore_shade = null
-    this.bottomBefore_saveButton = null
     this.bottomBefore_continueButton = null
     this.bottomBefore_code = null
     this.bottomBefore_text2 = null

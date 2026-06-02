@@ -4,7 +4,6 @@ const share = [ // 结果页资源
 ]
 const common = [
   'avatr.png',
-  'btn-save.png',
   'btn-continue.png',
   'code.jpeg',
   'count.png',

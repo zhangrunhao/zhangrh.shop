@@ -66,7 +66,7 @@ export default class ChooseArea {
         radical.toActive()
       }
     })
-    this.choosedBtns.push(btn) // 保存已选择文本
+    this.choosedBtns.push(btn)
     Global.bus.fire('chooseRadicalEvent', btn)
   }
   /**

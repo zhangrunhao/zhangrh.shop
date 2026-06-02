@@ -15,13 +15,12 @@ export default {
 
   gameStage: null, // 游戏页面舞台
 
-  isWX: false, // 是否在微信内
+  isWX: false,
 
   userInfo: null, // 用户信息
 
   crossOrigin: false, // 图片是否跨域
 
-  // noCache: true, // 是否防止缓存, 这样就完全破坏了cdn存在的意义
   assetVersion: '190617_1428', // 静态资源时间
 
   bus: Hilo.Class.mix({}, Hilo.EventMixin) // 事件通信系统
