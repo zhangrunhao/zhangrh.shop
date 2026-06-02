@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Popup } from '../../components/popup'
 import { drawLottery, getLotteryInfo, type LotteryInfo, type LotteryReward } from '../../mock/mock-service'
 
@@ -11,20 +11,32 @@ export const LotteryDialog = ({ visible, close }: LotteryDialogProps) => {
   const [info, setInfo] = useState<LotteryInfo | null>(null)
   const [reward, setReward] = useState<LotteryReward | null>(null)
   const [drawing, setDrawing] = useState(false)
+  const infoRequestIdRef = useRef(0)
+  const drawRequestIdRef = useRef(0)
+  const visibleRef = useRef(visible)
 
   useEffect(() => {
+    visibleRef.current = visible
+  }, [visible])
+
+  useEffect(() => {
+    infoRequestIdRef.current += 1
+    drawRequestIdRef.current += 1
     if (!visible) {
       return
     }
-    let mounted = true
+    const requestId = infoRequestIdRef.current
+    setInfo(null)
     setReward(null)
+    setDrawing(false)
     getLotteryInfo().then((nextInfo) => {
-      if (mounted) {
+      if (visibleRef.current && infoRequestIdRef.current === requestId) {
         setInfo(nextInfo)
       }
     })
     return () => {
-      mounted = false
+      infoRequestIdRef.current += 1
+      drawRequestIdRef.current += 1
     }
   }, [visible])
 
@@ -32,13 +44,21 @@ export const LotteryDialog = ({ visible, close }: LotteryDialogProps) => {
     if (drawing || !info || info.times <= 0) {
       return
     }
+    const requestId = ++drawRequestIdRef.current
     setDrawing(true)
     drawLottery()
       .then((nextReward) => {
+        if (!visibleRef.current || drawRequestIdRef.current !== requestId) {
+          return
+        }
         setReward(nextReward)
         setInfo((current) => (current ? { ...current, times: nextReward.times } : current))
       })
-      .finally(() => setDrawing(false))
+      .finally(() => {
+        if (visibleRef.current && drawRequestIdRef.current === requestId) {
+          setDrawing(false)
+        }
+      })
   }
 
   return (

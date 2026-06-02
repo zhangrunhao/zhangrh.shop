@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Popup } from '../../components/popup'
 import { useToast } from '../../components/toast'
 import { getPrizeList, type PrizeItem } from '../../mock/mock-service'
@@ -11,27 +11,30 @@ type PrizeDialogProps = {
 export const PrizeDialog = ({ visible, close }: PrizeDialogProps) => {
   const [prizes, setPrizes] = useState<PrizeItem[]>([])
   const [loading, setLoading] = useState(false)
+  const requestIdRef = useRef(0)
   const { showToast } = useToast()
 
   useEffect(() => {
+    requestIdRef.current += 1
     if (!visible) {
       return
     }
-    let mounted = true
+    const requestId = requestIdRef.current
+    setPrizes([])
     setLoading(true)
     getPrizeList()
       .then((list) => {
-        if (mounted) {
+        if (requestIdRef.current === requestId) {
           setPrizes(list)
         }
       })
       .finally(() => {
-        if (mounted) {
+        if (requestIdRef.current === requestId) {
           setLoading(false)
         }
       })
     return () => {
-      mounted = false
+      requestIdRef.current += 1
     }
   }, [visible])
 
@@ -49,7 +52,7 @@ export const PrizeDialog = ({ visible, close }: PrizeDialogProps) => {
             <article className="prize-item" key={`${prize.ticketId}-${prize.rewardId}-${prize.rewardName}`}>
               <div className="prize-icon">{prize.rewardLogo ? <img src={prize.rewardLogo} alt="" /> : null}</div>
               <div className="prize-title">{prize.rewardName || prize.ticketName || '奖品'}</div>
-              <button className="prize-action" type="button" onClick={() => showToast('当前为本地演示，暂不可操作')}>
+              <button className="prize-action" type="button" onClick={() => showToast('演示模式不支持领取或使用奖品')}>
                 {prize.recharged ? prize.chargedTitle || '已使用' : prize.unchargedTitle || '使用'}
               </button>
             </article>
