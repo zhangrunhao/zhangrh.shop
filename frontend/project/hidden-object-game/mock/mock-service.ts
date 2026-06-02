@@ -18,6 +18,17 @@ import type {
   VenueData,
 } from './types'
 
+export type {
+  ApiResponse,
+  HomeData,
+  LotteryInfo,
+  LotteryReward,
+  PrizeItem,
+  RewardDialogData,
+  TargetElement,
+  VenueData,
+} from './types'
+
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
 type GameState = {
@@ -61,26 +72,43 @@ export const getVenue = async (_barrierId: number | string) => wait(state.venue)
 
 export const submitTarget = async (eid: string) => {
   const target = state.venue.elementPic.find((item: TargetElement) => item.eid === eid)
-  if (target) {
+  const didFindTarget = Boolean(target && !target.isFind)
+  if (target && !target.isFind) {
     target.isFind = true
+    state.venue.rewardReceivedNum = Math.min(state.venue.rewardAllNum, state.venue.rewardReceivedNum + 1)
   }
-  state.venue.rewardReceivedNum = Math.min(state.venue.rewardAllNum, state.venue.rewardReceivedNum + 1)
   refreshNextTarget()
   const data = clone((submitWinJson as ApiResponse<RewardDialogData>).data)
-  data.hasReward = true
+  data.hasReward = didFindTarget
+  data.elementFoundNum = state.venue.elementFoundNum
+  data.elementAllNum = state.venue.elementAllNum
+  if ('rewardReceivedNum' in data) {
+    data.rewardReceivedNum = state.venue.rewardReceivedNum
+  }
+  if ('rewardAllNum' in data) {
+    data.rewardAllNum = state.venue.rewardAllNum
+  }
   return wait(data)
 }
 
 export const reduceTip = async () => {
-  state.venue.tipNum = Math.max(0, state.venue.tipNum - 1)
+  const didReduce = state.venue.tipNum > 0
+  if (didReduce) {
+    state.venue.tipNum -= 1
+  }
   refreshNextTarget()
-  return wait(clone((reduceJson as ApiResponse<{ tipNum: number; reduceResult: boolean }>).data))
+  const data = clone((reduceJson as ApiResponse<{ tipNum: number; reduceResult: boolean }>).data)
+  data.tipNum = state.venue.tipNum
+  data.reduceResult = didReduce
+  return wait(data)
 }
 
 export const addTip = async () => {
   state.venue.tipNum += 1
   refreshNextTarget()
-  return wait(clone((addTipJson as ApiResponse<{ tipNum: number }>).data))
+  const data = clone((addTipJson as ApiResponse<{ tipNum: number }>).data)
+  data.tipNum = state.venue.tipNum
+  return wait(data)
 }
 
 export const getPrizeList = async () => wait(clone((prizeJson as ApiResponse<PrizeItem[]>).data))

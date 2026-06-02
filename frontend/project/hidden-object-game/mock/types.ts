@@ -45,7 +45,14 @@ export type HomeData = {
   largeTurntableImage: string
   largeTurntableLotteryId: number
   largeTurntableLotteryNumber: number
+  lotteryInfo: Array<{
+    name: string
+    icon: string
+    id: number
+    value?: number
+  }>
   simpleBarrierInfos: VenueSummary[]
+  status: number
 }
 
 export type VenueData = {
@@ -76,6 +83,13 @@ export type RewardDialogData = {
   rewardLogo: string
   rewardName: string
   hasReward: boolean
+  brandName?: string
+  giftNum?: number
+  elementAllNum?: number
+  elementFoundNum?: number
+  rewardAllNum?: number
+  rewardReceivedNum?: number
+  debug?: unknown
 }
 
 export type PrizeItem = {
