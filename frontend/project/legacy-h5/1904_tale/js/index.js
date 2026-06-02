@@ -82,8 +82,9 @@ const app = {
     })
   },
   onUserPointerStart: function (event) {
+    this.playAudioAfterGesture()
     this.touchStartTop = event.stageY
-    Global.scroller.doTouchStart(event.touches, event.timeStamp)
+    Global.scroller.doTouchStart(this.getScrollerTouches(event), event.timeStamp)
   },
   onUserPoniterMove: function (event) { // 计算当前向上滚动的高度
     if (event.stageY > this.touchStartTop) {
@@ -91,10 +92,17 @@ const app = {
     } else {
       this.direction = 'down'
     }
-    Global.scroller.doTouchMove(event.touches, event.timeStamp, event.scale)
+    Global.scroller.doTouchMove(this.getScrollerTouches(event), event.timeStamp, event.scale)
   },
   onUserPoinerEnd: function (event) {
     Global.scroller.doTouchEnd(event.timeStamp)
+  },
+  getScrollerTouches: function (event) {
+    if (event.touches && event.touches.length != null) return event.touches
+    return [{
+      pageX: event.pageX || event.stageX || 0,
+      pageY: event.pageY || event.stageY || 0
+    }]
   },
   initBus: function () { // 初始化事件系统
     Global.bus = new Bus()
@@ -105,8 +113,16 @@ const app = {
       new S1()
     ]
   },
+  playAudioAfterGesture: function () {
+    if (this.audioStarted || !Global.myAudio) return
+    this.audioStarted = true
+    try {
+      Global.myAudio.play()
+    } catch (err) {
+      this.audioStarted = false
+    }
+  },
   ready: function () {
-    Global.myAudio.play()
     Global.scene[0].readyStart()
   }
 }

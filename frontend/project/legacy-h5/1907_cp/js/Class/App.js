@@ -59,8 +59,6 @@ export default class App {
   init () {
     const loading = new LoadingDom()
     loading.show()
-    document.getElementById('videoQ1').play()
-    document.getElementById('videoQ1').pause()
     const stage = this.stage = new Stage()
     const pages = this.pages = this.initNeedAssetPages(stage)
     pages.forEach(p => {

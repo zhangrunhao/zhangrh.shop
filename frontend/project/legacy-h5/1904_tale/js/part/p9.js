@@ -154,7 +154,7 @@ const p = Hilo.Class.create({
   },
   initBg: function () {
     new Hilo.Bitmap({
-      image: Global.asset.getAsset('s1', 9, 'bg.jpg')
+      image: Global.asset.getAsset('s1', 9, 'bg.png')
     }).addTo(this.firstCar)
   },
   initStar: function () {
