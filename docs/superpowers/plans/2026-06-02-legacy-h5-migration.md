@@ -16,7 +16,7 @@ Create or modify these files in `/Users/runhaozhang/Documents/project/zhangrh.sh
 
 - Create: `frontend/project/legacy-h5/index.html` - root gallery linking the four migrated activities.
 - Create: `frontend/project/legacy-h5/main.css` - root gallery styling only.
-- Create: `frontend/project/legacy-h5/vite.config.ts` - Vite multi-page config and legacy aliases.
+- Create/modify: `frontend/project/legacy-h5/vite.config.ts` - Vite multi-page config, legacy aliases, and static copy plugin for local `script/` plus activity `asset/` directories.
 - Create: `frontend/project/legacy-h5/legacy/shims/hilo.js` - exports `window.Hilo`.
 - Create: `frontend/project/legacy-h5/legacy/shims/jquery.js` - exports `window.$` or `window.jQuery`.
 - Create: `frontend/project/legacy-h5/legacy/shims/scroller.js` - exports `window.Scroller`.
@@ -114,6 +114,14 @@ export default defineConfig((env) =>
   }),
 );
 ```
+
+After Task 3, extend this config with a build-only `legacy-h5-copy-static-assets` plugin that copies these source directories into the production output when they exist:
+
+- `script` -> `dist/legacy-h5/script`
+- `1904_tale/asset` -> `dist/legacy-h5/1904_tale/asset`
+- `1905_word/asset` -> `dist/legacy-h5/1905_word/asset`
+- `1907_cp/asset` -> `dist/legacy-h5/1907_cp/asset`
+- `1908_parade/asset` -> `dist/legacy-h5/1908_parade/asset`
 
 - [ ] **Step 3: Create `frontend/project/legacy-h5/index.html`**
 
@@ -614,6 +622,7 @@ git commit -m "feat: 添加 legacy-h5 运行时兼容层"
 
 **Files:**
 - Copy/modify: `frontend/project/legacy-h5/1904_tale/**`
+- Modify: `frontend/project/legacy-h5/vite.config.ts`
 
 - [ ] **Step 1: Copy the legacy source and assets**
 
@@ -686,7 +695,7 @@ Modify `frontend/project/legacy-h5/1904_tale/js/index.js` so `init()` no longer 
 Modify `frontend/project/legacy-h5/1904_tale/js/class/Asset.js` by replacing `let host = ''` and the old `src/project/tale` path with:
 
 ```js
-const assetRoot = new URL('../../asset/image', import.meta.url).href.replace(/\/$/, '')
+const assetRoot = new URL('./asset/image', window.location.href).href.replace(/\/$/, '')
 ```
 
 and:
@@ -709,7 +718,58 @@ Modify `bindWX` and `eventTracking` to no-op functions:
   },
 ```
 
-- [ ] **Step 6: Run audit and build**
+- [ ] **Step 6: Ensure production build copies local runtime scripts and activity assets**
+
+Modify `frontend/project/legacy-h5/vite.config.ts` so it imports `fs` and `fsp`:
+
+```ts
+import fs from "node:fs";
+import fsp from "node:fs/promises";
+```
+
+Add this static directory list and plugin after `resolveProject`:
+
+```ts
+const legacyStaticDirs = [
+  "script",
+  "1904_tale/asset",
+  "1905_word/asset",
+  "1907_cp/asset",
+  "1908_parade/asset",
+];
+
+const copyLegacyStaticAssets = () => {
+  let outDir = "";
+
+  return {
+    name: "legacy-h5-copy-static-assets",
+    apply: "build" as const,
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    async writeBundle() {
+      await Promise.all(
+        legacyStaticDirs.map(async (dir) => {
+          const source = resolveProject(dir);
+          if (!fs.existsSync(source)) return;
+          const target = path.join(outDir, dir);
+          await fsp.rm(target, { recursive: true, force: true });
+          await fsp.mkdir(path.dirname(target), { recursive: true });
+          await fsp.cp(source, target, { recursive: true });
+        }),
+      );
+    },
+  };
+};
+```
+
+Add the plugin to the merged Vite config:
+
+```ts
+plugins: [copyLegacyStaticAssets()],
+```
+
+- [ ] **Step 7: Run audit and build**
 
 Run:
 
@@ -717,11 +777,13 @@ Run:
 cd /Users/runhaozhang/Documents/project/zhangrh.shop/frontend
 node project/legacy-h5/legacy/audit.mjs
 npm run build -- legacy-h5
+test -f dist/legacy-h5/script/hilo/1.6.0/hilo-min.js
+test -f dist/legacy-h5/1904_tale/asset/image/s1/1/bg.jpg
 ```
 
 Expected: PASS. If audit reports an old API/CDN pattern inside `1904_tale`, remove the service call or localize the path before continuing.
 
-- [ ] **Step 7: Commit `1904_tale` migration**
+- [ ] **Step 8: Commit `1904_tale` migration**
 
 ```bash
 cd /Users/runhaozhang/Documents/project/zhangrh.shop
@@ -783,7 +845,7 @@ Use this exact file content:
 // 全局对象, 单例模式, 保持唯一
 const width = 750
 const height = 1464
-const publicPath = new URL('../../asset', import.meta.url).href.replace(/\/$/, '')
+const publicPath = new URL('./asset', window.location.href).href.replace(/\/$/, '')
 
 export default {
   width, // 舞台宽高
@@ -934,7 +996,7 @@ Use this exact file content:
 // 全局对象, 单例模式, 保持唯一
 const width = 750
 const height = 1206
-const publicPath = new URL('../../asset', import.meta.url).href.replace(/\/$/, '')
+const publicPath = new URL('./asset', window.location.href).href.replace(/\/$/, '')
 
 export default {
   width, // 舞台宽高
@@ -1099,7 +1161,7 @@ Modify `getAssetPath()` to return:
 
 ```js
   getAssetPath () {
-    return new URL('../../asset/image/', import.meta.url).href
+    return new URL('./asset/image/', window.location.href).href
   }
 ```
 
@@ -1385,6 +1447,16 @@ dist/legacy-h5/1904_tale/index.html
 dist/legacy-h5/1905_word/index.html
 dist/legacy-h5/1907_cp/index.html
 dist/legacy-h5/1908_parade/index.html
+```
+
+Also verify copied static runtime and activity assets exist:
+
+```bash
+test -f dist/legacy-h5/script/hilo/1.6.0/hilo-min.js
+test -f dist/legacy-h5/1904_tale/asset/image/s1/1/bg.jpg
+test -d dist/legacy-h5/1905_word/asset
+test -d dist/legacy-h5/1907_cp/asset
+test -d dist/legacy-h5/1908_parade/asset
 ```
 
 - [ ] **Step 6: Commit final verification fixes if any were needed**
