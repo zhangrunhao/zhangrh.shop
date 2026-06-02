@@ -99,6 +99,20 @@ const isRelativeSpecifier = (specifier) => specifier.startsWith('./') || specifi
 const hasPathSegment = (specifier, segment) => specifier.split('/').includes(segment)
 
 const isForbiddenImportSpecifier = (specifier, file) => {
+  if (isRelativeSpecifier(specifier)) {
+    const resolvedPath = path.resolve(path.dirname(file), specifier)
+    if (!path.relative(projectRoot, resolvedPath).startsWith('..')) {
+      return false
+    }
+
+    const normalizedPath = path.normalize(resolvedPath)
+    return (
+      normalizedPath.includes('re-activity') ||
+      hasPathSegment(normalizedPath, 'common') ||
+      hasPathSegment(normalizedPath, 'components')
+    )
+  }
+
   if (
     specifier.includes('re-activity') ||
     specifier === 'axios' ||
@@ -109,16 +123,7 @@ const isForbiddenImportSpecifier = (specifier, file) => {
     return true
   }
 
-  if (!isRelativeSpecifier(specifier)) {
-    return specifier === 'common' || specifier.startsWith('common/') || specifier === 'components' || specifier.startsWith('components/')
-  }
-
-  const resolvedPath = path.resolve(path.dirname(file), specifier)
-  if (path.relative(projectRoot, resolvedPath).startsWith('..')) {
-    return hasPathSegment(path.normalize(resolvedPath), 'common') || hasPathSegment(path.normalize(resolvedPath), 'components')
-  }
-
-  return false
+  return specifier === 'common' || specifier.startsWith('common/') || specifier === 'components' || specifier.startsWith('components/')
 }
 
 const failures = []
