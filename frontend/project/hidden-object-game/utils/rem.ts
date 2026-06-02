@@ -14,4 +14,8 @@ export const refreshRootFont = () => {
   return rootFontSize
 }
 
-export const px = (value: number) => (value / 100) * refreshRootFont()
+export const getRootFont = () => Number.parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 0
+
+export const rem = (value: number) => `${value / 100}rem`
+
+export const px = (value: number) => (value / 100) * getRootFont()
