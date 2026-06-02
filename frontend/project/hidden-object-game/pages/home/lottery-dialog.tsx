@@ -7,17 +7,37 @@ type LotteryDialogProps = {
   close: () => void
 }
 
+type LotteryDialogState = {
+  openKey: number
+  info: LotteryInfo | null
+  reward: LotteryReward | null
+  drawing: boolean
+}
+
 export const LotteryDialog = ({ visible, close }: LotteryDialogProps) => {
-  const [info, setInfo] = useState<LotteryInfo | null>(null)
-  const [reward, setReward] = useState<LotteryReward | null>(null)
-  const [drawing, setDrawing] = useState(false)
+  const [state, setState] = useState<LotteryDialogState>({
+    openKey: 0,
+    info: null,
+    reward: null,
+    drawing: false,
+  })
+  const openKeyRef = useRef(0)
+  const previousVisibleRef = useRef(visible)
   const infoRequestIdRef = useRef(0)
   const drawRequestIdRef = useRef(0)
-  const visibleRef = useRef(visible)
 
-  useEffect(() => {
-    visibleRef.current = visible
-  }, [visible])
+  if (visible && !previousVisibleRef.current) {
+    openKeyRef.current += 1
+  }
+  if (!visible && previousVisibleRef.current) {
+    openKeyRef.current += 1
+  }
+  previousVisibleRef.current = visible
+  const currentOpenKey = visible ? openKeyRef.current : 0
+  const isCurrentOpen = visible && state.openKey === currentOpenKey
+  const displayInfo = isCurrentOpen ? state.info : null
+  const displayReward = isCurrentOpen ? state.reward : null
+  const displayDrawing = isCurrentOpen ? state.drawing : false
 
   useEffect(() => {
     infoRequestIdRef.current += 1
@@ -25,38 +45,46 @@ export const LotteryDialog = ({ visible, close }: LotteryDialogProps) => {
     if (!visible) {
       return
     }
+    const requestOpenKey = currentOpenKey
     const requestId = infoRequestIdRef.current
-    setInfo(null)
-    setReward(null)
-    setDrawing(false)
+    setState({ openKey: requestOpenKey, info: null, reward: null, drawing: false })
     getLotteryInfo().then((nextInfo) => {
-      if (visibleRef.current && infoRequestIdRef.current === requestId) {
-        setInfo(nextInfo)
+      if (openKeyRef.current === requestOpenKey && infoRequestIdRef.current === requestId) {
+        setState({ openKey: requestOpenKey, info: nextInfo, reward: null, drawing: false })
       }
     })
     return () => {
       infoRequestIdRef.current += 1
       drawRequestIdRef.current += 1
     }
-  }, [visible])
+  }, [visible, currentOpenKey])
 
   const startDraw = () => {
-    if (drawing || !info || info.times <= 0) {
+    if (displayDrawing || !displayInfo || displayInfo.times <= 0) {
       return
     }
+    const requestOpenKey = currentOpenKey
     const requestId = ++drawRequestIdRef.current
-    setDrawing(true)
+    setState((current) => (current.openKey === requestOpenKey ? { ...current, drawing: true } : current))
     drawLottery()
       .then((nextReward) => {
-        if (!visibleRef.current || drawRequestIdRef.current !== requestId) {
+        if (openKeyRef.current !== requestOpenKey || drawRequestIdRef.current !== requestId) {
           return
         }
-        setReward(nextReward)
-        setInfo((current) => (current ? { ...current, times: nextReward.times } : current))
+        setState((current) =>
+          current.openKey === requestOpenKey
+            ? {
+                openKey: requestOpenKey,
+                info: current.info ? { ...current.info, times: nextReward.times } : current.info,
+                reward: nextReward,
+                drawing: false,
+              }
+            : current,
+        )
       })
       .finally(() => {
-        if (visibleRef.current && drawRequestIdRef.current === requestId) {
-          setDrawing(false)
+        if (openKeyRef.current === requestOpenKey && drawRequestIdRef.current === requestId) {
+          setState((current) => (current.openKey === requestOpenKey ? { ...current, drawing: false } : current))
         }
       })
   }
@@ -68,22 +96,22 @@ export const LotteryDialog = ({ visible, close }: LotteryDialogProps) => {
           x
         </button>
         <h2>幸运抽奖</h2>
-        <p className="lottery-times">剩余抽奖次数：{info?.times ?? '--'}</p>
+        <p className="lottery-times">剩余抽奖次数：{displayInfo?.times ?? '--'}</p>
         <div className="lottery-grid">
-          {info?.lotteryInfo.map((item) => (
+          {displayInfo?.lotteryInfo.map((item) => (
             <div className="lottery-item" key={`${item.id}-${item.name}`}>
               <img src={item.icon} alt="" />
               <span>{item.name}</span>
             </div>
           ))}
         </div>
-        <button className="lottery-start" type="button" disabled={drawing || !info || info.times <= 0} onClick={startDraw}>
-          {drawing ? '抽奖中...' : '开始抽奖'}
+        <button className="lottery-start" type="button" disabled={displayDrawing || !displayInfo || displayInfo.times <= 0} onClick={startDraw}>
+          {displayDrawing ? '抽奖中...' : '开始抽奖'}
         </button>
-        {reward ? (
+        {displayReward ? (
           <div className="lottery-result">
-            <img src={reward.rewardInfo.rewardLogo} alt="" />
-            <span>获得{reward.rewardInfo.rewardName}</span>
+            <img src={displayReward.rewardInfo.rewardLogo} alt="" />
+            <span>获得{displayReward.rewardInfo.rewardName}</span>
           </div>
         ) : null}
       </section>
