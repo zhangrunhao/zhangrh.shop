@@ -3,7 +3,6 @@ import Global from './class/Global'
 import Asset from './class/Asset'
 import Bus from './class/Bus'
 import S1 from './scene/s1'
-import util from './util/util'
 import Hilo from 'hilo'
 import Scroller from 'Scroller'
 

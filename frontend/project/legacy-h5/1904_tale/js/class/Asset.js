@@ -24,7 +24,7 @@ var sourcePathMap = {
   ]
 }
 
-const assetRoot = new URL('../../asset/image', import.meta.url).href.replace(/\/$/, '')
+const assetRoot = new URL('./asset/image', window.location.href).href.replace(/\/$/, '')
 var getLoadMap = function () {
   var arr = []
   for (var sceneName in sourcePathMap) {
