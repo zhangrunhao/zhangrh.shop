@@ -1,4 +1,4 @@
-import { useEffect, useRef, type Dispatch, type SetStateAction, type TouchEvent, type MouseEvent } from 'react'
+import { useCallback, useEffect, useRef, type Dispatch, type SetStateAction, type TouchEvent, type MouseEvent } from 'react'
 import type { ScrollPosition } from './stage'
 
 type TouchMaskProps = {
@@ -9,6 +9,8 @@ type TouchMaskProps = {
   scrollMaxY: number
   switchElementShow: () => void
 }
+
+const DRAG_CLICK_SUPPRESS_DISTANCE = 8
 
 export const TouchMask = ({
   setScrollPosition,
@@ -21,16 +23,24 @@ export const TouchMask = ({
   const touchTimeoutRef = useRef<number | null>(null)
   const maskRef = useRef<HTMLDivElement | null>(null)
   const startPosition = useRef({ x: 0, y: 0 })
+  const touchOriginPosition = useRef({ x: 0, y: 0 })
   const currentPosition = useRef({ x: 0, y: 0 })
+  const suppressNextClickRef = useRef(false)
 
-  useEffect(() => endTouch, [endTouch])
-
-  const clearTouchTimeout = () => {
+  const clearTouchTimeout = useCallback(() => {
     if (touchTimeoutRef.current !== null) {
       window.clearTimeout(touchTimeoutRef.current)
       touchTimeoutRef.current = null
     }
-  }
+  }, [])
+
+  useEffect(
+    () => () => {
+      clearTouchTimeout()
+      endTouch()
+    },
+    [clearTouchTimeout, endTouch],
+  )
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
     const touch = event.touches[0]
@@ -50,6 +60,8 @@ export const TouchMask = ({
     }
 
     startPosition.current = { x: nowX, y: nowY }
+    touchOriginPosition.current = { x: nowX, y: nowY }
+    suppressNextClickRef.current = false
   }
 
   const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
@@ -68,6 +80,12 @@ export const TouchMask = ({
 
     const distanceX = currentPosition.current.x - startPosition.current.x
     const distanceY = currentPosition.current.y - startPosition.current.y
+    const totalDistanceX = currentPosition.current.x - touchOriginPosition.current.x
+    const totalDistanceY = currentPosition.current.y - touchOriginPosition.current.y
+
+    if (Math.hypot(totalDistanceX, totalDistanceY) > DRAG_CLICK_SUPPRESS_DISTANCE) {
+      suppressNextClickRef.current = true
+    }
 
     setScrollPosition((prevPosition) => ({
       x: Math.min(0, Math.max(-scrollMaxX, prevPosition.x + distanceX)),
@@ -77,7 +95,18 @@ export const TouchMask = ({
     startPosition.current = currentPosition.current
   }
 
+  const handleTouchEnd = () => {
+    endTouch()
+  }
+
   const handleClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (suppressNextClickRef.current) {
+      suppressNextClickRef.current = false
+      event.preventDefault()
+      event.stopPropagation()
+      return
+    }
+
     const mask = maskRef.current
     if (!mask) {
       return
@@ -107,7 +136,7 @@ export const TouchMask = ({
       className="touch-mask"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
-      onTouchEnd={endTouch}
+      onTouchEnd={handleTouchEnd}
       onClick={handleClick}
     />
   )

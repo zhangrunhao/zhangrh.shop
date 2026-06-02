@@ -13,10 +13,11 @@ type StageProps = {
   scrollPosition: ScrollPosition
   elementArr: TargetElement[]
   nextTargetId?: string
-  submitTarget: (eid: string) => void
+  submitTarget: (eid: string) => Promise<void>
   onWrongTarget: () => void
   scaleEid?: string
   setScaleEid: (eid: string) => void
+  submitting: boolean
 }
 
 type FaultIcon = {
@@ -35,11 +36,15 @@ export const Stage = ({
   onWrongTarget,
   scaleEid,
   setScaleEid,
+  submitting,
 }: StageProps) => {
   const [faultIcon, setFaultIcon] = useState<FaultIcon | null>(null)
+  const [localSubmitting, setLocalSubmitting] = useState(false)
   const timeoutIdRef = useRef<number | null>(null)
+  const submitTimeoutRef = useRef<number | null>(null)
   const stageRef = useRef<HTMLDivElement | null>(null)
   const submittingRef = useRef(false)
+  const mountedRef = useRef(false)
 
   const clearFaultTimeout = useCallback(() => {
     if (timeoutIdRef.current !== null) {
@@ -48,10 +53,24 @@ export const Stage = ({
     }
   }, [])
 
-  useEffect(() => clearFaultTimeout, [clearFaultTimeout])
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      clearFaultTimeout()
+      if (submitTimeoutRef.current !== null) {
+        window.clearTimeout(submitTimeoutRef.current)
+        submitTimeoutRef.current = null
+      }
+      submittingRef.current = false
+    }
+  }, [clearFaultTimeout])
 
   const showWrongClick = useCallback(
     (event: MouseEvent<HTMLElement>) => {
+      if (submitting || submittingRef.current) {
+        return
+      }
       clearFaultTimeout()
       const rect = stageRef.current?.getBoundingClientRect()
       setFaultIcon({
@@ -64,24 +83,37 @@ export const Stage = ({
       }, 900)
       onWrongTarget()
     },
-    [clearFaultTimeout, onWrongTarget],
+    [clearFaultTimeout, onWrongTarget, submitting],
   )
 
   const handleTargetClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>, target: TargetElement) => {
       event.stopPropagation()
-      if (!nextTargetId || target.eid !== nextTargetId || submittingRef.current) {
+      if (submitting || submittingRef.current) {
+        return
+      }
+      if (!nextTargetId || target.eid !== nextTargetId) {
         showWrongClick(event)
         return
       }
       submittingRef.current = true
+      setLocalSubmitting(true)
       setScaleEid(target.eid)
-      window.setTimeout(() => {
-        submitTarget(target.eid)
-        submittingRef.current = false
+      submitTimeoutRef.current = window.setTimeout(async () => {
+        submitTimeoutRef.current = null
+        try {
+          await submitTarget(target.eid)
+        } catch {
+          return
+        } finally {
+          submittingRef.current = false
+          if (mountedRef.current) {
+            setLocalSubmitting(false)
+          }
+        }
       }, 650)
     },
-    [nextTargetId, setScaleEid, showWrongClick, submitTarget],
+    [nextTargetId, setScaleEid, showWrongClick, submitTarget, submitting],
   )
 
   return (
@@ -113,6 +145,7 @@ export const Stage = ({
             key={element.eid}
             className={`target ${scaleEid === element.eid ? 'target-scale' : ''} ${element.isFind ? 'target-found' : ''}`}
             type="button"
+            disabled={submitting || localSubmitting}
             aria-label={element.name}
             style={{
               width: element.width,

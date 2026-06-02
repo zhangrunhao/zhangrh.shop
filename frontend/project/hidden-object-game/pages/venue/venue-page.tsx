@@ -60,20 +60,46 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
   const [rewardVisible, setRewardVisible] = useState(false)
   const [reward, setReward] = useState<RewardState>({ content: '', icon: '', type: 0 })
   const [musicEnabled, setMusicEnabled] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const mountedRef = useRef(false)
+  const requestSeqRef = useRef(0)
+  const submitLockRef = useRef(false)
+
+  const acquireSubmitLock = useCallback(() => {
+    if (submitLockRef.current) {
+      return false
+    }
+    submitLockRef.current = true
+    if (mountedRef.current) {
+      setSubmitting(true)
+    }
+    return true
+  }, [])
+
+  const releaseSubmitLock = useCallback(() => {
+    submitLockRef.current = false
+    if (mountedRef.current) {
+      setSubmitting(false)
+    }
+  }, [])
 
   const refreshVenue = useCallback(async () => {
+    const requestId = ++requestSeqRef.current
     const venue = await getVenue(venueId)
+    if (!mountedRef.current || requestSeqRef.current !== requestId) {
+      return null
+    }
     setData(venue)
     document.title = venue.barrierName || '隐藏物品游戏'
     return venue
   }, [venueId])
 
   useEffect(() => {
-    let mounted = true
-    setLoading(true)
+    mountedRef.current = true
+    const requestId = ++requestSeqRef.current
     getVenue(venueId).then((venue) => {
-      if (!mounted) {
+      if (!mountedRef.current || requestSeqRef.current !== requestId) {
         return
       }
       setData(venue)
@@ -81,7 +107,10 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
       document.title = venue.barrierName || '隐藏物品游戏'
     })
     return () => {
-      mounted = false
+      mountedRef.current = false
+      requestSeqRef.current += 1
+      submitLockRef.current = false
+      audioRef.current?.pause()
     }
   }, [venueId])
 
@@ -95,22 +124,43 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
     setScaleEid('')
   }, [])
 
+  const runSubmitTarget = useCallback(
+    async (eid: string, lockAlreadyAcquired = false) => {
+      const didAcquireLock = lockAlreadyAcquired || acquireSubmitLock()
+      if (!didAcquireLock) {
+        return
+      }
+      try {
+        const submitResult = await submitTargetService(eid)
+        await refreshVenue()
+        if (!mountedRef.current) {
+          return
+        }
+        if (submitResult.hasReward) {
+          setReward(rewardFromResponse(submitResult))
+          setRewardVisible(true)
+        }
+        setScaleEid('')
+      } finally {
+        releaseSubmitLock()
+      }
+    },
+    [acquireSubmitLock, refreshVenue, releaseSubmitLock],
+  )
+
   const handleSubmitTarget = useCallback(
     async (eid: string) => {
+      if (submitting || submitLockRef.current) {
+        return
+      }
       if (!data?.nextFind || eid !== data.nextFind.eid) {
         showToast('请先找到提示中的目标')
         return
       }
 
-      const submitResult = await submitTargetService(eid)
-      if (submitResult.hasReward) {
-        setReward(rewardFromResponse(submitResult))
-        setRewardVisible(true)
-      }
-      await refreshVenue()
-      setScaleEid('')
+      await runSubmitTarget(eid)
     },
-    [data?.nextFind, refreshVenue, showToast],
+    [data, runSubmitTarget, showToast, submitting],
   )
 
   const handleWrongTarget = useCallback(() => {
@@ -118,6 +168,9 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
   }, [data?.nextFind, showToast])
 
   const tipMove = useCallback(async () => {
+    if (submitting || submitLockRef.current) {
+      return
+    }
     if (!data?.nextFind) {
       showToast('没有可提示的目标')
       return
@@ -126,20 +179,34 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
       showToast('提示次数不足')
       return
     }
-
-    const nextFind = data.nextFind
-    setElementShow(true)
-    setScrollPosition(getTargetScrollPosition(nextFind, scrollMaxX, scrollMaxY))
-    setScaleEid(nextFind.eid)
-    const reduceResult = await reduceTip()
-    if (!reduceResult.reduceResult) {
-      await refreshVenue()
-      showToast('提示次数不足')
-      setScaleEid('')
+    if (!acquireSubmitLock()) {
       return
     }
-    await handleSubmitTarget(nextFind.eid)
-  }, [data, handleSubmitTarget, refreshVenue, scrollMaxX, scrollMaxY, showToast])
+
+    const nextFind = data.nextFind
+    try {
+      setElementShow(true)
+      setScrollPosition(getTargetScrollPosition(nextFind, scrollMaxX, scrollMaxY))
+      setScaleEid(nextFind.eid)
+      const reduceResult = await reduceTip()
+      if (!mountedRef.current) {
+        return
+      }
+      if (!reduceResult.reduceResult) {
+        await refreshVenue()
+        if (mountedRef.current) {
+          showToast('提示次数不足')
+          setScaleEid('')
+        }
+        return
+      }
+      await runSubmitTarget(nextFind.eid, true)
+    } finally {
+      if (submitLockRef.current) {
+        releaseSubmitLock()
+      }
+    }
+  }, [acquireSubmitLock, data, refreshVenue, releaseSubmitLock, runSubmitTarget, scrollMaxX, scrollMaxY, showToast, submitting])
 
   const toggleMusic = useCallback(() => {
     if (!data?.activityBackgroundMusic) {
@@ -162,7 +229,19 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
         setMusicEnabled(false)
         showToast('点击后可开启音乐')
       })
-  }, [data?.activityBackgroundMusic, musicEnabled, showToast])
+  }, [data, musicEnabled, showToast])
+
+  const startTouch = useCallback(() => {
+    setHideChrome(true)
+  }, [])
+
+  const endTouch = useCallback(() => {
+    setHideChrome(false)
+  }, [])
+
+  const switchElementShow = useCallback(() => {
+    setElementShow((show) => !show)
+  }, [])
 
   useEffect(
     () => () => {
@@ -193,6 +272,7 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
         onWrongTarget={handleWrongTarget}
         scaleEid={scaleEid}
         setScaleEid={setScaleEid}
+        submitting={submitting}
       />
 
       {elementShow ? (
@@ -225,6 +305,7 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
               className={`venue-icon-btn venue-tip-btn ${data.tipNum > 0 && nextTarget ? '' : 'venue-tip-btn-disabled'}`}
               type="button"
               onClick={tipMove}
+              disabled={submitting || data.tipNum <= 0 || !nextTarget}
               aria-label="提示"
             >
               <span>{data.tipNum}</span>
@@ -247,10 +328,10 @@ export const VenuePage = ({ venueId, goHome, openLottery }: VenuePageProps) => {
       <TouchMask
         scrollMaxX={scrollMaxX}
         scrollMaxY={scrollMaxY}
-        startTouch={() => setHideChrome(true)}
-        endTouch={() => setHideChrome(false)}
+        startTouch={startTouch}
+        endTouch={endTouch}
         setScrollPosition={setScrollPosition}
-        switchElementShow={() => setElementShow((show) => !show)}
+        switchElementShow={switchElementShow}
       />
 
       <RewardDialog

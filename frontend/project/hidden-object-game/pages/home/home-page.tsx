@@ -17,7 +17,7 @@ export const HomePage = ({ openVenue, openLotteryInitially = false, onLotteryIni
   const [avatar, setAvatar] = useState('')
   const [ruleVisible, setRuleVisible] = useState(false)
   const [prizeVisible, setPrizeVisible] = useState(false)
-  const [lotteryVisible, setLotteryVisible] = useState(false)
+  const [lotteryVisible, setLotteryVisible] = useState(openLotteryInitially)
 
   useEffect(() => {
     let mounted = true
@@ -38,7 +38,6 @@ export const HomePage = ({ openVenue, openLotteryInitially = false, onLotteryIni
     if (!openLotteryInitially) {
       return
     }
-    setLotteryVisible(true)
     onLotteryInitialOpenConsumed?.()
   }, [onLotteryInitialOpenConsumed, openLotteryInitially])
 
