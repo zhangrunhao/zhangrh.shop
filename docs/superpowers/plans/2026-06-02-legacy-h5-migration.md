@@ -1177,7 +1177,7 @@ If `Global.js` computes `isWX` from `getIsInWeXin()`, remove that import and use
 
 - [ ] **Step 5: Remove WeChat and tracking logic from `1905_word/js/Util/util.js`**
 
-Modify these functions to no-op or local-only behavior:
+Modify these functions to no-op or local-only behavior, and remove any old API/CDN/WeChat strings from their bodies:
 
 ```js
 export const eventTracking = function () {
@@ -1189,7 +1189,15 @@ export const bindWX = function () {
 }
 ```
 
-Keep `getQueryString`, `getUserh5Cid`, and local cookie helpers because they do not block display.
+Keep `getQueryString`. Make `getUserh5Cid` local-only so no old tracking ID is generated:
+
+```js
+export const getUserh5Cid = function () {
+  return ''
+}
+```
+
+If `getUserh5Cid` no longer uses cookie helpers, remove unused cookie imports from this file.
 
 - [ ] **Step 6: Remove OAuth and avatar API flow from `1905_word/js/Page/begin.js`**
 
