@@ -1,0 +1,163 @@
+{
+  "statusMsg": "success",
+  "data": {
+    "tipCode": 2,
+    "tipNum": 1,
+    "elementAllNum": 10,
+    "redPackRate": 0.75,
+    "nextFind": {
+      "eid": "5",
+      "uid": 1719549218023,
+      "isFind": false,
+      "ordinate": 970,
+      "name": "坐标5_996_970",
+      "width": 64,
+      "findId": "1_2_5",
+      "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921793209416.PNG",
+      "abscissa": 996,
+      "height": 157,
+      "status": "success"
+    },
+    "elementFoundNum": 0,
+    "awardIndex": "1,3,5,7,9",
+    "barrierName": "田径馆",
+    "blessingBagPic": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954866526646575.PNG",
+    "rewardReceivedNum": 0,
+    "barrierId": 2,
+    "rewardAllNum": 5,
+    "elementPic": [
+      {
+        "eid": "5",
+        "uid": 1719549218023,
+        "isFind": false,
+        "ordinate": 970,
+        "name": "坐标5_996_970",
+        "width": 64,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921793209416.PNG",
+        "abscissa": 996,
+        "height": 157,
+        "status": "success"
+      },
+      {
+        "eid": "8",
+        "uid": 1719549218152,
+        "isFind": false,
+        "ordinate": 1834,
+        "name": "坐标8_1454_1834",
+        "width": 126,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921808088466.PNG",
+        "abscissa": 1454,
+        "height": 99,
+        "status": "success"
+      },
+      {
+        "eid": "1",
+        "uid": 1719549217992,
+        "isFind": false,
+        "ordinate": 1271,
+        "name": "坐标1_167_1271",
+        "width": 115,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921791938403.PNG",
+        "abscissa": 167,
+        "height": 144,
+        "status": "success"
+      },
+      {
+        "eid": "7",
+        "uid": 1719549218114,
+        "isFind": false,
+        "ordinate": 140,
+        "name": "坐标7_1174_140",
+        "width": 164,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921805732803.PNG",
+        "abscissa": 1174,
+        "height": 53,
+        "status": "success"
+      },
+      {
+        "eid": "3",
+        "uid": 1719549218039,
+        "isFind": false,
+        "ordinate": 203,
+        "name": "坐标3_497_203",
+        "width": 63,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921792871699.PNG",
+        "abscissa": 497,
+        "height": 61,
+        "status": "success"
+      },
+      {
+        "eid": "2",
+        "uid": 1719549218008,
+        "isFind": false,
+        "ordinate": 1486,
+        "name": "坐标2_360_1486",
+        "width": 164,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921793666965.PNG",
+        "abscissa": 360,
+        "height": 200,
+        "status": "success"
+      },
+      {
+        "eid": "4",
+        "uid": 1719549217973,
+        "isFind": false,
+        "ordinate": 426,
+        "name": "坐标4_866_426",
+        "width": 40,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921792879279.PNG",
+        "abscissa": 866,
+        "height": 44,
+        "status": "success"
+      },
+      {
+        "eid": "9",
+        "uid": 1719549218097,
+        "isFind": false,
+        "ordinate": 629,
+        "name": "坐标9_2176_629",
+        "width": 87,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921806266832.PNG",
+        "abscissa": 2176,
+        "height": 182,
+        "status": "success"
+      },
+      {
+        "eid": "10",
+        "uid": 1719549218132,
+        "isFind": false,
+        "ordinate": 1427,
+        "name": "坐标10_2307_1427",
+        "width": 154,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921807651845.PNG",
+        "abscissa": 2307,
+        "height": 213,
+        "status": "success"
+      },
+      {
+        "eid": "6",
+        "uid": 1719549218060,
+        "isFind": false,
+        "ordinate": 698,
+        "name": "坐标6_1026_698",
+        "width": 127,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954921793237177.PNG",
+        "abscissa": 1026,
+        "height": 156,
+        "status": "success"
+      }
+    ],
+    "gameBgPic": [
+      {
+        "uid": 1719549183594,
+        "name": "2582*1995像素",
+        "width": 2582,
+        "url": "http://n1.itc.cn/img7/adapt/wb/common/2024/06/28/171954918329796209.JPEG",
+        "height": 1995,
+        "status": "success"
+      }
+    ],
+    "activityBackgroundMusic": "https://v1.k.sohu.com/cf/common/2024/06/28/171954856905310144.MP3"
+  },
+  "statusCode": "10000000"
+}

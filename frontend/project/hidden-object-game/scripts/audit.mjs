@@ -10,6 +10,17 @@ const requiredFiles = [
   'main.tsx',
   'app.tsx',
   'styles.css',
+  'mock/types.ts',
+  'mock/mock-service.ts',
+  'mock/fixtures/api-home.json',
+  'mock/fixtures/api-venue-trial.json',
+  'mock/fixtures/api-submit-win.json',
+  'mock/fixtures/api-reduce.json',
+  'mock/fixtures/api-add-tip.json',
+  'mock/fixtures/api-prize-lot.json',
+  'mock/fixtures/api-lottery.json',
+  'mock/fixtures/api-reward.json',
+  'mock/fixtures/api-user.json',
 ]
 
 const forbiddenPatterns = [

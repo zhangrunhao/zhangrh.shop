@@ -1,0 +1,37 @@
+{
+  "statusMsg": "success",
+  "data": {
+    "periodId": 6,
+    "times": 5,
+    "rewardInfo": {
+      "rewardNum": "5970b10d10584794ae60eac4b119e979",
+      "canDraw": false,
+      "rule": "<p>实物礼品</p>",
+      "type": 0,
+      "currentSize": 0,
+      "rewardName": "实物礼品",
+      "rewardId": 586,
+      "tgId": 837,
+      "ctime": 1722236728286,
+      "actType": 0,
+      "startTime": 1722223800000,
+      "moduleId": 0,
+      "putTimeText": "",
+      "scoreId": 21809763,
+      "periodId": 6,
+      "amount": 0,
+      "brandName": "实物礼品",
+      "poolSize": 0,
+      "giftType": 1,
+      "totalScore": 0,
+      "lotteryType": 1,
+      "rewardLogo": "http://n1.itc.cn/img7/adapt/wb/common/2024/07/29/172222381823056509.PNG",
+      "unusedCount": 0,
+      "endTime": 1722486600000,
+      "showWeight": 0,
+      "ticketId": 6788,
+      "ticketName": "实物礼品"
+    }
+  },
+  "statusCode": "10000000"
+}

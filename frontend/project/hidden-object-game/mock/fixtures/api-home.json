@@ -1,0 +1,110 @@
+{
+  "statusMsg": "success",
+  "data": {
+    "activityBackgroundMusic": "https://v1.k.sohu.com/cf/common/2024/05/22/171637069605671307.MP3",
+    "activityEndTime": "2024-06-30",
+    "activityId": 6,
+    "activityName": "测试运动会",
+    "activityRule": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171637068100576423.PNG",
+    "activityStartTime": "2024-05-22",
+    "homepageBgImage": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171636565695442968.PNG",
+    "homepageHeight": 1600,
+    "homepageWidth": 750,
+    "largeTurntableImage": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171637007544851459.PNG",
+    "largeTurntableLotteryId": 615,
+    "largeTurntableLotteryNumber": 0,
+    "lotteryInfo": [
+      {
+        "name": "20积分",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/29/171695081368053691.PNG",
+        "id": 723
+      },
+      {
+        "name": "小狐狸",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/29/171695078125395410.PNG",
+        "id": 722
+      },
+      {
+        "name": "10积分",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/29/171695072540214161.PNG",
+        "id": 721
+      },
+      {
+        "name": "优惠券",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/29/171695067048065680.PNG",
+        "id": 720
+      },
+      {
+        "name": "1分",
+        "icon": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/29/171695057954214120.PNG",
+        "id": 719
+      },
+      {
+        "name": "运动会积分",
+        "icon": "https://n1.itc.cn/img8/wb/common/20240529/1716970742433.png",
+        "id": 0,
+        "value": 50
+      }
+    ],
+    "simpleBarrierInfos": [
+      {
+        "abscissa": 56,
+        "barrierId": 1,
+        "barrierName": "球类",
+        "colourStadiumPicUrl": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171636573012051243.PNG",
+        "grayStadiumPicUrl": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171636573306506845.PNG",
+        "height": 305,
+        "open": true,
+        "ordinate": 249,
+        "width": 256,
+        "passed": true
+      },
+      {
+        "abscissa": 400,
+        "barrierId": 2,
+        "barrierName": "格斗",
+        "colourStadiumPicUrl": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171636578859547994.PNG",
+        "grayStadiumPicUrl": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171636579266183485.PNG",
+        "height": 306,
+        "open": true,
+        "ordinate": 502,
+        "width": 256
+      },
+      {
+        "abscissa": 56,
+        "barrierId": 3,
+        "barrierName": "体操",
+        "colourStadiumPicUrl": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171636611189578406.PNG",
+        "grayStadiumPicUrl": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171636611464900155.PNG",
+        "height": 318,
+        "open": true,
+        "ordinate": 602,
+        "width": 256
+      },
+      {
+        "abscissa": 400,
+        "barrierId": 4,
+        "barrierName": "田径",
+        "colourStadiumPicUrl": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171636860016097971.PNG",
+        "grayStadiumPicUrl": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/22/171637175775268559.PNG",
+        "height": 272,
+        "open": true,
+        "ordinate": 800,
+        "width": 255
+      },
+      {
+        "abscissa": 56,
+        "barrierId": 5,
+        "barrierName": "游泳",
+        "colourStadiumPicUrl": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/30/171704051884908378.PNG",
+        "grayStadiumPicUrl": "http://n1.itc.cn/img7/adapt/wb/common/2024/05/30/171704051072893880.PNG",
+        "height": 306,
+        "open": true,
+        "ordinate": 1000,
+        "width": 256
+      }
+    ],
+    "status": 2
+  },
+  "statusCode": "10000000"
+}

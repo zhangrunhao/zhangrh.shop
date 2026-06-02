@@ -1,0 +1,29 @@
+{
+  "statusMsg": "success",
+  "data": {
+    "rewardLogo": "",
+    "rewardName": "大转盘抽奖次数",
+    "brandName": "",
+    "debug": {
+      "activityId": 6,
+      "ctime": 1716901779072,
+      "ext": "{}",
+      "fromId": 60003,
+      "fromType": 60003,
+      "giftCodeExt": {
+        "ticketId": 0
+      },
+      "id": 18404173,
+      "pid": 6491589146824847477,
+      "rechargeOK": false,
+      "value": 0,
+      "valueType": 1
+    },
+    "hasReward": true,
+    "giftNum": 2,
+    "elementAllNum": 5,
+    "giftType": 5,
+    "elementFoundNum": 5
+  },
+  "statusCode": "10000000"
+}
