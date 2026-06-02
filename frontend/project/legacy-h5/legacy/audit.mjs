@@ -31,7 +31,7 @@ const forbiddenPatterns = [
   { pattern: /\{\{!--/g, label: "handlebars comment" },
   { pattern: /assetCDNPath|scriptCDNPath/g, label: "legacy CDN template variable" },
   { pattern: /api\.k\.sohu\.com/g, label: "old Sohu API host" },
-  { pattern: /\/api\/spell\//g, label: "old spell API" },
+  { pattern: /\/api\/spell(?:[/?#]|$)/g, label: "old spell API" },
   { pattern: /getWeiXin|weiXinRegister|WeiXinJsSign/g, label: "WeChat backend flow" },
   { pattern: /open\.weixin\.qq\.com/g, label: "WeChat OAuth redirect" },
   { pattern: /res2\.wx\.qq\.com\/open\/js\/jweixin/g, label: "remote WeChat JS SDK" },
