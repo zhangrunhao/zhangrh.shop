@@ -54,6 +54,7 @@ export const LotteryDialog = ({ visible, close }: LotteryDialogProps) => {
       return
     }
     const requestId = ++drawRequestIdRef.current
+    const infoRequestId = ++infoRequestIdRef.current
     setState((current) => ({ ...current, drawing: true }))
     drawLottery()
       .then((nextReward) => {
@@ -69,6 +70,11 @@ export const LotteryDialog = ({ visible, close }: LotteryDialogProps) => {
               }
             : current,
         )
+        getLotteryInfo().then((nextInfo) => {
+          if (drawRequestIdRef.current === requestId && infoRequestIdRef.current === infoRequestId) {
+            setState((current) => ({ ...current, info: nextInfo }))
+          }
+        })
       })
       .finally(() => {
         if (drawRequestIdRef.current === requestId) {

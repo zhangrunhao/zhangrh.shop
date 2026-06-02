@@ -63,7 +63,10 @@ export const PrizeDialog = ({ visible, close }: PrizeDialogProps) => {
           {state.prizes.map((prize) => (
             <article className="prize-item" key={`${prize.ticketId}-${prize.rewardId}-${prize.rewardName}`}>
               <div className="prize-icon">{prize.rewardLogo ? <img src={prize.rewardLogo} alt="" /> : null}</div>
-              <div className="prize-title">{prize.rewardName || prize.ticketName || '奖品'}</div>
+              <div className="prize-copy">
+                <div className="prize-title">{prize.rewardName || '奖品'}</div>
+                {prize.ticketName ? <div className="prize-ticket">{prize.ticketName}</div> : null}
+              </div>
               <button className="prize-action" type="button" onClick={() => showToast('演示模式不支持领取或使用奖品')}>
                 {prize.recharged ? prize.chargedTitle || '已使用' : prize.unchargedTitle || '使用'}
               </button>

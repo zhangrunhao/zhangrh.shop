@@ -53,6 +53,9 @@ const forbiddenPatterns = [
   /captcha/i,
   /share:\/\//,
   /fastshare:\/\//,
+  /window\.location\.href\s*=/,
+  /location\.replace/,
+  /openUrl/,
 ]
 
 const listFiles = (dir) => {
