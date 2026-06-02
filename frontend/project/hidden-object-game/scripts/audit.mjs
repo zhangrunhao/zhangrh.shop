@@ -21,6 +21,12 @@ const requiredFiles = [
   'mock/fixtures/api-lottery.json',
   'mock/fixtures/api-reward.json',
   'mock/fixtures/api-user.json',
+  'utils/query.ts',
+  'utils/rem.ts',
+  'utils/storage.ts',
+  'components/popup.tsx',
+  'components/toast.tsx',
+  'components/loading.tsx',
 ]
 
 const forbiddenPatterns = [
