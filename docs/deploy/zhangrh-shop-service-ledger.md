@@ -24,6 +24,7 @@
 | zhangrh.shop/ | 主页，短期可以继续 301 到 `/hub/` | 保留 |
 | zhangrh.shop/hub/ | 主项目 / 主入口 | 主用 |
 | zhangrh.shop/cardgame/ | 当前卡牌项目 | 先保留 |
+| zhangrh.shop/legacy-h5/ | 旧 H5 活动合集，包含 `1904_tale`、`1905_word`、`1907_cp`、`1908_parade` | 静态发布 |
 | zhangrh.shop/api/cardgame/ | 当前卡牌项目后端 API / WebSocket | Docker backend |
 | static.zhangrh.shop | OSS 静态资源 | 不参与当前应用发布 |
 | glitchtip.zhangrh.shop | GlitchTip 独立服务 | main 机器反代到 glitchtip 机器 |
@@ -34,6 +35,7 @@
 - `zhangrh.shop` 是当前唯一主品牌域名。
 - `/hub/` 是当前主项目入口。
 - `/cardgame/` 和 `/api/cardgame/` 暂时服务当前卡牌项目。
+- `/legacy-h5/` 是旧 H5 活动合集入口，只发布本地静态源码和素材，不接旧 API、OSS/CDN、微信登录、分享签名、敏感词、打点或拼字保存服务。
 - `static.zhangrh.shop` 当前作为 OSS 静态资源域名，不参与当前应用发布。
 - `glitchtip.zhangrh.shop` 是独立服务，不混在主站路径下。
 - `glitchtip.zhangrh.shop` 的入口在 main 机器上，由 main 机器上的 nginx 反向代理到 glitchtip 机器。
@@ -63,6 +65,7 @@ main 机器负责当前主站入口和统一 nginx 网关。
 - 承载 `zhangrh.shop`
 - 承载 `/hub/`
 - 承载 `/cardgame/`
+- 承载 `/legacy-h5/`
 - 承载 `/api/cardgame/`
 - 承载 `glitchtip.zhangrh.shop` 的入口
 - 将 `glitchtip.zhangrh.shop` 反向代理到 glitchtip 机器
@@ -91,7 +94,9 @@ glitchtip 机器专门负责运行 GlitchTip 服务。
 │   └── zhangrh.shop.key
 ├── site/
 │   ├── hub/
-│   └── cardgame/
+│   ├── cardgame/
+│   ├── shotmaker/
+│   └── legacy-h5/
 └── backend/
     ├── Dockerfile
     ├── server.js
@@ -110,6 +115,7 @@ zhangrh.shop
 main 机器 nginx 容器
 ├── /hub/ -> /opt/zhangrh-shop/site/hub
 ├── /cardgame/ -> /opt/zhangrh-shop/site/cardgame
+├── /legacy-h5/ -> /opt/zhangrh-shop/site/legacy-h5
 └── /api/cardgame/ -> backend 容器:3001
 ```
 
@@ -162,8 +168,9 @@ glitchtip 机器负责：
 7. 不再兼容 `/var/www/zhangrh.shop`
 8. 不再维护 `zhangrh.top` 配置
 9. `zhangrh.top` 已废弃，不再做 301 跳转
-10. `glitchtip.zhangrh.shop` 不部署在 main 机器本地，只由 main 机器反代到 glitchtip 机器
-11. glitchtip 机器上的 GlitchTip 使用 Docker 启动和管理
+10. `legacy-h5` 发布到 `/opt/zhangrh-shop/site/legacy-h5`，线上 nginx 必须配置 `/legacy-h5/` 到对应静态目录的 `try_files` 路由
+11. `glitchtip.zhangrh.shop` 不部署在 main 机器本地，只由 main 机器反代到 glitchtip 机器
+12. glitchtip 机器上的 GlitchTip 使用 Docker 启动和管理
 
 ## 已废弃内容
 

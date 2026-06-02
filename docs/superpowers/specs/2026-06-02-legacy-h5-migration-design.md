@@ -258,7 +258,15 @@ cd /Users/runhaozhang/Documents/project/zhangrh.shop/frontend
 npm run deploy -- legacy-h5
 ```
 
-After deployment, verify the same five URLs under the production host.
+The production Nginx config must route `/legacy-h5/` to `/opt/zhangrh-shop/site/legacy-h5/` with `try_files $uri $uri/ /legacy-h5/index.html`.
+
+After deployment, verify the same five URLs under the production host:
+
+- `https://zhangrh.shop/legacy-h5/`
+- `https://zhangrh.shop/legacy-h5/1904_tale/`
+- `https://zhangrh.shop/legacy-h5/1905_word/`
+- `https://zhangrh.shop/legacy-h5/1907_cp/`
+- `https://zhangrh.shop/legacy-h5/1908_parade/`
 
 ## Non-Goals
 

@@ -15,7 +15,9 @@
 │   └── zhangrh.shop.key
 ├── site/
 │   ├── hub/
-│   └── cardgame/
+│   ├── cardgame/
+│   ├── shotmaker/
+│   └── legacy-h5/
 ├── logs/
 │   └── nginx/
 └── backend/
@@ -41,6 +43,8 @@ zhangrh.shop
   -> zhangrh-nginx
      -> /hub/       /usr/share/nginx/html/hub
      -> /cardgame/  /usr/share/nginx/html/cardgame
+     -> /shotmaker/ /usr/share/nginx/html/shotmaker
+     -> /legacy-h5/ /usr/share/nginx/html/legacy-h5
      -> /api/       http://backend:3001
 ```
 
@@ -56,16 +60,32 @@ npm run build -- hub
 npm run deploy -- hub
 npm run build -- cardgame
 npm run deploy -- cardgame
+npm run build -- legacy-h5
+npm run deploy -- legacy-h5
 ```
 
 映射：
 
 ```txt
-dist/hub/      -> /opt/zhangrh-shop/site/hub/
-dist/cardgame/ -> /opt/zhangrh-shop/site/cardgame/
+dist/hub/       -> /opt/zhangrh-shop/site/hub/
+dist/cardgame/  -> /opt/zhangrh-shop/site/cardgame/
+dist/shotmaker/ -> /opt/zhangrh-shop/site/shotmaker/
+dist/legacy-h5/ -> /opt/zhangrh-shop/site/legacy-h5/
 ```
 
 前端发布后不需要 reload Nginx。
+
+新增静态项目时，Nginx 需要有对应的 path location。`legacy-h5` 的线上路由应包含：
+
+```nginx
+location = /legacy-h5 {
+    return 301 /legacy-h5/;
+}
+
+location /legacy-h5/ {
+    try_files $uri $uri/ /legacy-h5/index.html;
+}
+```
 
 ## 后端发布
 
@@ -92,6 +112,11 @@ docker compose up -d --build backend
 ```bash
 curl -k -I https://zhangrh.shop/hub/
 curl -k -I https://zhangrh.shop/cardgame/
+curl -k -I https://zhangrh.shop/legacy-h5/
+curl -k -I https://zhangrh.shop/legacy-h5/1904_tale/
+curl -k -I https://zhangrh.shop/legacy-h5/1905_word/
+curl -k -I https://zhangrh.shop/legacy-h5/1907_cp/
+curl -k -I https://zhangrh.shop/legacy-h5/1908_parade/
 curl -k https://zhangrh.shop/api/cardgame/health
 ```
 
