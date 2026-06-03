@@ -1,0 +1,76 @@
+body {
+  #btn {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 30;
+  }
+  #Loading {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    #loadingImg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    #rateOuter {
+      #rate {
+        color: #7b7a79;
+        font-size: 16px;
+        font-family: "Microsoft YaHei", Helvetica, STXihei, Arial, SimSun,sans-serif;
+        position: absolute;
+        top: 46%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    }
+  }
+  .other {
+    display: none;
+  }
+  #videoQ1 {
+    position: fixed;
+    z-index: 20;
+  }
+  #videoQ4 {
+    position: fixed;
+    z-index: 20;
+  }
+  #infoInput {
+    position: fixed;
+    z-index: 20;
+    outline: none;
+    border: 1px solid black;
+    border-radius: 10px;
+
+    // line-height:50px;
+  }
+  #videoLong {
+    position: fixed;
+    z-index: 20;
+    width: 100%;
+
+    bottom: 0;
+
+    // left: 50%;
+    // transfo rm: translate(-50%, -50%);
+  }
+  #app {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    .gif {
+      position: fixed;
+      // 需要把之前图的位置扣成透明的
+      // z-index: 5;
+    }
+  }
+  #out {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+}

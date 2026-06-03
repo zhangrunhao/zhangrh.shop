@@ -12,6 +12,9 @@
     "deploy": "node scripts/deploy-static.mjs"
   },
   "dependencies": {
+    "@better-scroll/core": "^2.5.1",
+    "handlebars": "^4.7.9",
+    "lodash": "^4.18.1",
     "marked": "^12.0.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -28,6 +31,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "less": "^4.6.4",
     "mime-types": "^2.1.35",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
