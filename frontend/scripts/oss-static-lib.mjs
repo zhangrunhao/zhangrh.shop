@@ -46,8 +46,12 @@ export const buildStaticObjectKey = ({ config, projectName, relativeStaticPath }
 }
 
 export const buildPublicUrl = ({ config, objectKey }) => {
+  if (slashNormalize(objectKey).split('/').includes('..')) {
+    throw new Error(`Invalid OSS object key: ${objectKey}`)
+  }
+
   const normalizedObjectKey = normalizeRelativePath(objectKey)
-  if (isTraversalPath(normalizedObjectKey)) {
+  if (normalizedObjectKey === '.' || isTraversalPath(normalizedObjectKey)) {
     throw new Error(`Invalid OSS object key: ${objectKey}`)
   }
 
@@ -72,6 +76,12 @@ export const readOssCredentials = (env = process.env) => {
   }
   if (missing.length) {
     throw new Error(`Missing ${missing.join(' and ')}`)
+  }
+  if (/\s/.test(accessKeyId)) {
+    throw new Error('Invalid OSS_ACCESS_KEY_ID')
+  }
+  if (/\s/.test(accessKeySecret)) {
+    throw new Error('Invalid OSS_ACCESS_KEY_SECRET')
   }
 
   return {

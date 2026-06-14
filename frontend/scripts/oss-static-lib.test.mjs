@@ -134,6 +134,36 @@ test('buildPublicUrl rejects traversal object keys', () => {
   )
 })
 
+test('buildPublicUrl rejects embedded traversal object keys before normalization', () => {
+  for (const objectKey of [
+    'zhangrh-shop/hub/../admin/static/a.js',
+    'zhangrh-shop/hub/static/../x.js',
+    'zhangrh-shop\\hub\\..\\admin\\static\\a.js',
+  ]) {
+    assert.throws(
+      () =>
+        buildPublicUrl({
+          config: OSS_STATIC_CONFIG,
+          objectKey,
+        }),
+      /Invalid OSS object key/,
+    )
+  }
+})
+
+test('buildPublicUrl rejects empty and dot object keys', () => {
+  for (const objectKey of ['', '.']) {
+    assert.throws(
+      () =>
+        buildPublicUrl({
+          config: OSS_STATIC_CONFIG,
+          objectKey,
+        }),
+      /Invalid OSS object key/,
+    )
+  }
+})
+
 test('buildPublicAssetUrl maps project static path to static.zhangrh.shop', () => {
   assert.equal(
     buildPublicAssetUrl({
@@ -190,6 +220,32 @@ test('readOssCredentials returns trimmed credential values', () => {
       accessKeySecret: 'secret',
     },
   )
+})
+
+test('readOssCredentials rejects internal whitespace in access key id', () => {
+  for (const OSS_ACCESS_KEY_ID of ['i d', 'i\td', 'i\nd']) {
+    assert.throws(
+      () =>
+        readOssCredentials({
+          OSS_ACCESS_KEY_ID,
+          OSS_ACCESS_KEY_SECRET: 'secret',
+        }),
+      /Invalid OSS_ACCESS_KEY_ID/,
+    )
+  }
+})
+
+test('readOssCredentials rejects internal whitespace in access key secret', () => {
+  for (const OSS_ACCESS_KEY_SECRET of ['sec ret', 'sec\tret', 'sec\nret']) {
+    assert.throws(
+      () =>
+        readOssCredentials({
+          OSS_ACCESS_KEY_ID: 'id',
+          OSS_ACCESS_KEY_SECRET,
+        }),
+      /Invalid OSS_ACCESS_KEY_SECRET/,
+    )
+  }
 })
 
 test('buildOssClientOptions enables V4 authorization', () => {
