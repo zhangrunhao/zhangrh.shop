@@ -356,13 +356,14 @@ test('listStaticAssetEntries fails when static output is missing', () => {
   )
 })
 
-test('listHtmlFiles includes nested HTML files and excludes static files', () => {
+test('listHtmlFiles includes nested HTML files and excludes files under static', () => {
   const rootDir = makeTempDir()
   const distDir = path.join(rootDir, 'dist', 'hub')
   fs.mkdirSync(path.join(distDir, 'products'), { recursive: true })
   fs.mkdirSync(path.join(distDir, 'static'), { recursive: true })
   fs.writeFileSync(path.join(distDir, 'index.html'), '<html></html>')
   fs.writeFileSync(path.join(distDir, 'products', 'index.html'), '<html></html>')
+  fs.writeFileSync(path.join(distDir, 'static', 'index.html'), '<html></html>')
   fs.writeFileSync(path.join(distDir, 'static', 'index-CWvyab_5.js'), 'console.log("hub")')
 
   assert.deepEqual(listHtmlFiles({ distDir }), [

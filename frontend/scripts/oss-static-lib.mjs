@@ -149,11 +149,14 @@ export const listHtmlFiles = ({ distDir }) => {
   }
 
   return listFilesRecursive(distDir)
-    .filter((localPath) => path.extname(localPath) === '.html')
     .map((localPath) => ({
       localPath,
       relativeHtmlPath: relativePathFromDist({ distDir, filePath: localPath }),
     }))
+    .filter(
+      ({ localPath, relativeHtmlPath }) =>
+        path.extname(localPath) === '.html' && !relativeHtmlPath.startsWith('static/'),
+    )
 }
 
 export const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
