@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import path from 'node:path'
 
 const slashNormalize = (value) => String(value).replace(/\\/g, '/').replace(/^\/+/, '')
@@ -105,4 +106,78 @@ export const relativePathFromDist = ({ distDir, filePath }) => {
   }
 
   return relativePath
+}
+
+export const listFilesRecursive = (rootDir) => {
+  const rootPath = path.resolve(rootDir)
+  const entries = fs.readdirSync(rootPath, { withFileTypes: true })
+  const files = entries.flatMap((entry) => {
+    const entryPath = path.join(rootPath, entry.name)
+    if (entry.isDirectory()) {
+      return listFilesRecursive(entryPath)
+    }
+    if (entry.isFile()) {
+      return [entryPath]
+    }
+    return []
+  })
+
+  return files.sort()
+}
+
+export const listStaticAssetEntries = ({ distDir, config, projectName }) => {
+  const staticDir = path.join(distDir, 'static')
+  if (!fs.existsSync(staticDir) || !fs.statSync(staticDir).isDirectory()) {
+    throw new Error(`Build static output not found: ${staticDir}`)
+  }
+
+  return listFilesRecursive(staticDir).map((localPath) => {
+    const relativeStaticPath = relativePathFromDist({ distDir, filePath: localPath })
+    const objectKey = buildStaticObjectKey({ config, projectName, relativeStaticPath })
+    return {
+      localPath,
+      relativeStaticPath,
+      objectKey,
+      publicUrl: buildPublicUrl({ config, objectKey }),
+    }
+  })
+}
+
+export const listHtmlFiles = ({ distDir }) => {
+  if (!fs.existsSync(distDir) || !fs.statSync(distDir).isDirectory()) {
+    throw new Error(`Build output not found: ${distDir}`)
+  }
+
+  return listFilesRecursive(distDir)
+    .filter((localPath) => path.extname(localPath) === '.html')
+    .map((localPath) => ({
+      localPath,
+      relativeHtmlPath: relativePathFromDist({ distDir, filePath: localPath }),
+    }))
+}
+
+export const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+export const rewriteHtmlAssetUrls = ({ html, config, projectName }) => {
+  const projectPath = escapeRegExp(normalizeProjectName(projectName))
+  const assetUrlPattern = new RegExp(`(["'(=])(/${projectPath}/static/[^"'()\\s<>]+)`, 'g')
+
+  return html.replace(assetUrlPattern, (match, prefix, assetPath) => {
+    const relativeStaticPath = assetPath.replace(new RegExp(`^/${projectPath}/`), '')
+    return `${prefix}${buildPublicAssetUrl({ config, projectName, relativeStaticPath })}`
+  })
+}
+
+export const rewriteHtmlFile = ({ htmlPath, config, projectName }) => {
+  const html = fs.readFileSync(htmlPath, 'utf8')
+  const rewrittenHtml = rewriteHtmlAssetUrls({ html, config, projectName })
+  const changed = rewrittenHtml !== html
+  if (changed) {
+    fs.writeFileSync(htmlPath, rewrittenHtml)
+  }
+
+  return {
+    changed,
+    htmlPath,
+  }
 }

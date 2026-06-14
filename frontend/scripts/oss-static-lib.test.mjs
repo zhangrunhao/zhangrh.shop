@@ -1,5 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 import { OSS_STATIC_CONFIG } from './oss-static.config.mjs'
 import {
@@ -7,9 +10,16 @@ import {
   buildPublicAssetUrl,
   buildPublicUrl,
   buildStaticObjectKey,
+  escapeRegExp,
+  listHtmlFiles,
+  listStaticAssetEntries,
   relativePathFromDist,
   readOssCredentials,
+  rewriteHtmlAssetUrls,
+  rewriteHtmlFile,
 } from './oss-static-lib.mjs'
+
+const makeTempDir = () => fs.mkdtempSync(path.join(os.tmpdir(), 'oss-static-lib-'))
 
 test('OSS static config uses the confirmed Aliyun bucket and public domain', () => {
   assert.deepEqual(OSS_STATIC_CONFIG, {
@@ -296,5 +306,159 @@ test('relativePathFromDist rejects the dist directory itself', () => {
         filePath: '/repo/frontend/dist/hub',
       }),
     /Expected file path inside dist directory/,
+  )
+})
+
+test('listStaticAssetEntries includes static files and maps object keys and public URLs', () => {
+  const rootDir = makeTempDir()
+  const distDir = path.join(rootDir, 'dist', 'hub')
+  fs.mkdirSync(path.join(distDir, 'static', 'assets'), { recursive: true })
+  fs.writeFileSync(path.join(distDir, 'index.html'), '<html></html>')
+  fs.writeFileSync(path.join(distDir, 'static', 'index-CWvyab_5.js'), 'console.log("hub")')
+  fs.writeFileSync(path.join(distDir, 'static', 'assets', 'logo.png'), 'png')
+
+  assert.deepEqual(
+    listStaticAssetEntries({
+      distDir,
+      config: OSS_STATIC_CONFIG,
+      projectName: 'hub',
+    }),
+    [
+      {
+        localPath: path.join(distDir, 'static', 'assets', 'logo.png'),
+        relativeStaticPath: 'static/assets/logo.png',
+        objectKey: 'zhangrh-shop/hub/static/assets/logo.png',
+        publicUrl: 'https://static.zhangrh.shop/zhangrh-shop/hub/static/assets/logo.png',
+      },
+      {
+        localPath: path.join(distDir, 'static', 'index-CWvyab_5.js'),
+        relativeStaticPath: 'static/index-CWvyab_5.js',
+        objectKey: 'zhangrh-shop/hub/static/index-CWvyab_5.js',
+        publicUrl: 'https://static.zhangrh.shop/zhangrh-shop/hub/static/index-CWvyab_5.js',
+      },
+    ],
+  )
+})
+
+test('listStaticAssetEntries fails when static output is missing', () => {
+  const rootDir = makeTempDir()
+  const distDir = path.join(rootDir, 'dist', 'hub')
+  fs.mkdirSync(distDir, { recursive: true })
+
+  assert.throws(
+    () =>
+      listStaticAssetEntries({
+        distDir,
+        config: OSS_STATIC_CONFIG,
+        projectName: 'hub',
+      }),
+    new RegExp(`Build static output not found: ${escapeRegExp(path.join(distDir, 'static'))}`),
+  )
+})
+
+test('listHtmlFiles includes nested HTML files and excludes static files', () => {
+  const rootDir = makeTempDir()
+  const distDir = path.join(rootDir, 'dist', 'hub')
+  fs.mkdirSync(path.join(distDir, 'products'), { recursive: true })
+  fs.mkdirSync(path.join(distDir, 'static'), { recursive: true })
+  fs.writeFileSync(path.join(distDir, 'index.html'), '<html></html>')
+  fs.writeFileSync(path.join(distDir, 'products', 'index.html'), '<html></html>')
+  fs.writeFileSync(path.join(distDir, 'static', 'index-CWvyab_5.js'), 'console.log("hub")')
+
+  assert.deepEqual(listHtmlFiles({ distDir }), [
+    {
+      localPath: path.join(distDir, 'index.html'),
+      relativeHtmlPath: 'index.html',
+    },
+    {
+      localPath: path.join(distDir, 'products', 'index.html'),
+      relativeHtmlPath: 'products/index.html',
+    },
+  ])
+})
+
+test('rewriteHtmlAssetUrls rewrites only current project static asset URLs', () => {
+  const html = [
+    '<script type="module" src="/hub/static/index-CWvyab_5.js"></script>',
+    '<link rel="stylesheet" href="/hub/static/index-BCVh40yg.css">',
+  ].join('\n')
+
+  assert.equal(
+    rewriteHtmlAssetUrls({
+      html,
+      config: OSS_STATIC_CONFIG,
+      projectName: 'hub',
+    }),
+    [
+      '<script type="module" src="https://static.zhangrh.shop/zhangrh-shop/hub/static/index-CWvyab_5.js"></script>',
+      '<link rel="stylesheet" href="https://static.zhangrh.shop/zhangrh-shop/hub/static/index-BCVh40yg.css">',
+    ].join('\n'),
+  )
+})
+
+test('rewriteHtmlAssetUrls preserves external URLs, app routes, business data URLs, and other project static paths', () => {
+  const html = [
+    '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC" rel="stylesheet">',
+    '<script src="https://hm.baidu.com/hm.js?abc"></script>',
+    '<a href="/hub/products/card-game">Card game</a>',
+    '<img src="https://zhangrunhao.oss-cn-beijing.aliyuncs.com/business/card.png">',
+    '<script src="/cardgame/static/index-B3F7aiyZ.js"></script>',
+  ].join('\n')
+
+  assert.equal(
+    rewriteHtmlAssetUrls({
+      html,
+      config: OSS_STATIC_CONFIG,
+      projectName: 'hub',
+    }),
+    html,
+  )
+})
+
+test('rewriteHtmlAssetUrls is idempotent for already rewritten URLs', () => {
+  const html =
+    '<script src="https://static.zhangrh.shop/zhangrh-shop/hub/static/index-CWvyab_5.js"></script>'
+
+  assert.equal(
+    rewriteHtmlAssetUrls({
+      html,
+      config: OSS_STATIC_CONFIG,
+      projectName: 'hub',
+    }),
+    html,
+  )
+})
+
+test('rewriteHtmlFile rewrites file contents and reports whether a file changed', () => {
+  const rootDir = makeTempDir()
+  const htmlPath = path.join(rootDir, 'index.html')
+  fs.writeFileSync(htmlPath, '<script src="/hub/static/index-CWvyab_5.js"></script>')
+
+  assert.deepEqual(
+    rewriteHtmlFile({
+      htmlPath,
+      config: OSS_STATIC_CONFIG,
+      projectName: 'hub',
+    }),
+    {
+      changed: true,
+      htmlPath,
+    },
+  )
+  assert.equal(
+    fs.readFileSync(htmlPath, 'utf8'),
+    '<script src="https://static.zhangrh.shop/zhangrh-shop/hub/static/index-CWvyab_5.js"></script>',
+  )
+
+  assert.deepEqual(
+    rewriteHtmlFile({
+      htmlPath,
+      config: OSS_STATIC_CONFIG,
+      projectName: 'hub',
+    }),
+    {
+      changed: false,
+      htmlPath,
+    },
   )
 })
