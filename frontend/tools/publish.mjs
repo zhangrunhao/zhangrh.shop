@@ -21,7 +21,7 @@ const usage = () => {
   console.log('Usage: npm run publish [project-name]')
   console.log(`Available projects: ${available}`)
   console.log('Tip: 在终端中可直接上下键选择项目')
-  console.log('Publish flow: git pull -> build -> upload to 101.200.185.29')
+  console.log('Publish flow: git pull -> build -> upload static assets to OSS -> upload HTML to 101.200.185.29')
 }
 
 const findRepoRoot = (start) => {
@@ -69,6 +69,7 @@ const main = async () => {
   const repoRoot = findRepoRoot(cwd) ?? path.resolve(cwd, '..')
   run('git', ['pull'], { cwd: repoRoot })
   run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build', '--', project], { cwd })
+  run(process.execPath, [path.join(cwd, 'scripts', 'publish-oss-assets.mjs'), project], { cwd })
   run(process.execPath, [path.join(cwd, 'scripts', 'deploy-static.mjs'), project], { cwd })
 }
 
