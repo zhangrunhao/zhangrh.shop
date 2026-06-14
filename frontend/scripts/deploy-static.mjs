@@ -17,6 +17,18 @@ export const ensureTrailingSlash = (value) => (value.endsWith('/') ? value : `${
 
 export const shellEscape = (value) => `'${String(value).replace(/'/g, `'\\''`)}'`
 
+export const buildHtmlOnlyRsyncArgs = ({ localDist, remote, remoteProjectDir }) => [
+  '-avz',
+  '--include',
+  '*/',
+  '--include',
+  '*.html',
+  '--exclude',
+  '*',
+  ensureTrailingSlash(localDist),
+  `${remote}:${ensureTrailingSlash(remoteProjectDir)}`,
+]
+
 const parseArgs = (args) => {
   const options = { project: null, user: null, host: null, dest: null }
   for (let i = 0; i < args.length; i += 1) {
@@ -80,14 +92,9 @@ export async function main() {
   const remoteProjectDir = remoteDirForProject(rsyncDest, projectName)
 
   run('ssh', [remote, `mkdir -p ${shellEscape(remoteProjectDir)}`])
-  run('rsync', [
-    '-avz',
-    '--delete',
-    ensureTrailingSlash(localDist),
-    `${remote}:${ensureTrailingSlash(remoteProjectDir)}`,
-  ])
+  run('rsync', buildHtmlOnlyRsyncArgs({ localDist, remote, remoteProjectDir }))
 
-  console.log(`Deployed: ${localDist} -> ${remote}:${ensureTrailingSlash(remoteProjectDir)}`)
+  console.log(`Deployed HTML: ${localDist} -> ${remote}:${ensureTrailingSlash(remoteProjectDir)}`)
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
