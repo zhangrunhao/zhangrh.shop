@@ -7,7 +7,7 @@
 以 `docs/deploy/zhangrh-shop-service-ledger.md` 为准，当前线上运行结构是：
 
 ```txt
-main 机器 = 主站网关 + 主站静态资源 + cardgame 后端 + glitchtip 入口反代
+main 机器 = 主站网关 + 前端 HTML 入口 + legacy-h5 静态目录 + cardgame 后端 + glitchtip 入口反代
 glitchtip 机器 = GlitchTip 专用服务机器
 back 机器 = 当前空置，不运行 back / backend 服务
 ```
@@ -24,7 +24,7 @@ back 机器 = 当前空置，不运行 back / backend 服务
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | back | i-2ze0srs5gyvtuxbnj7kd | 59.110.217.51 | 华北2（北京） | 2 核 vCPU / 2 GiB | 运行中 | 2026-04-14 15:03:00 | 2027-04-14 23:59:59 | 2.625% | 当前空置，不运行线上业务 |
 | glitchtip | i-2zeh3jd1bc4pi0ru52q3 | 123.56.165.87 | 华北2（北京） | 2 核 vCPU / 2 GiB | 运行中 | 2026-03-06 15:21:00 | 2027-03-06 23:59:59 | 4.933% | 运行 GlitchTip 服务 |
-| main | i-2zehg2n0h794kfpgpw4v | 101.200.185.29 | 华北2（北京） | 2 核 vCPU / 2 GiB | 运行中 | 2026-01-15 09:45:00 | 2027-01-22 23:59:59 | 2.063% | 主站入口、nginx 网关、主站静态资源、cardgame 后端、GlitchTip 入口反代 |
+| main | i-2zehg2n0h794kfpgpw4v | 101.200.185.29 | 华北2（北京） | 2 核 vCPU / 2 GiB | 运行中 | 2026-01-15 09:45:00 | 2027-01-22 23:59:59 | 2.063% | 主站入口、nginx 网关、前端 HTML 入口、legacy-h5 静态目录、cardgame 后端、GlitchTip 入口反代 |
 
 截图中三台服务器均未安装云监控插件，因此内存使用率和云盘使用率没有控制台数据。
 
@@ -64,7 +64,7 @@ glitchtip 机器只负责 GlitchTip 自身服务。
 
 - 使用 Docker / Docker Compose 运行 GlitchTip
 - 对 main 机器暴露 GlitchTip Web 服务端口
-- 不承载 `zhangrh.shop` 主站静态资源
+- 不承载 `zhangrh.shop` 前端 HTML 入口或 legacy-h5 静态目录
 - 不承载 `/api/cardgame/`
 - 不直接作为 `glitchtip.zhangrh.shop` 的 HTTPS 入口
 

@@ -188,7 +188,7 @@ glitchtip 机器负责：
 当前线上结构可以理解为：
 
 ```txt
-main 机器 = 主站网关 + 主站静态资源 + cardgame 后端 + glitchtip 入口反代
+main 机器 = 主站网关 + 前端 HTML 入口 + legacy-h5 静态目录 + cardgame 后端 + glitchtip 入口反代
 
 glitchtip 机器 = GlitchTip 专用服务机器
 ```
