@@ -1,19 +1,40 @@
 import path from 'node:path'
 
 export const normalizeRelativePath = (value) =>
-  String(value).replace(/\\/g, '/').replace(/^\/+/, '')
+  path.posix.normalize(String(value).replace(/\\/g, '/').replace(/^\/+/, ''))
 
 export const trimSlashes = (value) => String(value).replace(/^\/+|\/+$/g, '')
 
 export const trimTrailingSlashes = (value) => String(value).replace(/\/+$/g, '')
 
+const isTraversalPath = (relativePath) =>
+  relativePath === '..' ||
+  relativePath.startsWith('../') ||
+  relativePath.split('/').includes('..')
+
+const normalizeProjectName = (projectName) => {
+  const value = String(projectName).trim()
+  const normalized = path.posix.normalize(value.replace(/\\/g, '/'))
+  if (
+    !value ||
+    value.includes('/') ||
+    value.includes('\\') ||
+    normalized === '.' ||
+    normalized === '..'
+  ) {
+    throw new Error(`Invalid project name: ${projectName}`)
+  }
+
+  return normalized
+}
+
 export const buildStaticObjectKey = ({ config, projectName, relativeStaticPath }) => {
   const relativePath = normalizeRelativePath(relativeStaticPath)
-  if (!relativePath.startsWith('static/')) {
+  if (isTraversalPath(relativePath) || !relativePath.startsWith('static/')) {
     throw new Error(`Expected static asset path under static/: ${relativeStaticPath}`)
   }
 
-  return [trimSlashes(config.uploadRoot), projectName, relativePath]
+  return [trimSlashes(config.uploadRoot), normalizeProjectName(projectName), relativePath]
     .filter(Boolean)
     .join('/')
 }
@@ -29,10 +50,12 @@ export const buildPublicAssetUrl = ({ config, projectName, relativeStaticPath })
 
 export const readOssCredentials = (env = process.env) => {
   const missing = []
-  if (!env.OSS_ACCESS_KEY_ID) {
+  const accessKeyId = env.OSS_ACCESS_KEY_ID?.trim()
+  const accessKeySecret = env.OSS_ACCESS_KEY_SECRET?.trim()
+  if (!accessKeyId) {
     missing.push('OSS_ACCESS_KEY_ID')
   }
-  if (!env.OSS_ACCESS_KEY_SECRET) {
+  if (!accessKeySecret) {
     missing.push('OSS_ACCESS_KEY_SECRET')
   }
   if (missing.length) {
@@ -40,8 +63,8 @@ export const readOssCredentials = (env = process.env) => {
   }
 
   return {
-    accessKeyId: env.OSS_ACCESS_KEY_ID,
-    accessKeySecret: env.OSS_ACCESS_KEY_SECRET,
+    accessKeyId,
+    accessKeySecret,
   }
 }
 
@@ -53,5 +76,11 @@ export const buildOssClientOptions = ({ config, credentials }) => ({
   authorizationV4: true,
 })
 
-export const relativePathFromDist = ({ distDir, filePath }) =>
-  normalizeRelativePath(path.relative(distDir, filePath))
+export const relativePathFromDist = ({ distDir, filePath }) => {
+  const relativePath = normalizeRelativePath(path.relative(distDir, filePath))
+  if (isTraversalPath(relativePath)) {
+    throw new Error(`Expected file path inside dist directory: ${filePath}`)
+  }
+
+  return relativePath
+}

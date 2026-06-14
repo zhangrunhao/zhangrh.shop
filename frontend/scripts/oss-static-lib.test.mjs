@@ -7,6 +7,7 @@ import {
   buildPublicAssetUrl,
   buildPublicUrl,
   buildStaticObjectKey,
+  relativePathFromDist,
   readOssCredentials,
 } from './oss-static-lib.mjs'
 
@@ -53,6 +54,44 @@ test('buildStaticObjectKey rejects files outside static directory', () => {
   )
 })
 
+test('buildStaticObjectKey rejects static paths that traverse outside static directory', () => {
+  assert.throws(
+    () =>
+      buildStaticObjectKey({
+        config: OSS_STATIC_CONFIG,
+        projectName: 'hub',
+        relativeStaticPath: 'static/../index.html',
+      }),
+    /Expected static asset path/,
+  )
+})
+
+test('buildStaticObjectKey rejects paths that start outside static directory', () => {
+  assert.throws(
+    () =>
+      buildStaticObjectKey({
+        config: OSS_STATIC_CONFIG,
+        projectName: 'hub',
+        relativeStaticPath: '../static/foo.js',
+      }),
+    /Expected static asset path/,
+  )
+})
+
+test('buildStaticObjectKey rejects invalid project names', () => {
+  for (const projectName of ['', '.', '..', 'nested/project', 'nested\\project']) {
+    assert.throws(
+      () =>
+        buildStaticObjectKey({
+          config: OSS_STATIC_CONFIG,
+          projectName,
+          relativeStaticPath: 'static/index-CWvyab_5.js',
+        }),
+      /Invalid project name/,
+    )
+  }
+})
+
 test('buildPublicUrl joins public base and object key', () => {
   assert.equal(
     buildPublicUrl({
@@ -97,6 +136,30 @@ test('readOssCredentials reports missing key names', () => {
   )
 })
 
+test('readOssCredentials treats whitespace-only values as missing', () => {
+  assert.throws(
+    () =>
+      readOssCredentials({
+        OSS_ACCESS_KEY_ID: '   ',
+        OSS_ACCESS_KEY_SECRET: 'secret',
+      }),
+    /Missing OSS_ACCESS_KEY_ID/,
+  )
+})
+
+test('readOssCredentials returns trimmed credential values', () => {
+  assert.deepEqual(
+    readOssCredentials({
+      OSS_ACCESS_KEY_ID: ' id ',
+      OSS_ACCESS_KEY_SECRET: '\tsecret\n',
+    }),
+    {
+      accessKeyId: 'id',
+      accessKeySecret: 'secret',
+    },
+  )
+})
+
 test('buildOssClientOptions enables V4 authorization', () => {
   assert.deepEqual(
     buildOssClientOptions({
@@ -113,5 +176,26 @@ test('buildOssClientOptions enables V4 authorization', () => {
       accessKeySecret: 'secret',
       authorizationV4: true,
     },
+  )
+})
+
+test('relativePathFromDist returns normalized relative path for nested dist files', () => {
+  assert.equal(
+    relativePathFromDist({
+      distDir: '/repo/frontend/dist/hub',
+      filePath: '/repo/frontend/dist/hub/static/index-CWvyab_5.js',
+    }),
+    'static/index-CWvyab_5.js',
+  )
+})
+
+test('relativePathFromDist rejects files outside dist directory', () => {
+  assert.throws(
+    () =>
+      relativePathFromDist({
+        distDir: '/repo/frontend/dist/hub',
+        filePath: '/repo/frontend/dist/index.html',
+      }),
+    /Expected file path inside dist directory/,
   )
 })
