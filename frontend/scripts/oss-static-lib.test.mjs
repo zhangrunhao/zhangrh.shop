@@ -123,6 +123,17 @@ test('buildPublicUrl joins public base and object key', () => {
   )
 })
 
+test('buildPublicUrl rejects traversal object keys', () => {
+  assert.throws(
+    () =>
+      buildPublicUrl({
+        config: OSS_STATIC_CONFIG,
+        objectKey: '../x',
+      }),
+    /Invalid OSS object key/,
+  )
+})
+
 test('buildPublicAssetUrl maps project static path to static.zhangrh.shop', () => {
   assert.equal(
     buildPublicAssetUrl({
@@ -216,6 +227,17 @@ test('relativePathFromDist rejects files outside dist directory', () => {
       relativePathFromDist({
         distDir: '/repo/frontend/dist/hub',
         filePath: '/repo/frontend/dist/index.html',
+      }),
+    /Expected file path inside dist directory/,
+  )
+})
+
+test('relativePathFromDist rejects the dist directory itself', () => {
+  assert.throws(
+    () =>
+      relativePathFromDist({
+        distDir: '/repo/frontend/dist/hub',
+        filePath: '/repo/frontend/dist/hub',
       }),
     /Expected file path inside dist directory/,
   )

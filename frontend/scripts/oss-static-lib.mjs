@@ -45,8 +45,14 @@ export const buildStaticObjectKey = ({ config, projectName, relativeStaticPath }
     .join('/')
 }
 
-export const buildPublicUrl = ({ config, objectKey }) =>
-  `${trimTrailingSlashes(config.publicBaseUrl)}/${normalizeRelativePath(objectKey)}`
+export const buildPublicUrl = ({ config, objectKey }) => {
+  const normalizedObjectKey = normalizeRelativePath(objectKey)
+  if (isTraversalPath(normalizedObjectKey)) {
+    throw new Error(`Invalid OSS object key: ${objectKey}`)
+  }
+
+  return `${trimTrailingSlashes(config.publicBaseUrl)}/${normalizedObjectKey}`
+}
 
 export const buildPublicAssetUrl = ({ config, projectName, relativeStaticPath }) =>
   buildPublicUrl({
@@ -84,7 +90,7 @@ export const buildOssClientOptions = ({ config, credentials }) => ({
 
 export const relativePathFromDist = ({ distDir, filePath }) => {
   const relativePath = normalizeRelativePath(path.relative(distDir, filePath))
-  if (isTraversalPath(relativePath)) {
+  if (relativePath === '.' || isTraversalPath(relativePath)) {
     throw new Error(`Expected file path inside dist directory: ${filePath}`)
   }
 
