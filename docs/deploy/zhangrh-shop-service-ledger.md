@@ -38,7 +38,7 @@
 - `/legacy-h5/` 是旧 H5 活动合集入口，只发布本地静态源码和素材，不接旧 API、OSS/CDN、微信登录、分享签名、敏感词、打点或拼字保存服务。
 - `static.zhangrh.shop` 是阿里云 OSS 自定义域名，用于承载前端构建生成的 JS / CSS / 图片 / favicon 等静态资源。HTML 入口仍发布到 main 机器的 `/opt/zhangrh-shop/site/<project>/`。
 - `glitchtip.zhangrh.shop` 是独立服务，不混在主站路径下。
-- `glitchtip.zhangrh.shop` 的入口在 main 机器上，由 main 机器上的 nginx 通过内网反向代理到 `172.22.37.118:8000`。
+- `glitchtip.zhangrh.shop` 的入口在 main 机器上，由 main 机器上的 nginx 反向代理到 glitchtip 机器。
 - glitchtip 机器上使用 Docker 启动 GlitchTip 服务。
 - `zhangrh.top` 已废弃，不再配置 301、不再维护证书、不再接入 nginx、不再参与部署链路。
 
@@ -46,15 +46,11 @@
 
 - `zhangrh.shop/` 当前是否已经正确 301 到 `/hub/`
 - `zhangrh.shop` 的 HTTPS 证书是否覆盖完整
+- `glitchtip.zhangrh.shop` 的 DNS 是否指向 main 机器
+- main 机器上的 `glitchtip.zhangrh.shop` 证书是否正常
+- main 机器是否能稳定反代到 glitchtip 机器上的 GlitchTip 服务
 - glitchtip 机器上的 Docker GlitchTip 服务是否开机自启、容器状态是否正常
 - `static.zhangrh.shop` OSS 自定义域名、证书和回源 / CNAME 配置是否完整
-
-## GlitchTip 当前状态
-
-- `glitchtip.zhangrh.shop` DNS 指向 main 机器公网 IP `101.200.185.29`。
-- main 机器 nginx 处理 HTTPS 入口和证书。
-- main 机器通过内网 `http://172.22.37.118:8000` 反代到 glitchtip 机器。
-- glitchtip 机器公网 IP `123.56.165.87` 的 `8000` 端口当前公网不可达。
 
 ## 当前线上结构
 
@@ -130,7 +126,7 @@ glitchtip.zhangrh.shop
 ↓
 main 机器 nginx 容器
 ↓
-内网反向代理到 172.22.37.118:8000
+反向代理到 glitchtip 机器
 ↓
 glitchtip 机器 Docker GlitchTip 服务
 ```
@@ -153,12 +149,12 @@ main 机器只负责：
 
 - 接收 `glitchtip.zhangrh.shop` 请求
 - 处理 HTTPS / nginx 入口
-- 通过内网反向代理到 glitchtip 机器
+- 反向代理到 glitchtip 机器
 
 glitchtip 机器负责：
 
 - 运行 GlitchTip 容器
-- 提供 `172.22.37.118:8000` GlitchTip Web 服务
+- 提供 GlitchTip Web 服务
 - 维护 GlitchTip 自身依赖服务
 
 ## 当前规则

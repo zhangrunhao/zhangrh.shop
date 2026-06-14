@@ -74,19 +74,7 @@ glitchtip 机器只负责 GlitchTip 自身服务。
 123.56.165.87
 ```
 
-内网 IP：
-
-```txt
-172.22.37.118
-```
-
-当前 main 机器 nginx 通过内网反向代理到：
-
-```txt
-http://172.22.37.118:8000
-```
-
-`123.56.165.87:8000` 当前公网不可达，GlitchTip Web 端口只作为 main 机器的内网 upstream 使用。
+实际反代 upstream 地址和端口以 main 机器 nginx 配置为准。
 
 ### back 机器
 
@@ -117,7 +105,7 @@ back 机器当前空置。
 | `zhangrh.shop/cardgame/` | main | nginx 静态文件 | 静态产物位于 `/opt/zhangrh-shop/site/cardgame` |
 | `zhangrh.shop/api/cardgame/` | main | `zhangrh-backend` 容器 | 后端服务运行在 main，不运行在 back |
 | `glitchtip.zhangrh.shop` 入口 | main | nginx 反向代理 | HTTPS 和公网入口在 main |
-| GlitchTip 应用服务 | glitchtip | Docker / Docker Compose | 真正的 GlitchTip 服务运行在 glitchtip，内网 upstream 为 `172.22.37.118:8000` |
+| GlitchTip 应用服务 | glitchtip | Docker / Docker Compose | 真正的 GlitchTip 服务运行在 glitchtip |
 | `static.zhangrh.shop` | 非 ECS | OSS 静态资源 | 承载前端构建生成的 JS / CSS / 图片 / favicon 等静态资源 |
 | back 服务器 | back | 无 | 当前空置 |
 
@@ -145,7 +133,7 @@ glitchtip.zhangrh.shop
 ↓
 main 机器 / zhangrh-nginx
 ↓
-内网反向代理到 172.22.37.118:8000
+反向代理到 glitchtip 机器
 ↓
 glitchtip 机器 / GlitchTip Docker 服务
 ```
@@ -178,7 +166,6 @@ docker compose ps
 docker logs --tail=100 zhangrh-nginx
 docker logs --tail=100 zhangrh-backend
 docker exec zhangrh-nginx nginx -t
-curl -I http://172.22.37.118:8000
 ```
 
 公网验证：
@@ -195,8 +182,6 @@ curl -k -I https://glitchtip.zhangrh.shop/
 ```bash
 docker ps
 docker compose ps
-ip addr | grep 172.22.37.118
-ss -ltnp | grep ':8000'
 ```
 
 如需进一步排查 GlitchTip，进入实际 GlitchTip 部署目录后再查看 compose 状态和容器日志。
@@ -215,8 +200,9 @@ systemctl --type=service --state=running
 
 ## 待补充信息
 
-- main / back 机器的内网 IP
-- 三台服务器的安全组规则截图
+- 三台服务器的内网 IP
+- 三台服务器的安全组规则
+- main 机器反代到 glitchtip 机器的实际 upstream 地址和端口
 - `zhangrh.shop`、`glitchtip.zhangrh.shop` 的 DNS 解析记录截图
 - 是否需要安装云监控插件以观察内存和云盘使用率
 - back 机器未来是否释放、保留备用，还是迁移为新的独立后端机器
