@@ -1,7 +1,9 @@
 import path from 'node:path'
 
+const slashNormalize = (value) => String(value).replace(/\\/g, '/').replace(/^\/+/, '')
+
 export const normalizeRelativePath = (value) =>
-  path.posix.normalize(String(value).replace(/\\/g, '/').replace(/^\/+/, ''))
+  path.posix.normalize(slashNormalize(value))
 
 export const trimSlashes = (value) => String(value).replace(/^\/+|\/+$/g, '')
 
@@ -16,7 +18,7 @@ const normalizeProjectName = (projectName) => {
   const value = String(projectName).trim()
   const normalized = path.posix.normalize(value.replace(/\\/g, '/'))
   if (
-    !value ||
+    !/^[A-Za-z0-9_-]+$/.test(value) ||
     value.includes('/') ||
     value.includes('\\') ||
     normalized === '.' ||
@@ -29,6 +31,10 @@ const normalizeProjectName = (projectName) => {
 }
 
 export const buildStaticObjectKey = ({ config, projectName, relativeStaticPath }) => {
+  if (slashNormalize(relativeStaticPath).split('/').includes('..')) {
+    throw new Error(`Expected static asset path under static/: ${relativeStaticPath}`)
+  }
+
   const relativePath = normalizeRelativePath(relativeStaticPath)
   if (isTraversalPath(relativePath) || !relativePath.startsWith('static/')) {
     throw new Error(`Expected static asset path under static/: ${relativeStaticPath}`)

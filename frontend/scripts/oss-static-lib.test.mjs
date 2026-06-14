@@ -66,6 +66,18 @@ test('buildStaticObjectKey rejects static paths that traverse outside static dir
   )
 })
 
+test('buildStaticObjectKey rejects static paths with traversal segments before normalization', () => {
+  assert.throws(
+    () =>
+      buildStaticObjectKey({
+        config: OSS_STATIC_CONFIG,
+        projectName: 'hub',
+        relativeStaticPath: 'static/foo/../bar.js',
+      }),
+    /Expected static asset path/,
+  )
+})
+
 test('buildStaticObjectKey rejects paths that start outside static directory', () => {
   assert.throws(
     () =>
@@ -79,7 +91,16 @@ test('buildStaticObjectKey rejects paths that start outside static directory', (
 })
 
 test('buildStaticObjectKey rejects invalid project names', () => {
-  for (const projectName of ['', '.', '..', 'nested/project', 'nested\\project']) {
+  for (const projectName of [
+    '',
+    '.',
+    '..',
+    'nested/project',
+    'nested\\project',
+    'foo bar',
+    'foo?bar',
+    'foo#bar',
+  ]) {
     assert.throws(
       () =>
         buildStaticObjectKey({
