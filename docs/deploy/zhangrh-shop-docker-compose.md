@@ -50,27 +50,55 @@ zhangrh.shop
 
 ## 前端发布
 
-前端静态产物发布到 `/opt/zhangrh-shop/site`：
+前端发布现在分为两部分：
+
+- Vite 构建生成的 JS / CSS / 图片 / favicon 等静态资源发布到阿里云 OSS。
+- HTML 入口文件发布到 main 机器的 `/opt/zhangrh-shop/site`。
+
+OSS 静态资源路径：
+
+```txt
+https://static.zhangrh.shop/zhangrh-shop/<project>/static/<file>
+```
+
+ECS HTML 路径：
+
+```txt
+dist/<project>/**/*.html -> /opt/zhangrh-shop/site/<project>/**/*.html
+```
+
+发布前需要在本地配置 OSS 环境变量：
+
+```bash
+export OSS_ACCESS_KEY_ID='你的 AccessKeyId'
+export OSS_ACCESS_KEY_SECRET='你的 AccessKeySecret'
+```
+
+常规发布命令：
 
 ```bash
 cd frontend
-npm run lint
-npx tsc -p tsconfig.app.json
-npm run build -- hub
-npm run deploy -- hub
-npm run build -- cardgame
-npm run deploy -- cardgame
-npm run build -- legacy-h5
-npm run deploy -- legacy-h5
+npm run publish -- hub
+npm run publish -- cardgame
+npm run publish -- shotmaker
+```
+
+底层流程：
+
+```txt
+git pull
+npm run build -- <project>
+node scripts/publish-oss-assets.mjs <project>
+node scripts/deploy-static.mjs <project>
 ```
 
 映射：
 
 ```txt
-dist/hub/       -> /opt/zhangrh-shop/site/hub/
-dist/cardgame/  -> /opt/zhangrh-shop/site/cardgame/
-dist/shotmaker/ -> /opt/zhangrh-shop/site/shotmaker/
-dist/legacy-h5/ -> /opt/zhangrh-shop/site/legacy-h5/
+dist/hub/**/*.html       -> /opt/zhangrh-shop/site/hub/
+dist/cardgame/**/*.html  -> /opt/zhangrh-shop/site/cardgame/
+dist/shotmaker/**/*.html -> /opt/zhangrh-shop/site/shotmaker/
+dist/<project>/static/*  -> https://static.zhangrh.shop/zhangrh-shop/<project>/static/
 ```
 
 前端发布后不需要 reload Nginx。
