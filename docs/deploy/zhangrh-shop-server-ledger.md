@@ -37,8 +37,9 @@ main 机器是当前线上主机。
 主要职责：
 
 - 承载 `zhangrh.shop` 的公网入口
-- 承载 `/hub/` 静态站点
-- 承载 `/cardgame/` 静态站点
+- 承载 `/hub/` HTML 入口
+- 承载 `/cardgame/` HTML 入口
+- 承载 `/legacy-h5/` 静态目录
 - 承载 `/api/cardgame/` 后端 API / WebSocket
 - 运行 `zhangrh-nginx` 容器
 - 运行 `zhangrh-backend` 容器
@@ -147,7 +148,7 @@ back 服务器：
 
 ## 运维规则
 
-1. 当前主站和后端发布只面向 main 机器。
+1. 当前前端 HTML 入口和后端发布面向 main 机器，Vite 静态资源发布到 `static.zhangrh.shop` 对应 OSS。
 2. backend / back 服务不发布到 back 服务器。
 3. main 机器上的运行目录统一使用 `/opt/zhangrh-shop`。
 4. main 机器上的 nginx 和 backend 由 Docker Compose 管理。

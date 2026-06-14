@@ -62,11 +62,11 @@ main 机器负责当前主站入口和统一 nginx 网关。
 
 主要职责：
 
-- 承载 `zhangrh.shop`
-- 承载 `/hub/`
-- 承载 `/cardgame/`
-- 承载 `/legacy-h5/`
-- 承载 `/api/cardgame/`
+- 承载 `zhangrh.shop` 的公网入口
+- 承载 `/hub/` HTML 入口
+- 承载 `/cardgame/` HTML 入口
+- 承载 `/legacy-h5/` 静态目录
+- 承载 `/api/cardgame/` 后端 API / WebSocket
 - 承载 `glitchtip.zhangrh.shop` 的入口
 - 将 `glitchtip.zhangrh.shop` 反向代理到 glitchtip 机器
 
