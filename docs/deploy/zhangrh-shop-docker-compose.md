@@ -55,6 +55,8 @@ zhangrh.shop
 - Vite 构建生成的 JS / CSS / 图片 / favicon 等静态资源发布到阿里云 OSS。
 - HTML 入口文件发布到 main 机器的 `/opt/zhangrh-shop/site`。
 
+当前这条 `npm run publish -- <project>` 流程适用于 `frontend/project` 下的 Vite 项目：`hub`、`cardgame`、`shotmaker`。`legacy-h5` 仍按旧 H5 静态目录策略发布，不走本次 OSS 静态资源发布流程。
+
 OSS 静态资源路径：
 
 ```txt
@@ -98,7 +100,7 @@ node scripts/deploy-static.mjs <project>
 dist/hub/**/*.html       -> /opt/zhangrh-shop/site/hub/
 dist/cardgame/**/*.html  -> /opt/zhangrh-shop/site/cardgame/
 dist/shotmaker/**/*.html -> /opt/zhangrh-shop/site/shotmaker/
-dist/<project>/static/*  -> https://static.zhangrh.shop/zhangrh-shop/<project>/static/
+dist/<project>/static/**/* -> https://static.zhangrh.shop/zhangrh-shop/<project>/static/
 ```
 
 前端发布后不需要 reload Nginx。

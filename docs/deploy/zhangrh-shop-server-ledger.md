@@ -101,8 +101,8 @@ back 机器当前空置。
 | 服务 / 路由 | 实际运行机器 | 运行方式 | 说明 |
 | --- | --- | --- | --- |
 | `zhangrh.shop` | main | nginx 容器 | 主域名入口 |
-| `zhangrh.shop/hub/` | main | nginx 静态文件 | 静态产物位于 `/opt/zhangrh-shop/site/hub` |
-| `zhangrh.shop/cardgame/` | main | nginx 静态文件 | 静态产物位于 `/opt/zhangrh-shop/site/cardgame` |
+| `zhangrh.shop/hub/` | main | nginx 静态文件 | HTML 入口位于 `/opt/zhangrh-shop/site/hub`，静态资源由 `static.zhangrh.shop` 对应 OSS 承载 |
+| `zhangrh.shop/cardgame/` | main | nginx 静态文件 | HTML 入口位于 `/opt/zhangrh-shop/site/cardgame`，静态资源由 `static.zhangrh.shop` 对应 OSS 承载 |
 | `zhangrh.shop/api/cardgame/` | main | `zhangrh-backend` 容器 | 后端服务运行在 main，不运行在 back |
 | `glitchtip.zhangrh.shop` 入口 | main | nginx 反向代理 | HTTPS 和公网入口在 main |
 | GlitchTip 应用服务 | glitchtip | Docker / Docker Compose | 真正的 GlitchTip 服务运行在 glitchtip |

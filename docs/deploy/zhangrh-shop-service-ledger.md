@@ -35,7 +35,7 @@
 - `zhangrh.shop` 是当前唯一主品牌域名。
 - `/hub/` 是当前主项目入口。
 - `/cardgame/` 和 `/api/cardgame/` 暂时服务当前卡牌项目。
-- `/legacy-h5/` 是旧 H5 活动合集入口，只发布本地静态源码和素材，不接旧 API、OSS/CDN、微信登录、分享签名、敏感词、打点或拼字保存服务。
+- `/legacy-h5/` 是旧 H5 活动合集入口，只发布本地静态源码和素材，不走本次 Vite OSS 发布流程，不接旧 API、OSS/CDN、微信登录、分享签名、敏感词、打点或拼字保存服务。
 - `static.zhangrh.shop` 是阿里云 OSS 自定义域名，用于承载前端构建生成的 JS / CSS / 图片 / favicon 等静态资源。HTML 入口仍发布到 main 机器的 `/opt/zhangrh-shop/site/<project>/`。
 - `glitchtip.zhangrh.shop` 是独立服务，不混在主站路径下。
 - `glitchtip.zhangrh.shop` 的入口在 main 机器上，由 main 机器上的 nginx 反向代理到 glitchtip 机器。
