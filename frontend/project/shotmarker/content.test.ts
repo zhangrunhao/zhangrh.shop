@@ -10,6 +10,8 @@ import {
   type ShotMarkerPage,
 } from "./content";
 
+const OLD_PROJECT_SLUG = "shot" + "maker";
+
 const blockText = (block: ContentBlock) =>
   block.kind === "list" ? block.items.join("\n") : block.text;
 
@@ -50,12 +52,17 @@ test("support page contains the provided FAQ and contact details", () => {
   assert.match(text, new RegExp(CONTACT_EMAIL));
 });
 
-test("public links use the production shotmaker route", () => {
-  assert.equal(SUPPORT_PATH, "/shotmaker/support");
-  assert.equal(PRIVACY_PATH, "/shotmaker/privacy");
-  assert.doesNotMatch(blockText(supportPage.sections[2].blocks[0]), /shotmarker/);
+test("public links use the production shotmarker route", () => {
+  assert.equal(SUPPORT_PATH, "/shotmarker/support");
+  assert.equal(PRIVACY_PATH, "/shotmarker/privacy");
+  assert.match(blockText(supportPage.sections[2].blocks[0]), /\/shotmarker\/privacy/);
+  assert.match(
+    blockText(privacyPage.sections.at(-1)?.blocks[1] ?? { kind: "paragraph", text: "" }),
+    /\/shotmarker\/support/,
+  );
+  assert.doesNotMatch(blockText(supportPage.sections[2].blocks[0]), new RegExp(OLD_PROJECT_SLUG));
   assert.doesNotMatch(
     blockText(privacyPage.sections.at(-1)?.blocks[1] ?? { kind: "paragraph", text: "" }),
-    /shotmarker/,
+    new RegExp(OLD_PROJECT_SLUG),
   );
 });

@@ -178,10 +178,10 @@ test('buildPublicAssetUrl maps project static path to static.zhangrh.shop', () =
   assert.equal(
     buildPublicAssetUrl({
       config: OSS_STATIC_CONFIG,
-      projectName: 'shotmaker',
+      projectName: 'shotmarker',
       relativeStaticPath: 'static/index-EcMJOixg.js',
     }),
-    'https://static.zhangrh.shop/zhangrh-shop/shotmaker/static/index-EcMJOixg.js',
+    'https://static.zhangrh.shop/zhangrh-shop/shotmarker/static/index-EcMJOixg.js',
   )
 })
 

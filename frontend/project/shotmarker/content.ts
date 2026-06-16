@@ -1,7 +1,7 @@
 export const APP_NAME = "ShotMarker";
 export const CONTACT_EMAIL = "zhangrhweb@gmail.com";
-export const SUPPORT_PATH = "/shotmaker/support";
-export const PRIVACY_PATH = "/shotmaker/privacy";
+export const SUPPORT_PATH = "/shotmarker/support";
+export const PRIVACY_PATH = "/shotmarker/privacy";
 export const EFFECTIVE_DATE = "May 17, 2026";
 export const LAST_UPDATED = "2026-05-17";
 export const DEVELOPER = "Rain / ShotMarker";

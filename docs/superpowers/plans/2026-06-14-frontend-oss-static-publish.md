@@ -157,10 +157,10 @@ test('buildPublicAssetUrl maps project static path to static.zhangrh.shop', () =
   assert.equal(
     buildPublicAssetUrl({
       config: OSS_STATIC_CONFIG,
-      projectName: 'shotmaker',
+      projectName: 'shotmarker',
       relativeStaticPath: 'static/index-EcMJOixg.js',
     }),
-    'https://static.zhangrh.shop/zhangrh-shop/shotmaker/static/index-EcMJOixg.js',
+    'https://static.zhangrh.shop/zhangrh-shop/shotmarker/static/index-EcMJOixg.js',
   )
 })
 
@@ -976,7 +976,7 @@ export OSS_ACCESS_KEY_SECRET='你的 AccessKeySecret'
 cd frontend
 npm run publish -- hub
 npm run publish -- cardgame
-npm run publish -- shotmaker
+npm run publish -- shotmarker
 ```
 
 底层流程：
@@ -998,7 +998,7 @@ In `docs/deploy/zhangrh-shop-docker-compose.md`, replace the old mapping block:
 ```txt
 dist/hub/       -> /opt/zhangrh-shop/site/hub/
 dist/cardgame/  -> /opt/zhangrh-shop/site/cardgame/
-dist/shotmaker/ -> /opt/zhangrh-shop/site/shotmaker/
+dist/shotmarker/ -> /opt/zhangrh-shop/site/shotmarker/
 dist/legacy-h5/ -> /opt/zhangrh-shop/site/legacy-h5/
 ```
 
@@ -1007,7 +1007,7 @@ with:
 ```txt
 dist/hub/**/*.html       -> /opt/zhangrh-shop/site/hub/
 dist/cardgame/**/*.html  -> /opt/zhangrh-shop/site/cardgame/
-dist/shotmaker/**/*.html -> /opt/zhangrh-shop/site/shotmaker/
+dist/shotmarker/**/*.html -> /opt/zhangrh-shop/site/shotmarker/
 dist/<project>/static/*  -> https://static.zhangrh.shop/zhangrh-shop/<project>/static/
 ```
 

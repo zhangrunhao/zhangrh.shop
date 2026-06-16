@@ -95,7 +95,7 @@ glitchtip 机器专门负责运行 GlitchTip 服务。
 ├── site/
 │   ├── hub/
 │   ├── cardgame/
-│   ├── shotmaker/
+│   ├── shotmarker/
 │   └── legacy-h5/
 └── backend/
     ├── Dockerfile

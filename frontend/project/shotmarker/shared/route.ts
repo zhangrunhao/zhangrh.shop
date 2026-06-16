@@ -5,7 +5,7 @@ export type Route =
 
 export const RAW_BASE = import.meta.env.BASE_URL ?? "/";
 export const BASE_PATH = RAW_BASE === "/" ? "" : RAW_BASE.replace(/\/$/, "");
-export const PROJECT_PATH = "/shotmaker";
+export const PROJECT_PATH = "/shotmarker";
 
 export const stripBase = (pathname: string) => {
   if (BASE_PATH && pathname.startsWith(BASE_PATH)) {
