@@ -15,6 +15,11 @@ test("resolveRoute maps ShotMarker privacy URLs to privacy", () => {
   assert.deepEqual(resolveRoute("/privacy"), { name: "privacy" });
 });
 
+test("resolveRoute maps ShotMarker how-to URLs to how-to", () => {
+  assert.deepEqual(resolveRoute("/shotmarker/how-to"), { name: "how-to" });
+  assert.deepEqual(resolveRoute("/how-to"), { name: "how-to" });
+});
+
 test("resolveRoute maps unknown ShotMarker URLs to not-found", () => {
   assert.deepEqual(resolveRoute("/shotmarker/missing"), { name: "not-found" });
   assert.deepEqual(resolveRoute(`/${OLD_PROJECT_SLUG}/support`), { name: "not-found" });

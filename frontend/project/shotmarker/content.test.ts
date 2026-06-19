@@ -2,8 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   CONTACT_EMAIL,
+  HOW_TO_PATH,
   PRIVACY_PATH,
   SUPPORT_PATH,
+  howToPage,
   privacyPage,
   supportPage,
   type ContentBlock,
@@ -52,9 +54,20 @@ test("support page contains the provided FAQ and contact details", () => {
   assert.match(text, new RegExp(CONTACT_EMAIL));
 });
 
+test("how-to page contains the core Chinese usage flow", () => {
+  const text = pageText(howToPage);
+
+  assert.equal(howToPage.title, "ShotMarker 使用说明");
+  assert.match(text, /用 Apple Watch 给好球打点/);
+  assert.match(text, /打开 iPhone 里的训练记录/);
+  assert.match(text, /选择视频，生成集锦/);
+  assert.match(text, /双击或转动数码表冠/);
+});
+
 test("public links use the production shotmarker route", () => {
   assert.equal(SUPPORT_PATH, "/shotmarker/support");
   assert.equal(PRIVACY_PATH, "/shotmarker/privacy");
+  assert.equal(HOW_TO_PATH, "/shotmarker/how-to");
   assert.match(blockText(supportPage.sections[2].blocks[0]), /\/shotmarker\/privacy/);
   assert.match(
     blockText(privacyPage.sections.at(-1)?.blocks[1] ?? { kind: "paragraph", text: "" }),

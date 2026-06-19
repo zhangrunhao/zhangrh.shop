@@ -125,3 +125,362 @@ a {
   border: 0;
   padding: 0;
 }
+
+.how-to-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #f5f5f7;
+  color: #111111;
+  line-height: 1.35;
+}
+
+.how-to-page section {
+  margin-bottom: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.how-to-page img {
+  display: block;
+  max-width: 100%;
+}
+
+.how-to-page .how-to-hero {
+  min-height: 88vh;
+  display: grid;
+  align-items: center;
+  background: #ffffff;
+  padding: 56px 24px 34px;
+}
+
+.how-to-hero-inner,
+.how-to-steps,
+.how-to-tips {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.how-to-hero-inner {
+  display: grid;
+  grid-template-columns: 0.86fr 1.14fr;
+  gap: 54px;
+  align-items: center;
+}
+
+.how-to-copy {
+  max-width: 530px;
+}
+
+.how-to-eyebrow {
+  margin: 0 0 18px;
+  color: #0071e3;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.how-to-copy h1 {
+  margin: 0;
+  font-size: clamp(48px, 7vw, 96px);
+  line-height: 0.94;
+  font-weight: 800;
+}
+
+.how-to-copy p:not(.how-to-eyebrow) {
+  margin-top: 24px;
+  color: #6e6e73;
+  font-size: clamp(20px, 2.4vw, 30px);
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+.how-to-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 34px;
+}
+
+.how-to-flow span {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #d7d7dc;
+  border-radius: 999px;
+  background: #fbfbfd;
+  color: #333333;
+  padding: 8px 13px;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.how-to-device-stage {
+  min-height: 620px;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.how-to-phone {
+  width: min(300px, 38vw);
+  border-radius: 30px;
+  background: #ececf1;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.18);
+}
+
+.how-to-phone.front {
+  position: relative;
+  z-index: 2;
+  transform: translateX(72px);
+}
+
+.how-to-phone.back {
+  position: absolute;
+  z-index: 1;
+  opacity: 0.9;
+  transform: translate(-108px, 28px) scale(0.94);
+}
+
+.how-to-watch {
+  position: absolute;
+  right: 7%;
+  bottom: 11%;
+  z-index: 3;
+  width: min(198px, 28vw);
+  border-radius: 32px;
+  background: #000000;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.24);
+}
+
+.how-to-page .how-to-steps {
+  padding: 72px 24px 36px;
+}
+
+.how-to-section-title {
+  display: grid;
+  gap: 12px;
+  max-width: 760px;
+  margin-bottom: 34px;
+}
+
+.how-to-section-title.compact {
+  margin-bottom: 20px;
+}
+
+.how-to-section-title h2 {
+  margin: 0;
+  font-size: clamp(34px, 4.5vw, 62px);
+  line-height: 1.04;
+  font-weight: 800;
+}
+
+.how-to-section-title p {
+  margin: 0;
+  color: #6e6e73;
+  font-size: 19px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.how-to-step {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 42px;
+  align-items: center;
+  min-height: 520px;
+  border-top: 1px solid #d7d7dc;
+  padding: 48px 0;
+}
+
+.how-to-step-copy {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.how-to-step-number {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #111111;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.how-to-step h3 {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 44px);
+  line-height: 1.08;
+  font-weight: 800;
+}
+
+.how-to-step p {
+  max-width: 500px;
+  margin: 0;
+  color: #6e6e73;
+  font-size: 19px;
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+.how-to-visual {
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+.how-to-visual.single.watch-shot img {
+  width: min(270px, 58vw);
+  border-radius: 44px;
+  box-shadow: 0 30px 64px rgba(0, 0, 0, 0.22);
+}
+
+.how-to-visual.single.phone-shot img,
+.how-to-visual.pair img {
+  width: min(300px, 38vw);
+  border-radius: 30px;
+  box-shadow: 0 28px 58px rgba(0, 0, 0, 0.17);
+}
+
+.how-to-page .how-to-tips {
+  padding: 18px 24px 92px;
+}
+
+.how-to-tip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  border-top: 1px solid #d7d7dc;
+  padding-top: 28px;
+}
+
+.how-to-tip {
+  min-height: 124px;
+  border: 1px solid #d7d7dc;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 22px;
+}
+
+.how-to-tip span {
+  color: #515154;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+@media (max-width: 920px) {
+  .how-to-page .how-to-hero {
+    min-height: auto;
+    padding-top: 44px;
+  }
+
+  .how-to-hero-inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .how-to-device-stage {
+    min-height: 510px;
+  }
+
+  .how-to-phone {
+    width: min(270px, 48vw);
+  }
+
+  .how-to-phone.front {
+    transform: translateX(42px);
+  }
+
+  .how-to-phone.back {
+    transform: translate(-74px, 32px) scale(0.92);
+  }
+
+  .how-to-watch {
+    right: 4%;
+    bottom: 13%;
+    width: min(150px, 32vw);
+  }
+
+  .how-to-step {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    min-height: 0;
+    padding: 42px 0;
+  }
+
+  .how-to-visual {
+    min-height: 0;
+  }
+
+  .how-to-tip-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .how-to-page .how-to-hero {
+    padding: 38px 18px 26px;
+  }
+
+  .how-to-page .how-to-steps,
+  .how-to-page .how-to-tips {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .how-to-device-stage {
+    min-height: 430px;
+  }
+
+  .how-to-phone {
+    width: min(222px, 58vw);
+    border-radius: 24px;
+  }
+
+  .how-to-phone.front {
+    transform: translateX(24px);
+  }
+
+  .how-to-phone.back {
+    transform: translate(-52px, 26px) scale(0.9);
+  }
+
+  .how-to-watch {
+    right: 1%;
+    bottom: 14%;
+    width: min(118px, 34vw);
+    border-radius: 24px;
+  }
+
+  .how-to-flow {
+    gap: 7px;
+  }
+
+  .how-to-flow span {
+    min-height: 34px;
+    font-size: 13px;
+  }
+
+  .how-to-visual.pair {
+    flex-direction: column;
+  }
+
+  .how-to-visual.single.phone-shot img,
+  .how-to-visual.pair img {
+    width: min(260px, 76vw);
+  }
+
+  .how-to-visual.single.watch-shot img {
+    width: min(230px, 70vw);
+  }
+}

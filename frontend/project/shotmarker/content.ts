@@ -2,6 +2,7 @@ export const APP_NAME = "ShotMarker";
 export const CONTACT_EMAIL = "zhangrhweb@gmail.com";
 export const SUPPORT_PATH = "/shotmarker/support";
 export const PRIVACY_PATH = "/shotmarker/privacy";
+export const HOW_TO_PATH = "/shotmarker/how-to";
 export const EFFECTIVE_DATE = "May 17, 2026";
 export const LAST_UPDATED = "2026-05-17";
 export const DEVELOPER = "Rain / ShotMarker";
@@ -41,6 +42,60 @@ export type ShotMarkerPage = {
   summary?: string;
   summaryZh?: string;
   sections: ContentSection[];
+};
+
+export const howToPage: ShotMarkerPage = {
+  title: "ShotMarker 使用说明",
+  description: "ShotMarker Apple Watch 和 iPhone 使用说明。",
+  muted: "Apple Watch + iPhone",
+  summary: "训练时打点，结束后把投篮视频整理成集锦。",
+  summaryZh: "只记住三步：手表打点、选择记录、生成集锦。",
+  sections: [
+    {
+      id: "watch-markers",
+      title: "用 Apple Watch 给好球打点",
+      blocks: [
+        {
+          kind: "paragraph",
+          text: "长按开始训练。看到想保留的投篮，双击按钮或转动数码表冠。结束时再长按。",
+        },
+      ],
+    },
+    {
+      id: "iphone-record",
+      title: "打开 iPhone 里的训练记录",
+      blocks: [
+        {
+          kind: "paragraph",
+          text: "训练结束后，记录会同步到 iPhone。找到对应日期和时间，点进这次训练。",
+        },
+      ],
+    },
+    {
+      id: "generate-highlight",
+      title: "选择视频，生成集锦",
+      blocks: [
+        {
+          kind: "paragraph",
+          text: "选择这次训练拍下的视频。确认可剪辑打点后，点“生成集锦”。集锦完成后可以播放，也可以保存到系统相册。",
+        },
+      ],
+    },
+    {
+      id: "tips",
+      title: "使用提示",
+      blocks: [
+        {
+          kind: "list",
+          items: [
+            "视频要对得上训练时间，应用会按时间自动匹配打点。",
+            "默认保留打点前 9 秒、打点后 4 秒，剪辑范围可以调整。",
+            "不用手动拖进度条，ShotMarker 会把有效打点整理成一条集锦。",
+          ],
+        },
+      ],
+    },
+  ],
 };
 
 export const privacyPage: ShotMarkerPage = {

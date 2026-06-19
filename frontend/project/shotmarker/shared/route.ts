@@ -1,6 +1,7 @@
 export type Route =
   | { name: "support" }
   | { name: "privacy" }
+  | { name: "how-to" }
   | { name: "not-found" };
 
 export const RAW_BASE = import.meta.env.BASE_URL ?? "/";
@@ -42,6 +43,9 @@ export const resolveRoute = (pathname: string): Route => {
   }
   if (path === "/privacy") {
     return { name: "privacy" };
+  }
+  if (path === "/how-to") {
+    return { name: "how-to" };
   }
 
   return { name: "not-found" };
