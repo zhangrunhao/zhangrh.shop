@@ -8,37 +8,30 @@ export type NavItem = {
   label: string;
   to: string;
   routeName: Exclude<Route["name"], "not-found" | "product-detail" | "home">;
-  icon: "product" | "idea" | "review" | "about";
+  icon: "product" | "idea" | "about";
   button: Extract<
     HubButton,
-    "nav_product" | "nav_ideas" | "nav_reviews" | "nav_about"
+    "nav_product" | "nav_articles" | "nav_about"
   >;
 };
 
 export const NAV_ITEMS: NavItem[] = [
   {
-    label: "产品",
+    label: "作品",
     to: "/products",
     routeName: "products",
     icon: "product",
     button: "nav_product",
   },
   {
-    label: "想法",
-    to: "/ideas",
-    routeName: "ideas",
+    label: "文章",
+    to: "/articles",
+    routeName: "articles",
     icon: "idea",
-    button: "nav_ideas",
+    button: "nav_articles",
   },
   {
-    label: "复盘",
-    to: "/reviews",
-    routeName: "reviews",
-    icon: "review",
-    button: "nav_reviews",
-  },
-  {
-    label: "关于",
+    label: "关于我",
     to: "/about",
     routeName: "about",
     icon: "about",
@@ -49,8 +42,8 @@ export const NAV_ITEMS: NavItem[] = [
 export const HOME_AREAS = [
   {
     to: "/products",
-    title: "产品",
-    description: "已上线且持续迭代",
+    title: "作品",
+    description: "已上线和正在打磨",
     icon: "product",
     iconClassName: "bg-emerald-100 text-emerald-600",
     hoverIconClassName: "group-hover:bg-emerald-600 group-hover:text-white",
@@ -59,9 +52,9 @@ export const HOME_AREAS = [
     hoverArrowClassName: "group-hover:text-emerald-600",
   },
   {
-    to: "/ideas",
-    title: "想法",
-    description: "想法、实验和原型",
+    to: "/articles",
+    title: "文章",
+    description: "实践记录和产品思考",
     icon: "idea",
     iconClassName: "bg-amber-100 text-amber-600",
     hoverIconClassName: "group-hover:bg-amber-600 group-hover:text-white",
@@ -69,16 +62,5 @@ export const HOME_AREAS = [
       "border-2 border-dashed border-[#d4d4d4] bg-[rgba(255,251,235,0.3)]",
     hoverBorderClassName: "hover:border-amber-400",
     hoverArrowClassName: "group-hover:text-amber-600",
-  },
-  {
-    to: "/reviews",
-    title: "复盘",
-    description: "每次发版的思考",
-    icon: "review",
-    iconClassName: "bg-blue-100 text-blue-600",
-    hoverIconClassName: "group-hover:bg-blue-600 group-hover:text-white",
-    cardClassName: "border border-[#e5e5e5] bg-white",
-    hoverBorderClassName: "hover:border-blue-500",
-    hoverArrowClassName: "group-hover:text-blue-600",
   },
 ] as const;

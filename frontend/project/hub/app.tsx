@@ -2,12 +2,11 @@ import { useEffect, useMemo } from "react";
 import { AppFooter } from "./components/app-footer";
 import { AppHeader } from "./components/app-header";
 import { AboutPage } from "./pages/about-page";
+import { ArticlesPage } from "./pages/articles-page";
 import { HomePage } from "./pages/home-page";
-import { IdeasPage } from "./pages/ideas-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ProductDetailPage } from "./pages/product-detail-page";
 import { ProductsPage } from "./pages/products-page";
-import { ReviewsPage } from "./pages/reviews-page";
 import { ZhengtianPage } from "./pages/zhengtian-page";
 import { PRODUCTS } from "./shared/data";
 import { resolvePageName, trackHubLoadPage } from "./shared/tracking";
@@ -20,16 +19,15 @@ export const App = () => {
   useEffect(() => {
     if (route.name === "product-detail") {
       const product = PRODUCTS.find((item) => item.id === route.productId);
-      document.title = product ? `${product.name} - 产品详情` : "产品详情";
+      document.title = product ? `${product.name} - 作品详情` : "作品详情";
       return;
     }
 
     const titleMap = {
       home: "张润昊 - 前端开发者",
-      products: "产品 - zhangrh.shop",
-      ideas: "想法 - zhangrh.shop",
-      reviews: "复盘 - zhangrh.shop",
-      about: "关于 - zhangrh.shop",
+      products: "作品 - zhangrh.shop",
+      articles: "文章 - zhangrh.shop",
+      about: "关于我 - zhangrh.shop",
       zhengtian: "时间线web - 组件库",
       "not-found": "404 - zhangrh.shop",
     } as const;
@@ -57,8 +55,7 @@ export const App = () => {
         {route.name === "product-detail" ? (
           <ProductDetailPage productId={route.productId} />
         ) : null}
-        {route.name === "ideas" ? <IdeasPage /> : null}
-        {route.name === "reviews" ? <ReviewsPage /> : null}
+        {route.name === "articles" ? <ArticlesPage /> : null}
         {route.name === "about" ? <AboutPage /> : null}
         {route.name === "not-found" ? <NotFoundPage /> : null}
       </main>

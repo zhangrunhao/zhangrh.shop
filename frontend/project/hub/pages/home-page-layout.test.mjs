@@ -59,3 +59,37 @@ test("homepage section headings do not add explanatory helper copy", () => {
   assert.doesNotMatch(homePage, /先放三个代表作品/);
   assert.doesNotMatch(homePage, /近期值得先读的记录/);
 });
+
+test("homepage list sections link to the full list pages", () => {
+  const homePage = readHubFile("pages/home-page.tsx");
+
+  assert.match(homePage, /to="\/products"[\s\S]*?查看更多/);
+  assert.match(homePage, /to="\/articles"[\s\S]*?查看更多/);
+  assert.doesNotMatch(homePage, /to="\/ideas"/);
+});
+
+test("homepage work cards are fully clickable and use green background hover", () => {
+  const homePage = readHubFile("pages/home-page.tsx");
+  const workCardClassMatch = homePage.match(
+    /<article\s+className="([^"]*hover:bg-emerald-50\/40[^"]*)"/,
+  );
+
+  assert.match(homePage, /<Link\s+key=\{work\.name\}\s+to=\{work\.link\}/);
+  assert.ok(workCardClassMatch);
+  assert.match(workCardClassMatch[1], /transition-colors/);
+  assert.doesNotMatch(workCardClassMatch[1], /hover:border-\[#009966\]/);
+  assert.equal(homePage.match(/to=\{work\.link\}/g)?.length, 1);
+});
+
+test("homepage article list rows use the same green background hover transition", () => {
+  const homePage = readHubFile("pages/home-page.tsx");
+  const articleClassMatch = homePage.match(
+    /<article\s+key=\{article\.title\}\s+className="([^"]+)"/,
+  );
+
+  assert.ok(articleClassMatch);
+  assert.match(articleClassMatch[1], /transition-colors/);
+  assert.match(articleClassMatch[1], /hover:bg-emerald-50\/40/);
+  assert.match(articleClassMatch[1], /cursor-pointer/);
+  assert.doesNotMatch(articleClassMatch[1], /hover:border-\[#009966\]/);
+});

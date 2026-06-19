@@ -7,19 +7,17 @@ export type HubPageName =
   | "home"
   | "products"
   | "product_detail"
-  | "ideas"
-  | "reviews"
+  | "articles"
   | "about"
   | "zhengtian"
   | "not_found";
 
 export type HubButton =
   | "nav_product"
-  | "nav_ideas"
-  | "nav_reviews"
+  | "nav_articles"
   | "nav_about"
   | "main_view_products"
-  | "main_view_reviews";
+  | "main_view_articles";
 
 export const resolvePageName = (route: Route): HubPageName => {
   if (route.name === "product-detail") {

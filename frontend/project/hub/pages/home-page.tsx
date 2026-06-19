@@ -41,7 +41,7 @@ export const HomePage = () => {
             </a>
             <a
               href="#featured-articles"
-              onClick={() => trackHubClick("main_view_reviews")}
+              onClick={() => trackHubClick("main_view_articles")}
               className="inline-flex h-12 items-center gap-2 rounded-lg border border-[#d4d4d4] bg-white px-5 text-base font-medium tracking-normal text-[#404040] transition-colors hover:border-[#009966] hover:text-[#009966]"
             >
               阅读文章
@@ -68,29 +68,29 @@ export const HomePage = () => {
 
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
           {HOME.featuredWorks.map((work) => (
-            <article
+            <Link
               key={work.name}
-              className="flex flex-col rounded-lg border border-[#e5e5e5] bg-white p-5 transition-colors hover:border-[#009966]"
+              to={work.link}
+              className="block h-full"
             >
-              <div className="flex items-start justify-between gap-4">
-                <h3 className="text-[20px] font-semibold leading-7 tracking-normal text-[#171717]">
-                  {work.name}
-                </h3>
-                <span className="rounded-md bg-[#f5f5f5] px-2 py-1 text-xs font-medium tracking-normal text-[#737373]">
-                  Work
+              <article className="flex h-full flex-col rounded-lg border border-[#e5e5e5] bg-white p-5 transition-colors hover:bg-emerald-50/40">
+                <div className="flex items-start justify-between gap-4">
+                  <h3 className="text-[20px] font-semibold leading-7 tracking-normal text-[#171717]">
+                    {work.name}
+                  </h3>
+                  <span className="rounded-md bg-[#f5f5f5] px-2 py-1 text-xs font-medium tracking-normal text-[#737373]">
+                    Work
+                  </span>
+                </div>
+                <p className="mt-4 text-sm leading-6 tracking-normal text-[#525252]">
+                  {work.summary}
+                </p>
+                <span className="mt-auto inline-flex items-center gap-1 pt-5 text-sm font-medium tracking-normal text-[#009966]">
+                  {work.linkLabel}
+                  <ArrowIcon />
                 </span>
-              </div>
-              <p className="mt-4 text-sm leading-6 tracking-normal text-[#525252]">
-                {work.summary}
-              </p>
-              <Link
-                to={work.link}
-                className="mt-auto inline-flex items-center gap-1 pt-5 text-sm font-medium tracking-normal text-[#009966]"
-              >
-                {work.linkLabel}
-                <ArrowIcon />
-              </Link>
-            </article>
+              </article>
+            </Link>
           ))}
         </div>
       </div>
@@ -99,11 +99,23 @@ export const HomePage = () => {
         id="featured-articles"
         className="scroll-mt-24 border-b border-[#e5e5e5] pb-20 pt-20"
       >
-        <h2 className={sectionHeadingClassName}>文章</h2>
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <h2 className={sectionHeadingClassName}>文章</h2>
+          <Link
+            to="/articles"
+            className="inline-flex h-10 items-center gap-2 self-start rounded-lg border border-[#d4d4d4] bg-white px-4 text-sm font-medium tracking-normal text-[#404040] transition-colors hover:border-[#009966] hover:text-[#009966] md:self-auto"
+          >
+            查看更多
+            <ArrowIcon />
+          </Link>
+        </div>
 
         <div className="mt-8 divide-y divide-[#e5e5e5] rounded-lg border border-[#e5e5e5] bg-white shadow-sm">
           {HOME.featuredArticles.map((article) => (
-            <article key={article.title} className="p-5 md:p-6">
+            <article
+              key={article.title}
+              className="cursor-pointer p-5 transition-colors hover:bg-emerald-50/40 md:p-6"
+            >
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
                   <h3 className="text-[18px] font-semibold leading-7 tracking-normal text-[#171717]">

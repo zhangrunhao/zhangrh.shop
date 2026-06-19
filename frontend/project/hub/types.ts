@@ -11,11 +11,11 @@ export type Product = {
   status: ProductStatus;
 };
 
-export type Idea = {
+export type Article = {
   id: string;
   name: string;
   summary: string;
-  ideaDate: string;
+  publishDate: string;
 };
 
 export type Review = {

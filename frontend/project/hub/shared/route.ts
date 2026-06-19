@@ -5,8 +5,7 @@ export type Route =
   | { name: "home" }
   | { name: "products" }
   | { name: "product-detail"; productId: string }
-  | { name: "ideas" }
-  | { name: "reviews" }
+  | { name: "articles" }
   | { name: "about" }
   | { name: "zhengtian" }
   | { name: "not-found" };
@@ -20,11 +19,8 @@ export const resolveRoute = (pathname: string): Route => {
   if (path === "/products") {
     return { name: "products" };
   }
-  if (path === "/ideas") {
-    return { name: "ideas" };
-  }
-  if (path === "/reviews") {
-    return { name: "reviews" };
+  if (path === "/articles") {
+    return { name: "articles" };
   }
   if (path === "/about") {
     return { name: "about" };

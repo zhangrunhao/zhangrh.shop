@@ -10,14 +10,14 @@ export const ProductDetailPage = ({ productId }: { productId: string }) => {
   if (!product) {
     return (
       <section className="space-y-4 pb-14 pt-8">
-        <h1 className="text-2xl font-semibold text-[#171717]">产品不存在</h1>
-        <p className="text-[#525252]">未找到对应产品，请返回产品列表查看。</p>
+        <h1 className="text-2xl font-semibold text-[#171717]">作品不存在</h1>
+        <p className="text-[#525252]">未找到对应作品，请返回作品列表查看。</p>
         <div>
           <Link
             to="/products"
             className="inline-flex h-10 items-center rounded-xl bg-[#009966] px-4 text-sm font-medium text-white"
           >
-            返回产品列表
+            返回作品列表
           </Link>
         </div>
       </section>
@@ -32,7 +32,7 @@ export const ProductDetailPage = ({ productId }: { productId: string }) => {
           className="inline-flex items-center gap-1 text-sm font-medium text-[#525252]"
         >
           <ArrowIcon />
-          返回产品列表
+          返回作品列表
         </Link>
       </div>
 

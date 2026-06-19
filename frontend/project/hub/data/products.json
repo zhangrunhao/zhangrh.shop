@@ -1,22 +1,32 @@
 [
   {
+    "id": "hub-home",
+    "name": "zhangrh.shop Hub",
+    "summary": "个人作品和文章的聚合首页，用于展示前端实践与 AI 编程记录。",
+    "link": "/",
+    "coverImage": "https://zhangrunhao.oss-cn-beijing.aliyuncs.com/assets/cardgame.png",
+    "currentVersion": "v0.1.0",
+    "currentVersionCommitDate": "2026-06-19",
+    "status": "active"
+  },
+  {
     "id": "card-game",
-    "name": "卡牌游戏",
-    "summary": "同时出牌, 进行对冲结算的卡牌有戏",
-    "link": "https://zhangrh.shop/cardgame",
+    "name": "Card Game Demo",
+    "summary": "同时出牌、对冲结算的卡牌规则原型，用来验证可玩性。",
+    "link": "https://zhangrh.shop/cardgame/",
     "coverImage": "https://zhangrunhao.oss-cn-beijing.aliyuncs.com/assets/cardgame.png",
     "currentVersion": "v1.0.0",
     "currentVersionCommitDate": "2026-02-05",
     "status": "active"
   },
   {
-    "id": "calorie-note",
-    "name": "卡路里笔记本",
-    "summary": "记录每日摄入卡路里, 展示摄入和体重关系变化图",
-    "link": "/products/calorie-note",
+    "id": "shotmarker",
+    "name": "ShotMarker Support",
+    "summary": "ShotMarker 的支持与隐私页面，承载产品发布后的公开信息。",
+    "link": "https://zhangrh.shop/shotmarker/",
     "coverImage": "https://zhangrunhao.oss-cn-beijing.aliyuncs.com/assets/calorie.png",
-    "currentVersion": "v1.0.0",
-    "currentVersionCommitDate": "2026-02-05",
+    "currentVersion": "v0.1.0",
+    "currentVersionCommitDate": "2026-05-17",
     "status": "active"
   }
 ]

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "hub-home-design",
+    "name": "Hub 首页设计：个人能力展示页",
+    "summary": "记录首页从信息结构到视觉层级的一次调整。",
+    "publishDate": "2026-06-19"
+  },
+  {
+    "id": "oss-static-publish",
+    "name": "zhangrh.shop 发布流程说明",
+    "summary": "梳理 Hub、静态资源发布和项目边界的关系。",
+    "publishDate": "2026-06-17"
+  },
+  {
+    "id": "card-game-rule-test",
+    "name": "抽 5 选 3 的卡牌 Demo2",
+    "summary": "复盘卡牌规则实验，以及它为什么还不够好玩。",
+    "publishDate": "2026-02-05"
+  }
+]
