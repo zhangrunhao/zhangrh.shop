@@ -25,13 +25,13 @@ export const App = () => {
     }
 
     const titleMap = {
-      home: "产品实验室",
-      products: "产品 - 产品实验室",
-      ideas: "想法 - 产品实验室",
-      reviews: "复盘 - 产品实验室",
-      about: "关于 - 产品实验室",
+      home: "张润昊 - 前端开发者",
+      products: "产品 - zhangrh.shop",
+      ideas: "想法 - zhangrh.shop",
+      reviews: "复盘 - zhangrh.shop",
+      about: "关于 - zhangrh.shop",
       zhengtian: "时间线web - 组件库",
-      "not-found": "404 - 产品实验室",
+      "not-found": "404 - zhangrh.shop",
     } as const;
     document.title = titleMap[route.name];
   }, [route]);

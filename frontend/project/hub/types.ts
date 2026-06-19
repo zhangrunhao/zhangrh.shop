@@ -27,3 +27,29 @@ export type Review = {
   dataChanges: string[];
   nextPlan: string;
 };
+
+export type HomeFeaturedWork = {
+  name: string;
+  summary: string;
+  link: string;
+  linkLabel: string;
+};
+
+export type HomeFeaturedArticle = {
+  title: string;
+  summary: string;
+  date: string;
+};
+
+export type HomeAbout = {
+  paragraphs: string[];
+  email: string;
+  github: string;
+  aboutLink: string;
+};
+
+export type HomeData = {
+  featuredWorks: HomeFeaturedWork[];
+  featuredArticles: HomeFeaturedArticle[];
+  about: HomeAbout;
+};

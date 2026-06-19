@@ -12,10 +12,10 @@ export const AppHeader = ({ routeName }: { routeName: Route["name"] }) => (
         className="inline-flex items-center gap-2 rounded px-1 py-1 text-neutral-900"
         ariaLabel="返回首页"
       >
-        <span className="inline-flex size-7 items-center justify-center rounded-xl bg-[#009966] text-sm font-bold text-white">
-          P
+        <span className="inline-flex size-7 items-center justify-center rounded-lg bg-[#009966] text-sm font-bold text-white">
+          Z
         </span>
-        <span className="text-lg font-medium tracking-tight">产品实验室</span>
+        <span className="text-lg font-medium tracking-normal">zhangrh.shop</span>
       </Link>
 
       <nav className="flex items-center gap-1">
@@ -28,7 +28,7 @@ export const AppHeader = ({ routeName }: { routeName: Route["name"] }) => (
               key={item.to}
               to={item.to}
               onClick={() => trackHubClick(item.button)}
-              className={`relative inline-flex h-8 items-center gap-1 rounded-xl px-3 text-sm font-medium transition-colors ${
+              className={`relative inline-flex h-8 items-center gap-0.5 whitespace-nowrap rounded-lg px-1.5 text-xs font-medium transition-colors sm:gap-1 sm:px-3 sm:text-sm ${
                 active
                   ? "bg-emerald-50 text-[#009966]"
                   : "text-[#525252] hover:bg-white hover:text-neutral-900"

@@ -1,0 +1,47 @@
+{
+  "featuredWorks": [
+    {
+      "name": "zhangrh.shop",
+      "summary": "个人 Hub，集中展示作品和文章。",
+      "link": "/",
+      "linkLabel": "查看首页"
+    },
+    {
+      "name": "Card Game Demo",
+      "summary": "可玩的同时出牌卡牌原型。",
+      "link": "https://zhangrh.shop/cardgame/",
+      "linkLabel": "试玩 Demo"
+    },
+    {
+      "name": "ShotMarker",
+      "summary": "截图标注工具和支持页面。",
+      "link": "https://zhangrh.shop/shotmarker/",
+      "linkLabel": "查看产品"
+    }
+  ],
+  "featuredArticles": [
+    {
+      "title": "Hub 首页设计：个人能力展示页",
+      "summary": "一次首页定位和信息结构调整。",
+      "date": "2026-06-19"
+    },
+    {
+      "title": "zhangrh.shop 项目说明：Hub、发布和项目边界",
+      "summary": "梳理站点结构、部署和 Hub 边界。",
+      "date": "2026-06-17"
+    },
+    {
+      "title": "抽 5 选 3 的卡牌 Demo2：更像卡牌了，但还是无聊",
+      "summary": "复盘卡牌 Demo 的规则实验。",
+      "date": "2026-02-05"
+    }
+  ],
+  "about": {
+    "paragraphs": [
+      "张润昊，前端开发者，关注 AI 编程、前端工程和独立产品。"
+    ],
+    "email": "mailto:runhaozhang.dev@gmail.com",
+    "github": "https://github.com/zhangrunhao",
+    "aboutLink": "/about"
+  }
+}
