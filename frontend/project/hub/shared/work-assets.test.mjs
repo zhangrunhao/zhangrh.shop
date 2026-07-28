@@ -25,6 +25,7 @@ test("Hub resolves work assets through Vite", async (t) => {
       logLevel: "silent",
       server: {
         middlewareMode: true,
+        ws: false,
       },
     });
 
