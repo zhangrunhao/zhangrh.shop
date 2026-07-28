@@ -1,22 +1,35 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { buildNpmBuildArgs, resolvePublishProject } from './publish-lib.mjs'
+import {
+  PUBLISH_OSS_ASSETS_ENV,
+  buildNpmBuildArgs,
+  buildPublishBuildEnv,
+  resolvePublishProject,
+} from './publish-lib.mjs'
 
-test('buildNpmBuildArgs passes the selected project and public base to Vite', () => {
+test('buildNpmBuildArgs keeps the selected project pathname base', () => {
   assert.deepEqual(
     buildNpmBuildArgs({
       projectName: 'hub',
-      publicBase: 'https://static.zhangrh.shop/zhangrh-shop/hub/',
     }),
-    [
-      'run',
-      'build',
-      '--',
-      'hub',
-      '--base',
-      'https://static.zhangrh.shop/zhangrh-shop/hub/',
-    ],
+    ['run', 'build', '--', 'hub'],
+  )
+})
+
+test('buildPublishBuildEnv enables OSS asset rendering in the build subprocess', () => {
+  assert.deepEqual(
+    buildPublishBuildEnv({
+      env: {
+        PATH: '/test/bin',
+        EXISTING_VALUE: 'preserved',
+      },
+    }),
+    {
+      PATH: '/test/bin',
+      EXISTING_VALUE: 'preserved',
+      [PUBLISH_OSS_ASSETS_ENV]: '1',
+    },
   )
 })
 

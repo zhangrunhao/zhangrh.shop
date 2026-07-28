@@ -211,17 +211,17 @@ https://static.zhangrh.shop/zhangrh-shop/<project>/static/
 
 因此，只要本地图片先通过 Vite 进入 `dist/hub/static`，现有 OSS 上传步骤就会把它和 JS、CSS、favicon 一起上传，不需要为作品图片新增单独上传脚本。
 
-需要调整生产构建的资源 base。发布 Hub 时，构建命令使用：
+生产构建必须把路由 base 和构建资源 URL 分开处理。Hub 的 Vite `base` 始终保持：
 
 ```text
-https://static.zhangrh.shop/zhangrh-shop/hub/
+/hub/
 ```
 
-作为 Vite `base`。这样 HTML、JS、CSS 以及打包进 JS 的图片引用都会直接使用 OSS 完整地址。
+这样 `import.meta.env.BASE_URL` 仍是 pathname，Hub 的路由解析和内部链接不会包含 OSS 域名。
 
-本地 `npm run dev` 和普通本地构建继续使用项目路径，不依赖 OSS。只有发布流程为生产构建传入 OSS base。
+发布流程只给 `git pull` 之后启动的 build 子进程设置明确的 OSS 资源环境开关。共享 Vite 配置在该新进程内读取最新的 `OSS_STATIC_CONFIG` 和项目 public base，并通过 `experimental.renderBuiltUrl` 把 HTML、JS、CSS、favicon 以及打包进 JS 的图片引用生成为 OSS 完整地址。
 
-已通过现有 ShotMarker 图片构建进行可行性验证：给 Vite 传入完整 OSS base 后，HTML 和 JS 中的图片地址都会变成完整 OSS URL。
+本地 `npm run dev` 和普通本地构建不设置该开关，继续输出 `/<project>/static/...`，不依赖 OSS。该方式也适用于 ShotMarker：构建资源使用 OSS 地址时，bundle 中用于 pathname 路由的 `import.meta.env.BASE_URL` 仍保持 `/shotmarker/`。
 
 ## 完整数据流
 
@@ -312,10 +312,13 @@ type Work = {
 
 发布与构建测试至少覆盖：
 
-- 发布构建会传入当前项目对应的 OSS base。
+- 发布 build 参数不传入绝对 `--base`，只保留项目名。
+- 发布 build 子进程收到明确的 OSS 资源环境开关。
 - 本地构建不强制使用 OSS base。
 - Hub 构建产物包含作品封面。
-- 生产构建生成的图片引用指向 `static.zhangrh.shop/zhangrh-shop/hub/static/`。
+- 发布构建生成的 HTML、JS、CSS 和图片引用指向 `static.zhangrh.shop/zhangrh-shop/hub/static/`。
+- Hub 和 ShotMarker 发布构建的 bundle 仍保留各自的 pathname base，内部链接不指向 OSS。
+- Vite 配置和 OSS public base 在 `git pull` 后启动的新 build 子进程中读取。
 - OSS 上传扫描包含构建后的图片文件。
 
 ## 迁移影响
@@ -333,7 +336,7 @@ type Work = {
 - 作品卡片组件
 - Hub 路由和页面标题中按 ID 查找作品的逻辑
 - 相关数据、页面和发布脚本测试
-- 发布构建的 OSS base 参数
+- 发布 build 子进程的 OSS 资源开关和共享 Vite 资源 URL 配置
 
 现有外部 OSS 封面 URL 将从数据文件中移除，现有本地图片迁入按作品 ID 划分的目录。
 
