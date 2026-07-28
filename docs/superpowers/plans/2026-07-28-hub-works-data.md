@@ -426,6 +426,7 @@ cd /Users/runhaozhang/Documents/project/zhangrh.shop/frontend
 node --test \
   scripts/*.test.mjs \
   tools/*.test.mjs \
+  vite.config.test.mjs \
   project/hub/data/*.test.mjs \
   project/hub/pages/*.test.mjs
 ```
