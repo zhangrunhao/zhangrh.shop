@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { access, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -45,6 +45,10 @@ test("Hub work pages render the Work contract", async (t) => {
       cacheDir,
       configFile,
       logLevel: "silent",
+      optimizeDeps: {
+        noDiscovery: true,
+        include: [],
+      },
       server: {
         middlewareMode: true,
         ws: false,
@@ -138,6 +142,10 @@ test("Hub work pages render the Work contract", async (t) => {
       await server?.close();
     } finally {
       await rm(cacheDir, { force: true, recursive: true });
+      await assert.rejects(
+        access(cacheDir),
+        (error) => error?.code === "ENOENT",
+      );
     }
   }
 });
