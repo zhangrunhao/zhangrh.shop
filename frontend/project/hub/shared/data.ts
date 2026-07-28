@@ -14,7 +14,13 @@ export const WORKS = (worksData as Work[]).map((work) => ({
   coverImage: resolveWorkAsset(work.coverImage),
 }));
 
-const worksById = new Map(WORKS.map((work) => [work.id, work]));
+const worksById = new Map<string, Work>();
+for (const work of WORKS) {
+  if (worksById.has(work.id)) {
+    throw new Error(`Duplicate work ID: ${work.id}`);
+  }
+  worksById.set(work.id, work);
+}
 
 export const FEATURED_WORKS = HOME.featuredWorkIds.map((id) => {
   const work = worksById.get(id);
