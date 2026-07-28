@@ -13,6 +13,9 @@ const readHubFile = (relativePath) =>
 const readJson = (relativePath) =>
   JSON.parse(readHubFile(relativePath));
 
+const hubFileExists = (relativePath) =>
+  fs.existsSync(path.join(hubRoot, relativePath));
+
 test("header navigation shows works, articles, and about me tabs only", () => {
   const constants = readHubFile("shared/constants.ts");
 
@@ -59,5 +62,31 @@ test("article route uses /articles and old content paths are removed", () => {
   assert.doesNotMatch(route, /path === "\/ideas"/);
   assert.doesNotMatch(route, /path === "\/reviews"/);
   assert.doesNotMatch(route, /path === "\/previews"/);
+  assert.doesNotMatch(route, /path === "\/zhengtian"/);
   assert.doesNotMatch(app, /ReviewsPage/);
+  assert.doesNotMatch(app, /ZhengtianPage/);
+});
+
+test("retired hub modules and data are removed", () => {
+  const retiredFiles = [
+    "components/review-card.tsx",
+    "components/section-title.tsx",
+    "data/reviews.json",
+    "pages/reviews-page.tsx",
+    "pages/zhengtian-page.tsx",
+  ];
+
+  for (const relativePath of retiredFiles) {
+    assert.equal(hubFileExists(relativePath), false, relativePath);
+  }
+
+  const constants = readHubFile("shared/constants.ts");
+  const data = readHubFile("shared/data.ts");
+  const icons = readHubFile("components/icons.tsx");
+  const styles = readHubFile("index.css");
+
+  assert.doesNotMatch(constants, /HOME_AREAS/);
+  assert.doesNotMatch(data, /reviewsData|REVIEWS|Review/);
+  assert.doesNotMatch(icons, /AreaIcon|ProductMarkIcon|"review"/);
+  assert.doesNotMatch(styles, /line-clamp-2|prose-content/);
 });

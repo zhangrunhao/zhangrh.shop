@@ -9,7 +9,6 @@ export type HubPageName =
   | "product_detail"
   | "articles"
   | "about"
-  | "zhengtian"
   | "not_found";
 
 export type HubButton =

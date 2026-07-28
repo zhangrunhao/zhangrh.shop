@@ -7,7 +7,6 @@ import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ProductDetailPage } from "./pages/product-detail-page";
 import { ProductsPage } from "./pages/products-page";
-import { ZhengtianPage } from "./pages/zhengtian-page";
 import { PRODUCTS } from "./shared/data";
 import { resolvePageName, trackHubLoadPage } from "./shared/tracking";
 import { resolveRoute, usePathname } from "./shared/route";
@@ -28,7 +27,6 @@ export const App = () => {
       products: "作品 - zhangrh.shop",
       articles: "文章 - zhangrh.shop",
       about: "关于我 - zhangrh.shop",
-      zhengtian: "时间线web - 组件库",
       "not-found": "404 - zhangrh.shop",
     } as const;
     document.title = titleMap[route.name];
@@ -37,14 +35,6 @@ export const App = () => {
   useEffect(() => {
     trackHubLoadPage(resolvePageName(route));
   }, [route]);
-
-  if (route.name === "zhengtian") {
-    return (
-      <div className="min-h-screen bg-white font-['SF_Pro_Text','SF_Pro_Display','PingFang_SC','Hiragino_Sans_GB','Microsoft_YaHei',sans-serif] text-[#333333]">
-        <ZhengtianPage />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#fafafa] font-[Inter,Noto_Sans_SC,PingFang_SC,Microsoft_YaHei,sans-serif] text-[#171717]">

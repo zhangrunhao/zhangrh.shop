@@ -18,16 +18,6 @@ export type Article = {
   publishDate: string;
 };
 
-export type Review = {
-  id: string;
-  productName: string;
-  version: string;
-  headline: string;
-  publishDate: string;
-  dataChanges: string[];
-  nextPlan: string;
-};
-
 export type HomeFeaturedWork = {
   name: string;
   summary: string;

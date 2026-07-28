@@ -7,7 +7,6 @@ export type Route =
   | { name: "product-detail"; productId: string }
   | { name: "articles" }
   | { name: "about" }
-  | { name: "zhengtian" }
   | { name: "not-found" };
 
 export const resolveRoute = (pathname: string): Route => {
@@ -24,9 +23,6 @@ export const resolveRoute = (pathname: string): Route => {
   }
   if (path === "/about") {
     return { name: "about" };
-  }
-  if (path === "/zhengtian") {
-    return { name: "zhengtian" };
   }
 
   const productDetailMatch = path.match(/^\/products\/([^/]+)$/);

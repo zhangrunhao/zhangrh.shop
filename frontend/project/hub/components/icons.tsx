@@ -75,26 +75,7 @@ export const ExternalIcon = () => (
   </svg>
 );
 
-export const ProductMarkIcon = () => (
-  <svg className="size-[11px]" viewBox="0 0 24 24" fill="none" aria-hidden>
-    <path
-      d="M8.5 12C8.5 9.8 10.3 8 12.5 8H16.5C18.7 8 20.5 9.8 20.5 12C20.5 14.2 18.7 16 16.5 16H12.5"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M15.5 12C15.5 14.2 13.7 16 11.5 16H7.5C5.3 16 3.5 14.2 3.5 12C3.5 9.8 5.3 8 7.5 8H11.5"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-type NavIconName = "product" | "idea" | "review" | "about";
+type NavIconName = "product" | "idea" | "about";
 
 export const NavIcon = ({
   icon,
@@ -133,66 +114,10 @@ export const NavIcon = ({
     );
   }
 
-  if (icon === "review") {
-    return (
-      <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path
-          d="M7 4H17M7 8H17M7 12H13M6 3H18C19.1 3 20 3.9 20 5V19C20 20.1 19.1 21 18 21H6C4.9 21 4 20.1 4 19V5C4 3.9 4.9 3 6 3Z"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M12 14C14.2 14 16 12.2 16 10C16 7.8 14.2 6 12 6C9.8 6 8 7.8 8 10C8 12.2 9.8 14 12 14ZM5 20C5.9 17.7 8.6 16 12 16C15.4 16 18.1 17.7 19 20"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-};
-
-export const AreaIcon = ({ icon }: { icon: "product" | "idea" | "review" }) => {
-  if (icon === "product") {
-    return (
-      <svg className="size-4" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path
-          d="M12 3L20 7.5L12 12L4 7.5L12 3ZM4 7.5V16.5L12 21V12M20 7.5V16.5L12 21"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  if (icon === "idea") {
-    return (
-      <svg className="size-4" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path
-          d="M9 18H15M10 21H14M8 14C6.8 13 6 11.5 6 9.8C6 6.6 8.7 4 12 4C15.3 4 18 6.6 18 9.8C18 11.5 17.2 13 16 14C15.3 14.6 15 15.1 15 16H9C9 15.1 8.7 14.6 8 14Z"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  return (
-    <svg className="size-4" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M7 4H17M7 8H17M7 12H13M6 3H18C19.1 3 20 3.9 20 5V19C20 20.1 19.1 21 18 21H6C4.9 21 4 20.1 4 19V5C4 3.9 4.9 3 6 3Z"
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
