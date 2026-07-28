@@ -18,8 +18,8 @@ export const App = () => {
 
   useEffect(() => {
     if (route.name === "product-detail") {
-      const product = WORKS.find((item) => item.id === route.productId);
-      document.title = product ? `${product.name} - 作品详情` : "作品详情";
+      const work = WORKS.find((item) => item.id === route.productId);
+      document.title = work ? `${work.name} - 作品详情` : "作品详情";
       return;
     }
 

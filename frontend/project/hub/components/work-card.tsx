@@ -20,7 +20,7 @@ export const WorkCard = ({ work }: { work: Work }) => (
     <div className="relative h-[334px] bg-neutral-100">
       <img
         src={work.coverImage}
-        alt={work.name}
+        alt=""
         className="h-full w-full object-cover"
         loading="lazy"
       />
@@ -30,12 +30,13 @@ export const WorkCard = ({ work }: { work: Work }) => (
     </div>
 
     <div className="space-y-3 px-5 py-5">
-      <h3 className="text-[18px] font-semibold leading-[24.75px] tracking-[-0.02em] text-[#171717]">
+      <h2 className="text-[18px] font-semibold leading-[24.75px] tracking-[-0.02em] text-[#171717]">
         {work.name}
-      </h3>
+      </h2>
       <p className="text-sm leading-6 text-[#525252]">{work.summary}</p>
       <Link
         to={work.link}
+        ariaLabel={`查看 ${work.name}`}
         className="inline-flex items-center gap-1 text-sm font-medium text-[#009966]"
       >
         查看作品

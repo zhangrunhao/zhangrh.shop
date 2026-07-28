@@ -57,7 +57,10 @@ test("work card uses the Work contract and resolved cover", () => {
   assert.match(workCard, /export const WorkStatusBadge/);
   assert.match(workCard, /export const WorkCard = \(\{ work \}: \{ work: Work \}\)/);
   assert.match(workCard, /src=\{work\.coverImage\}/);
+  assert.match(workCard, /alt=""/);
+  assert.match(workCard, /<h2[^>]*>\s*\{work\.name\}\s*<\/h2>/);
   assert.match(workCard, /to=\{work\.link\}/);
+  assert.match(workCard, /ariaLabel=\{`查看 \$\{work\.name\}`\}/);
   assert.match(workCard, />\s*查看作品\s*<ArrowIcon \/>/);
   assert.doesNotMatch(workCard, /resolveImageUrl/);
   assert.doesNotMatch(workCard, /currentVersion/);
@@ -71,13 +74,18 @@ test("work detail and app titles find works by ID", () => {
 
   assert.match(app, /import \{ WORKS \} from "\.\/shared\/data";/);
   assert.match(app, /WORKS\.find\(\(item\) => item\.id === route\.productId\)/);
+  assert.match(app, /const work = WORKS\.find/);
   assert.match(productDetailPage, /import \{ WORKS \} from "\.\.\/shared\/data";/);
   assert.match(
     productDetailPage,
-    /WORKS\.find\(\(item\) => item\.id === productId\)/,
+    /const work = WORKS\.find\(\(item\) => item\.id === productId\)/,
   );
-  assert.match(productDetailPage, /src=\{product\.coverImage\}/);
-  assert.match(productDetailPage, /<WorkStatusBadge status=\{product\.status\} \/>/);
+  assert.match(productDetailPage, /src=\{work\.coverImage\}/);
+  assert.match(productDetailPage, /<WorkStatusBadge status=\{work\.status\} \/>/);
+  assert.match(
+    productDetailPage,
+    /<ArrowIcon className="size-3\.5 rotate-180" \/>/,
+  );
 
   for (const source of [app, productDetailPage]) {
     assert.doesNotMatch(source, /\bPRODUCTS\b/);

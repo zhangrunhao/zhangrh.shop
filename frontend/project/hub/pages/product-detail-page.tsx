@@ -4,9 +4,9 @@ import { WorkStatusBadge } from "../components/work-card";
 import { WORKS } from "../shared/data";
 
 export const ProductDetailPage = ({ productId }: { productId: string }) => {
-  const product = WORKS.find((item) => item.id === productId);
+  const work = WORKS.find((item) => item.id === productId);
 
-  if (!product) {
+  if (!work) {
     return (
       <section className="space-y-4 pb-14 pt-8">
         <h1 className="text-2xl font-semibold text-[#171717]">作品不存在</h1>
@@ -30,7 +30,7 @@ export const ProductDetailPage = ({ productId }: { productId: string }) => {
           to="/products"
           className="inline-flex items-center gap-1 text-sm font-medium text-[#525252]"
         >
-          <ArrowIcon />
+          <ArrowIcon className="size-3.5 rotate-180" />
           返回作品列表
         </Link>
       </div>
@@ -38,8 +38,8 @@ export const ProductDetailPage = ({ productId }: { productId: string }) => {
       <article className="overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white">
         <div className="h-[420px] w-full overflow-hidden bg-neutral-100">
           <img
-            src={product.coverImage}
-            alt={product.name}
+            src={work.coverImage}
+            alt={work.name}
             className="h-full w-full object-cover"
           />
         </div>
@@ -47,12 +47,12 @@ export const ProductDetailPage = ({ productId }: { productId: string }) => {
         <div className="space-y-4 px-6 py-6">
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl font-semibold tracking-tight text-[#171717]">
-              {product.name}
+              {work.name}
             </h1>
-            <WorkStatusBadge status={product.status} />
+            <WorkStatusBadge status={work.status} />
           </div>
 
-          <p className="text-sm leading-7 text-[#525252]">{product.summary}</p>
+          <p className="text-sm leading-7 text-[#525252]">{work.summary}</p>
         </div>
       </article>
     </section>
