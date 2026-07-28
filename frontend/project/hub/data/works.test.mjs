@@ -35,6 +35,8 @@ test("works data uses the Hub work contract", () => {
     assert.equal(path.posix.normalize(work.coverImage), work.coverImage);
 
     const coverImageParts = work.coverImage.split("/");
+    assert.equal(coverImageParts[0], "works");
+    assert.equal(coverImageParts[1], work.id);
     assert.ok(coverImageParts.at(-1).length > 0);
     assert.ok(
       coverImageParts.every((part) => part !== "." && part !== ".."),
@@ -55,6 +57,21 @@ test("works data uses the Hub work contract", () => {
       false,
     );
     assert.equal(fs.existsSync(coverImagePath), true);
-    assert.equal(fs.statSync(coverImagePath).isFile(), true);
+    assert.equal(fs.lstatSync(coverImagePath).isFile(), true);
+
+    const resolvedWorkAssetsDirectory = fs.realpathSync(workAssetsDirectory);
+    const resolvedCoverImagePath = fs.realpathSync(coverImagePath);
+    const resolvedCoverImageRelativePath = path.relative(
+      resolvedWorkAssetsDirectory,
+      resolvedCoverImagePath,
+    );
+
+    assert.ok(resolvedCoverImageRelativePath.length > 0);
+    assert.equal(path.isAbsolute(resolvedCoverImageRelativePath), false);
+    assert.notEqual(resolvedCoverImageRelativePath, "..");
+    assert.equal(
+      resolvedCoverImageRelativePath.startsWith(`..${path.sep}`),
+      false,
+    );
   }
 });
