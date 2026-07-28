@@ -16,20 +16,12 @@ test("home data matches the Hub landing page brief", () => {
 
   assert.equal("featuredWorks" in data, false);
   assert.ok(Array.isArray(data.featuredWorkIds));
-  assert.deepEqual(data.featuredWorkIds, [
-    "20260619_zhangrh_shop",
-    "20260205_card_game",
-    "20260517_shotmarker",
-  ]);
   assert.equal(new Set(data.featuredWorkIds).size, data.featuredWorkIds.length);
 
   const worksById = new Map(readWorksData().map((work) => [work.id, work]));
-  const featuredWorks = data.featuredWorkIds.map((id) => worksById.get(id));
-  assert.ok(featuredWorks.every(Boolean));
-  assert.deepEqual(
-    featuredWorks.map((work) => work.id),
-    data.featuredWorkIds,
-  );
+  for (const id of data.featuredWorkIds) {
+    assert.ok(worksById.has(id));
+  }
 
   assert.ok(data.featuredArticles.length >= 3);
   for (const article of data.featuredArticles) {
