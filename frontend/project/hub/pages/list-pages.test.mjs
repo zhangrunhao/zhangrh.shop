@@ -39,10 +39,10 @@ test("works and article list pages use the new page names", () => {
 });
 
 test("works and article lists have placeholder test data", () => {
-  const products = readJson("data/products.json");
+  const works = readJson("data/works.json");
   const articles = readJson("data/articles.json");
 
-  assert.ok(products.length >= 3);
+  assert.ok(works.length >= 3);
   assert.ok(articles.length >= 3);
 });
 

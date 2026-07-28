@@ -1,0 +1,26 @@
+[
+  {
+    "id": "20260619_zhangrh_shop",
+    "name": "zhangrh.shop Hub",
+    "summary": "个人作品和文章的聚合首页，用于展示前端实践与 AI 编程记录。",
+    "link": "/products/20260619_zhangrh_shop",
+    "coverImage": "works/20260619_zhangrh_shop/cover.png",
+    "status": "active"
+  },
+  {
+    "id": "20260205_card_game",
+    "name": "Card Game Demo",
+    "summary": "同时出牌、对冲结算的卡牌规则原型，用来验证可玩性。",
+    "link": "/products/20260205_card_game",
+    "coverImage": "works/20260205_card_game/cover.png",
+    "status": "active"
+  },
+  {
+    "id": "20260517_shotmarker",
+    "name": "ShotMarker Support",
+    "summary": "ShotMarker 的支持与隐私页面，承载产品发布后的公开信息。",
+    "link": "/products/20260517_shotmarker",
+    "coverImage": "works/20260517_shotmarker/cover.png",
+    "status": "active"
+  }
+]

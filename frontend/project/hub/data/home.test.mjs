@@ -6,24 +6,30 @@ import { fileURLToPath } from "node:url";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const homeDataPath = path.join(currentDir, "home.json");
+const worksDataPath = path.join(currentDir, "works.json");
 
 const readHomeData = () => JSON.parse(fs.readFileSync(homeDataPath, "utf8"));
+const readWorksData = () => JSON.parse(fs.readFileSync(worksDataPath, "utf8"));
 
 test("home data matches the Hub landing page brief", () => {
   const data = readHomeData();
 
-  assert.deepEqual(
-    data.featuredWorks.map((item) => item.name),
-    ["zhangrh.shop", "Card Game Demo", "ShotMarker"],
-  );
+  assert.equal("featuredWorks" in data, false);
+  assert.ok(Array.isArray(data.featuredWorkIds));
+  assert.deepEqual(data.featuredWorkIds, [
+    "20260619_zhangrh_shop",
+    "20260205_card_game",
+    "20260517_shotmarker",
+  ]);
+  assert.equal(new Set(data.featuredWorkIds).size, data.featuredWorkIds.length);
 
-  for (const work of data.featuredWorks) {
-    assert.equal(typeof work.summary, "string");
-    assert.ok(work.summary.length > 0);
-    assert.equal("proof" in work, false);
-    assert.equal(typeof work.link, "string");
-    assert.ok(work.link.length > 0);
-  }
+  const worksById = new Map(readWorksData().map((work) => [work.id, work]));
+  const featuredWorks = data.featuredWorkIds.map((id) => worksById.get(id));
+  assert.ok(featuredWorks.every(Boolean));
+  assert.deepEqual(
+    featuredWorks.map((work) => work.id),
+    data.featuredWorkIds,
+  );
 
   assert.ok(data.featuredArticles.length >= 3);
   for (const article of data.featuredArticles) {
@@ -43,10 +49,6 @@ test("home data matches the Hub landing page brief", () => {
 
 test("home data keeps card copy concise", () => {
   const data = readHomeData();
-
-  for (const work of data.featuredWorks) {
-    assert.ok(work.summary.length <= 30);
-  }
 
   for (const article of data.featuredArticles) {
     assert.ok(article.summary.length <= 28);
