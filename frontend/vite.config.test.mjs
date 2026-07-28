@@ -5,6 +5,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { resolveConfig } from 'vite'
 
 import { escapeRegExp } from './scripts/oss-static-lib.mjs'
 
@@ -12,6 +13,7 @@ const frontendRoot = path.dirname(fileURLToPath(import.meta.url))
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'vite-oss-assets-'))
 const ossBase = 'https://static.zhangrh.shop/zhangrh-shop'
 const publishOssAssetsEnv = 'ZHANGRH_SHOP_PUBLISH_OSS_ASSETS'
+const hubConfigPath = path.join(frontendRoot, 'project', 'hub', 'vite.config.ts')
 
 after(() => {
   fs.rmSync(tempRoot, { recursive: true, force: true })
@@ -60,6 +62,30 @@ const buildProject = ({ projectName, publishOssAssets }) => {
     html: fs.readFileSync(path.join(outDir, 'index.html'), 'utf8'),
   }
 }
+
+const resolveHubServeConfig = ({ isPreview }) =>
+  resolveConfig(
+    {
+      configFile: hubConfigPath,
+      logLevel: 'silent',
+    },
+    'serve',
+    isPreview ? 'production' : 'development',
+    isPreview ? 'production' : 'development',
+    isPreview,
+  )
+
+test('Hub preview serves its built project pathname base', async () => {
+  const config = await resolveHubServeConfig({ isPreview: true })
+
+  assert.equal(config.base, '/hub/')
+})
+
+test('Hub dev server keeps its root base', async () => {
+  const config = await resolveHubServeConfig({ isPreview: false })
+
+  assert.equal(config.base, '/')
+})
 
 test('Hub OSS publish build keeps pathname routing while rendering assets on OSS', () => {
   const { bundle, coverFileNames, html } = buildProject({

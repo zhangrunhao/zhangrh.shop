@@ -28,7 +28,7 @@ export const createProjectConfig = ({
   const distRoot = path.resolve(projectRoot, '../../dist', projectName)
   const basePath = `/${projectName}/`
 
-  return defineConfig(({ command }) => {
+  return defineConfig(({ command, isPreview }) => {
     const publicAssetBase =
       command === 'build' && process.env[PUBLISH_OSS_ASSETS_ENV] === '1'
         ? buildProjectPublicBase({
@@ -39,7 +39,7 @@ export const createProjectConfig = ({
 
     return mergeConfig(sharedConfig, {
       root: projectRoot,
-      base: command === 'build' ? basePath : '/',
+      base: command === 'build' || isPreview ? basePath : '/',
       appType: 'spa',
       experimental: publicAssetBase
         ? {
