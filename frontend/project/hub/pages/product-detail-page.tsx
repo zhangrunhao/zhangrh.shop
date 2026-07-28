@@ -1,11 +1,10 @@
 import { Link } from "../components/link";
 import { ArrowIcon } from "../components/icons";
-import { ProductDetailMeta, ProductStatusBadge } from "../components/product-card";
-import { PRODUCTS } from "../shared/data";
-import { resolveImageUrl } from "../shared/format";
+import { WorkStatusBadge } from "../components/work-card";
+import { WORKS } from "../shared/data";
 
 export const ProductDetailPage = ({ productId }: { productId: string }) => {
-  const product = PRODUCTS.find((item) => item.id === productId);
+  const product = WORKS.find((item) => item.id === productId);
 
   if (!product) {
     return (
@@ -39,7 +38,7 @@ export const ProductDetailPage = ({ productId }: { productId: string }) => {
       <article className="overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white">
         <div className="h-[420px] w-full overflow-hidden bg-neutral-100">
           <img
-            src={resolveImageUrl(product.coverImage)}
+            src={product.coverImage}
             alt={product.name}
             className="h-full w-full object-cover"
           />
@@ -50,11 +49,10 @@ export const ProductDetailPage = ({ productId }: { productId: string }) => {
             <h1 className="text-3xl font-semibold tracking-tight text-[#171717]">
               {product.name}
             </h1>
-            <ProductStatusBadge status={product.status} />
+            <WorkStatusBadge status={product.status} />
           </div>
 
           <p className="text-sm leading-7 text-[#525252]">{product.summary}</p>
-          <ProductDetailMeta product={product} />
         </div>
       </article>
     </section>

@@ -38,6 +38,70 @@ test("works and article list pages use the new page names", () => {
   assert.doesNotMatch(articlesPage, />\s*想法\s*</);
 });
 
+test("works list preserves WORKS order and renders WorkCard", () => {
+  const productsPage = readHubFile("pages/products-page.tsx");
+
+  assert.match(productsPage, /import \{ WorkCard \} from "\.\.\/components\/work-card";/);
+  assert.match(productsPage, /import \{ WORKS \} from "\.\.\/shared\/data";/);
+  assert.match(productsPage, /\{WORKS\.map\(\(work\) => \(/);
+  assert.match(productsPage, /<WorkCard key=\{work\.id\} work=\{work\} \/>/);
+  assert.doesNotMatch(productsPage, /useMemo/);
+  assert.doesNotMatch(productsPage, /sortByDateDesc/);
+});
+
+test("work card uses the Work contract and resolved cover", () => {
+  const workCard = readHubFile("components/work-card.tsx");
+
+  assert.match(workCard, /import type \{ Work, WorkStatus \} from "\.\.\/types";/);
+  assert.match(workCard, /Record<WorkStatus, string>/);
+  assert.match(workCard, /export const WorkStatusBadge/);
+  assert.match(workCard, /export const WorkCard = \(\{ work \}: \{ work: Work \}\)/);
+  assert.match(workCard, /src=\{work\.coverImage\}/);
+  assert.match(workCard, /to=\{work\.link\}/);
+  assert.match(workCard, />\s*查看作品\s*<ArrowIcon \/>/);
+  assert.doesNotMatch(workCard, /resolveImageUrl/);
+  assert.doesNotMatch(workCard, /currentVersion/);
+  assert.doesNotMatch(workCard, /currentVersionCommitDate/);
+  assert.doesNotMatch(workCard, /ProductDetailMeta/);
+});
+
+test("work detail and app titles find works by ID", () => {
+  const app = readHubFile("app.tsx");
+  const productDetailPage = readHubFile("pages/product-detail-page.tsx");
+
+  assert.match(app, /import \{ WORKS \} from "\.\/shared\/data";/);
+  assert.match(app, /WORKS\.find\(\(item\) => item\.id === route\.productId\)/);
+  assert.match(productDetailPage, /import \{ WORKS \} from "\.\.\/shared\/data";/);
+  assert.match(
+    productDetailPage,
+    /WORKS\.find\(\(item\) => item\.id === productId\)/,
+  );
+  assert.match(productDetailPage, /src=\{product\.coverImage\}/);
+  assert.match(productDetailPage, /<WorkStatusBadge status=\{product\.status\} \/>/);
+
+  for (const source of [app, productDetailPage]) {
+    assert.doesNotMatch(source, /\bPRODUCTS\b/);
+  }
+  assert.doesNotMatch(productDetailPage, /resolveImageUrl/);
+  assert.doesNotMatch(productDetailPage, /currentVersion/);
+  assert.doesNotMatch(productDetailPage, /currentVersionCommitDate/);
+  assert.doesNotMatch(productDetailPage, /ProductDetailMeta/);
+});
+
+test("migrated work consumers do not import the legacy Product contract", () => {
+  const sources = [
+    readHubFile("components/work-card.tsx"),
+    readHubFile("pages/home-page.tsx"),
+    readHubFile("pages/products-page.tsx"),
+    readHubFile("pages/product-detail-page.tsx"),
+    readHubFile("app.tsx"),
+  ];
+
+  for (const source of sources) {
+    assert.doesNotMatch(source, /import[^;]*\bProduct(?:Status)?\b[^;]*from/);
+  }
+});
+
 test("works and article lists have placeholder test data", () => {
   const works = readJson("data/works.json");
   const articles = readJson("data/articles.json");

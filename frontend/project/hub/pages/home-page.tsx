@@ -1,4 +1,4 @@
-import { HOME } from "../shared/data";
+import { FEATURED_WORKS, HOME } from "../shared/data";
 import { formatDateYmd } from "../shared/format";
 import { trackHubClick } from "../shared/tracking";
 import {
@@ -67,9 +67,9 @@ export const HomePage = () => {
         </div>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
-          {HOME.featuredWorks.map((work) => (
+          {FEATURED_WORKS.map((work) => (
             <Link
-              key={work.name}
+              key={work.id}
               to={work.link}
               className="block h-full"
             >
@@ -86,7 +86,7 @@ export const HomePage = () => {
                   {work.summary}
                 </p>
                 <span className="mt-auto inline-flex items-center gap-1 pt-5 text-sm font-medium tracking-normal text-[#009966]">
-                  {work.linkLabel}
+                  查看作品
                   <ArrowIcon />
                 </span>
               </article>

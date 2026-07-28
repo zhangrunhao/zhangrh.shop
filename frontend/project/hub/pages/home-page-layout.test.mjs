@@ -74,7 +74,17 @@ test("homepage work cards are fully clickable and use green background hover", (
     /<article\s+className="([^"]*hover:bg-emerald-50\/40[^"]*)"/,
   );
 
-  assert.match(homePage, /<Link\s+key=\{work\.name\}\s+to=\{work\.link\}/);
+  assert.match(
+    homePage,
+    /import \{ FEATURED_WORKS, HOME \} from "\.\.\/shared\/data";/,
+  );
+  assert.match(homePage, /\{FEATURED_WORKS\.map\(\(work\) => \(/);
+  assert.doesNotMatch(homePage, /HOME\.featuredWorks/);
+  assert.match(homePage, /<Link\s+key=\{work\.id\}\s+to=\{work\.link\}/);
+  assert.match(homePage, /\{work\.name\}/);
+  assert.match(homePage, /\{work\.summary\}/);
+  assert.match(homePage, />\s*查看作品\s*<ArrowIcon \/>/);
+  assert.doesNotMatch(homePage, /work\.linkLabel/);
   assert.ok(workCardClassMatch);
   assert.match(workCardClassMatch[1], /transition-colors/);
   assert.doesNotMatch(workCardClassMatch[1], /hover:border-\[#009966\]/);
