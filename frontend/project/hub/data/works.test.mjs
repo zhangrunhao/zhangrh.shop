@@ -14,6 +14,7 @@ const readWorksData = () => JSON.parse(fs.readFileSync(worksDataPath, "utf8"));
 test("works data uses the Hub work contract", () => {
   const works = readWorksData();
   const ids = new Set();
+  const resolvedAssetsDirectory = fs.realpathSync(assetsDirectory);
 
   for (const work of works) {
     assert.deepEqual(
@@ -58,14 +59,29 @@ test("works data uses the Hub work contract", () => {
     );
     assert.equal(fs.existsSync(coverImagePath), true);
     assert.equal(fs.lstatSync(coverImagePath).isFile(), true);
+    assert.equal(fs.lstatSync(workAssetsDirectory).isDirectory(), true);
 
     const resolvedWorkAssetsDirectory = fs.realpathSync(workAssetsDirectory);
+    const resolvedWorkAssetsRelativePath = path.relative(
+      resolvedAssetsDirectory,
+      resolvedWorkAssetsDirectory,
+    );
     const resolvedCoverImagePath = fs.realpathSync(coverImagePath);
     const resolvedCoverImageRelativePath = path.relative(
       resolvedWorkAssetsDirectory,
       resolvedCoverImagePath,
     );
 
+    assert.equal(path.isAbsolute(resolvedWorkAssetsRelativePath), false);
+    assert.notEqual(resolvedWorkAssetsRelativePath, "..");
+    assert.equal(
+      resolvedWorkAssetsRelativePath.startsWith(`..${path.sep}`),
+      false,
+    );
+    assert.equal(
+      resolvedWorkAssetsRelativePath,
+      path.join("works", work.id),
+    );
     assert.ok(resolvedCoverImageRelativePath.length > 0);
     assert.equal(path.isAbsolute(resolvedCoverImageRelativePath), false);
     assert.notEqual(resolvedCoverImageRelativePath, "..");
