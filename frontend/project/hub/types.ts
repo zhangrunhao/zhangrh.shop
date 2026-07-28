@@ -1,14 +1,12 @@
-export type ProductStatus = "active" | "archived";
+export type WorkStatus = "active" | "archived";
 
-export type Product = {
+export type Work = {
   id: string;
   name: string;
   summary: string;
-  link: string;
   coverImage: string;
-  currentVersion: string;
-  currentVersionCommitDate: string;
-  status: ProductStatus;
+  status: WorkStatus;
+  link: string;
 };
 
 export type Article = {
@@ -28,13 +26,6 @@ export type Review = {
   nextPlan: string;
 };
 
-export type HomeFeaturedWork = {
-  name: string;
-  summary: string;
-  link: string;
-  linkLabel: string;
-};
-
 export type HomeFeaturedArticle = {
   title: string;
   summary: string;
@@ -49,7 +40,7 @@ export type HomeAbout = {
 };
 
 export type HomeData = {
-  featuredWorks: HomeFeaturedWork[];
+  featuredWorkIds: string[];
   featuredArticles: HomeFeaturedArticle[];
   about: HomeAbout;
 };

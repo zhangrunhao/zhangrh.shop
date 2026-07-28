@@ -1,5 +1,3 @@
-import { withBase } from "../routing";
-
 export const formatDateMonthDay = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -26,14 +24,6 @@ export const formatDateFull = (value: string) => {
     month: "2-digit",
     day: "2-digit",
   }).format(date);
-};
-
-export const resolveImageUrl = (coverImage: string) => {
-  if (/^(https?:|data:|blob:)/i.test(coverImage)) {
-    return coverImage;
-  }
-  const normalized = coverImage.startsWith("/") ? coverImage : `/${coverImage}`;
-  return withBase(normalized);
 };
 
 export const sortByDateDesc = <T,>(items: T[], getDate: (item: T) => string) => {
