@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const worksDataPath = path.join(currentDir, "works.json");
+const assetsDirectory = path.resolve(currentDir, "..", "assets");
 const workIdPattern = /^\d{8}_[a-z0-9]+(?:_[a-z0-9]+)*$/;
 
 const readWorksData = () => JSON.parse(fs.readFileSync(worksDataPath, "utf8"));
@@ -31,7 +32,6 @@ test("works data uses the Hub work contract", () => {
     assert.match(work.status, /^(active|archived)$/);
     assert.doesNotMatch(work.coverImage, /^https?:\/\//);
     assert.doesNotMatch(work.coverImage, /\\/);
-    assert.ok(work.coverImage.startsWith(`works/${work.id}/`));
     assert.equal(path.posix.normalize(work.coverImage), work.coverImage);
 
     const coverImageParts = work.coverImage.split("/");
@@ -39,5 +39,22 @@ test("works data uses the Hub work contract", () => {
     assert.ok(
       coverImageParts.every((part) => part !== "." && part !== ".."),
     );
+
+    const workAssetsDirectory = path.resolve(assetsDirectory, "works", work.id);
+    const coverImagePath = path.resolve(assetsDirectory, work.coverImage);
+    const coverImageRelativePath = path.relative(
+      workAssetsDirectory,
+      coverImagePath,
+    );
+
+    assert.ok(coverImageRelativePath.length > 0);
+    assert.equal(path.isAbsolute(coverImageRelativePath), false);
+    assert.notEqual(coverImageRelativePath, "..");
+    assert.equal(
+      coverImageRelativePath.startsWith(`..${path.sep}`),
+      false,
+    );
+    assert.equal(fs.existsSync(coverImagePath), true);
+    assert.equal(fs.statSync(coverImagePath).isFile(), true);
   }
 });
