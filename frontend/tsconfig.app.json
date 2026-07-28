@@ -23,5 +23,11 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
-  }
+  },
+  "exclude": [
+    "vite.config.ts",
+    "project/*/vite.config.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
 }

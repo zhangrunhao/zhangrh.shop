@@ -305,6 +305,7 @@ npm run build -- hub
 - Modify: `frontend/scripts/oss-static-lib.test.mjs`
 - Modify: `frontend/vite.config.ts`
 - Create: `frontend/vite.config.test.mjs`
+- Modify: `frontend/tsconfig.app.json`
 - Modify: `frontend/tsconfig.node.json`
 - Modify: `frontend/tools/publish-lib.mjs`
 - Modify: `frontend/tools/publish-lib.test.mjs`

@@ -11,13 +11,20 @@ import { escapeRegExp } from './scripts/oss-static-lib.mjs'
 const frontendRoot = path.dirname(fileURLToPath(import.meta.url))
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'vite-oss-assets-'))
 const ossBase = 'https://static.zhangrh.shop/zhangrh-shop'
+const publishOssAssetsEnv = 'ZHANGRH_SHOP_PUBLISH_OSS_ASSETS'
 
 after(() => {
   fs.rmSync(tempRoot, { recursive: true, force: true })
 })
 
-const buildForOssPublish = (projectName) => {
-  const outDir = path.join(tempRoot, projectName)
+const buildProject = ({ projectName, publishOssAssets }) => {
+  const outDir = path.join(tempRoot, `${projectName}-${publishOssAssets ? 'oss' : 'local'}`)
+  const env = { ...process.env }
+  delete env[publishOssAssetsEnv]
+  if (publishOssAssets) {
+    env[publishOssAssetsEnv] = '1'
+  }
+
   const result = spawnSync(
     process.execPath,
     [
@@ -30,10 +37,7 @@ const buildForOssPublish = (projectName) => {
     {
       cwd: frontendRoot,
       encoding: 'utf8',
-      env: {
-        ...process.env,
-        ZHANGRH_SHOP_PUBLISH_OSS_ASSETS: '1',
-      },
+      env,
     },
   )
 
@@ -44,31 +48,35 @@ const buildForOssPublish = (projectName) => {
   )
 
   const staticDir = path.join(outDir, 'static')
-  const bundlePath = fs
-    .readdirSync(staticDir)
+  const staticFileNames = fs.readdirSync(staticDir)
+  const bundlePath = staticFileNames
     .map((fileName) => path.join(staticDir, fileName))
     .find((filePath) => /^index-.+\.js$/.test(path.basename(filePath)))
   assert.ok(bundlePath, `Missing JavaScript bundle for ${projectName}`)
 
   return {
     bundle: fs.readFileSync(bundlePath, 'utf8'),
+    coverFileNames: staticFileNames.filter((fileName) => /^cover-.+\.[^.]+$/.test(fileName)),
     html: fs.readFileSync(path.join(outDir, 'index.html'), 'utf8'),
   }
 }
 
 test('Hub OSS publish build keeps pathname routing while rendering assets on OSS', () => {
-  const { bundle, html } = buildForOssPublish('hub')
+  const { bundle, coverFileNames, html } = buildProject({
+    projectName: 'hub',
+    publishOssAssets: true,
+  })
   const projectOssBase = `${ossBase}/hub/`
   const escapedProjectOssBase = escapeRegExp(projectOssBase)
 
   assert.match(html, new RegExp(`${escapedProjectOssBase}static/[^"]+\\.js`))
   assert.match(html, new RegExp(`${escapedProjectOssBase}static/[^"]+\\.css`))
 
-  const coverUrls =
-    bundle.match(
-      /https:\/\/static\.zhangrh\.shop\/zhangrh-shop\/hub\/static\/cover-[A-Za-z0-9_-]+\.png/g,
-    ) ?? []
-  assert.equal(new Set(coverUrls).size, 2)
+  assert.ok(coverFileNames.length > 0)
+  for (const coverFileName of coverFileNames) {
+    assert.ok(bundle.includes(`${projectOssBase}static/${coverFileName}`))
+  }
+  assert.doesNotMatch(bundle, /(?<!zhangrh-shop)\/hub\/static\/cover-/)
   assert.match(bundle, /["']\/hub\/["']/)
   assert.doesNotMatch(
     bundle,
@@ -76,8 +84,29 @@ test('Hub OSS publish build keeps pathname routing while rendering assets on OSS
   )
 })
 
+test('Hub local build keeps pathname asset URLs when OSS publishing is disabled', () => {
+  const { bundle, coverFileNames, html } = buildProject({
+    projectName: 'hub',
+    publishOssAssets: false,
+  })
+
+  assert.match(html, /\/hub\/static\/[^"]+\.js/)
+  assert.match(html, /\/hub\/static\/[^"]+\.css/)
+  assert.doesNotMatch(html, /https:\/\/static\.zhangrh\.shop/)
+
+  assert.ok(coverFileNames.length > 0)
+  for (const coverFileName of coverFileNames) {
+    assert.ok(bundle.includes(`/hub/static/${coverFileName}`))
+  }
+  assert.doesNotMatch(bundle, /https:\/\/static\.zhangrh\.shop/)
+  assert.match(bundle, /["']\/hub\/["']/)
+})
+
 test('ShotMarker OSS publish build keeps its pathname routing base', () => {
-  const { bundle, html } = buildForOssPublish('shotmarker')
+  const { bundle, html } = buildProject({
+    projectName: 'shotmarker',
+    publishOssAssets: true,
+  })
   const projectOssBase = `${ossBase}/shotmarker/`
   const escapedProjectOssBase = escapeRegExp(projectOssBase)
 
