@@ -8,6 +8,7 @@ import { OSS_STATIC_CONFIG } from './oss-static.config.mjs'
 import {
   buildOssClientOptions,
   buildPublicAssetUrl,
+  buildProjectPublicBase,
   buildPublicUrl,
   buildStaticObjectKey,
   escapeRegExp,
@@ -28,6 +29,52 @@ test('OSS static config uses the confirmed Aliyun bucket and public domain', () 
     publicBaseUrl: 'https://static.zhangrh.shop',
     uploadRoot: 'zhangrh-shop',
   })
+})
+
+test('buildProjectPublicBase maps hub to its absolute OSS base with one trailing slash', () => {
+  assert.equal(
+    buildProjectPublicBase({
+      config: OSS_STATIC_CONFIG,
+      projectName: 'hub',
+    }),
+    'https://static.zhangrh.shop/zhangrh-shop/hub/',
+  )
+})
+
+test('buildProjectPublicBase normalizes surrounding slashes', () => {
+  assert.equal(
+    buildProjectPublicBase({
+      config: {
+        ...OSS_STATIC_CONFIG,
+        publicBaseUrl: 'https://static.zhangrh.shop///',
+        uploadRoot: '/zhangrh-shop///',
+      },
+      projectName: 'hub',
+    }),
+    'https://static.zhangrh.shop/zhangrh-shop/hub/',
+  )
+})
+
+test('buildProjectPublicBase rejects invalid project names', () => {
+  for (const projectName of [
+    '',
+    '.',
+    '..',
+    'nested/project',
+    'nested\\project',
+    'foo bar',
+    'foo?bar',
+    'foo#bar',
+  ]) {
+    assert.throws(
+      () =>
+        buildProjectPublicBase({
+          config: OSS_STATIC_CONFIG,
+          projectName,
+        }),
+      /Invalid project name/,
+    )
+  }
 })
 
 test('buildStaticObjectKey maps project static files under upload root', () => {

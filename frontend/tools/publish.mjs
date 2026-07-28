@@ -3,8 +3,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 
+import { buildProjectPublicBase } from '../scripts/oss-static-lib.mjs'
+import { OSS_STATIC_CONFIG } from '../scripts/oss-static.config.mjs'
 import {
   STATE_FILE_RELATIVE_PATH,
+  buildNpmBuildArgs,
   listProjects,
   loadState,
   resolvePublishProject,
@@ -67,8 +70,15 @@ const main = async () => {
   })
 
   const repoRoot = findRepoRoot(cwd) ?? path.resolve(cwd, '..')
+  const publicBase = buildProjectPublicBase({
+    config: OSS_STATIC_CONFIG,
+    projectName: project,
+  })
   run('git', ['pull'], { cwd: repoRoot })
-  run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build', '--', project], { cwd })
+  run(process.platform === 'win32' ? 'npm.cmd' : 'npm', buildNpmBuildArgs({
+    projectName: project,
+    publicBase,
+  }), { cwd })
   run(process.execPath, [path.join(cwd, 'scripts', 'publish-oss-assets.mjs'), project], { cwd })
   run(process.execPath, [path.join(cwd, 'scripts', 'deploy-static.mjs'), project], { cwd })
 }

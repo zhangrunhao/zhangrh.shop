@@ -1,7 +1,24 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { resolvePublishProject } from './publish-lib.mjs'
+import { buildNpmBuildArgs, resolvePublishProject } from './publish-lib.mjs'
+
+test('buildNpmBuildArgs passes the selected project and public base to Vite', () => {
+  assert.deepEqual(
+    buildNpmBuildArgs({
+      projectName: 'hub',
+      publicBase: 'https://static.zhangrh.shop/zhangrh-shop/hub/',
+    }),
+    [
+      'run',
+      'build',
+      '--',
+      'hub',
+      '--base',
+      'https://static.zhangrh.shop/zhangrh-shop/hub/',
+    ],
+  )
+})
 
 test('resolvePublishProject prefers direct project arg', async () => {
   const project = await resolvePublishProject({

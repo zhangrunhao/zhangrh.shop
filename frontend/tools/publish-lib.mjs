@@ -6,6 +6,15 @@ import { buildMenuLines, getMenuRewindLineCount } from '../../automation/publish
 
 export const STATE_FILE_RELATIVE_PATH = path.join('.cache', 'frontend-publish-state.json')
 
+export const buildNpmBuildArgs = ({ projectName, publicBase }) => [
+  'run',
+  'build',
+  '--',
+  projectName,
+  '--base',
+  publicBase,
+]
+
 export const listProjects = (projectRoot) => {
   if (!fs.existsSync(projectRoot)) {
     return []
