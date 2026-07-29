@@ -18,6 +18,7 @@ test("Hub resolves supported routes and rejects retired paths", async (t) => {
   try {
     server = await createServer({
       appType: "custom",
+      base: "/hub/",
       cacheDir,
       configFile,
       logLevel: "silent",
@@ -32,6 +33,26 @@ test("Hub resolves supported routes and rejects retired paths", async (t) => {
     await t.test("maps current list routes", () => {
       assert.deepEqual(resolveRoute("/products"), { name: "products" });
       assert.deepEqual(resolveRoute("/articles"), { name: "articles" });
+    });
+
+    await t.test("maps exactly six-digit article detail routes", () => {
+      for (const pathname of ["/articles/100001", "/hub/articles/100001"]) {
+        assert.deepEqual(resolveRoute(pathname), {
+          name: "article-detail",
+          articleId: "100001",
+        });
+      }
+    });
+
+    await t.test("rejects malformed article detail routes", () => {
+      for (const pathname of [
+        "/articles/10001",
+        "/articles/1000001",
+        "/articles/article",
+        "/articles/100001/more",
+      ]) {
+        assert.deepEqual(resolveRoute(pathname), { name: "not-found" });
+      }
     });
 
     await t.test("rejects removed content routes", () => {

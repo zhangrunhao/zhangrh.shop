@@ -125,8 +125,12 @@ test("article route uses /articles and old content paths are removed", () => {
 
   assert.match(route, /path === "\/articles"/);
   assert.match(route, /name: "articles"/);
+  assert.match(route, /name: "article-detail"/);
+  assert.match(route, /\\d\{6\}/);
   assert.match(app, /route\.name === "articles"/);
+  assert.match(app, /route\.name === "article-detail"/);
   assert.match(tracking, /\| "articles"/);
+  assert.match(tracking, /\| "article_detail"/);
 
   assert.doesNotMatch(route, /path === "\/ideas"/);
   assert.doesNotMatch(route, /path === "\/reviews"/);
