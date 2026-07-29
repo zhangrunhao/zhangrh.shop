@@ -91,15 +91,29 @@ test("homepage work cards are fully clickable and use green background hover", (
   assert.equal(homePage.match(/to=\{work\.link\}/g)?.length, 1);
 });
 
-test("homepage article list rows use the same green background hover transition", () => {
+test("homepage uses the latest three generated articles with numeric links", () => {
   const homePage = readHubFile("pages/home-page.tsx");
   const articleClassMatch = homePage.match(
-    /<article\s+key=\{article\.title\}\s+className="([^"]+)"/,
+    /\{latestArticles\.map\(\(article\) => \([\s\S]*?<article\s+className="([^"]+)"/,
   );
 
+  assert.match(
+    homePage,
+    /import \{ ARTICLES \} from "\.\.\/shared\/articles";/,
+  );
+  assert.match(homePage, /const latestArticles = ARTICLES\.slice\(0, 3\);/);
+  assert.match(
+    homePage,
+    /<Link\s+key=\{article\.id\}\s+to=\{`\/articles\/\$\{article\.id\}`\}/,
+  );
+  assert.match(homePage, /\{article\.name\}/);
+  assert.match(homePage, /\{article\.summary\}/);
+  assert.match(homePage, /formatDateYmd\(article\.publishDate\)/);
+  assert.match(homePage, /没有已发布的文章/);
+  assert.doesNotMatch(homePage, /HOME\.featuredArticles/);
+  assert.doesNotMatch(homePage, /article\.title|article\.date/);
   assert.ok(articleClassMatch);
   assert.match(articleClassMatch[1], /transition-colors/);
   assert.match(articleClassMatch[1], /hover:bg-emerald-50\/40/);
-  assert.match(articleClassMatch[1], /cursor-pointer/);
   assert.doesNotMatch(articleClassMatch[1], /hover:border-\[#009966\]/);
 });

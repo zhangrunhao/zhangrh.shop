@@ -1,4 +1,5 @@
 import { FEATURED_WORKS, HOME } from "../shared/data";
+import { ARTICLES } from "../shared/articles";
 import { formatDateYmd } from "../shared/format";
 import { trackHubClick } from "../shared/tracking";
 import {
@@ -13,6 +14,8 @@ import { Link } from "../components/link";
 
 const sectionHeadingClassName =
   "text-[28px] font-semibold leading-9 tracking-normal text-[#171717]";
+
+const latestArticles = ARTICLES.slice(0, 3);
 
 export const HomePage = () => {
   return (
@@ -111,26 +114,34 @@ export const HomePage = () => {
         </div>
 
         <div className="mt-8 divide-y divide-[#e5e5e5] rounded-lg border border-[#e5e5e5] bg-white shadow-sm">
-          {HOME.featuredArticles.map((article) => (
-            <article
-              key={article.title}
-              className="cursor-pointer p-5 transition-colors hover:bg-emerald-50/40 md:p-6"
+          {latestArticles.length === 0 ? (
+            <div className="px-5 py-10 text-center text-sm text-[#737373]">
+              没有已发布的文章。
+            </div>
+          ) : null}
+          {latestArticles.map((article) => (
+            <Link
+              key={article.id}
+              to={`/articles/${article.id}`}
+              className="block"
             >
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div className="min-w-0">
-                  <h3 className="text-[18px] font-semibold leading-7 tracking-normal text-[#171717]">
-                    {article.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 tracking-normal text-[#525252]">
-                    {article.summary}
-                  </p>
+              <article className="p-5 transition-colors hover:bg-emerald-50/40 md:p-6">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div className="min-w-0">
+                    <h3 className="text-[18px] font-semibold leading-7 tracking-normal text-[#171717]">
+                      {article.name}
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 tracking-normal text-[#525252]">
+                      {article.summary}
+                    </p>
+                  </div>
+                  <time className="inline-flex shrink-0 items-center gap-1 text-sm tracking-normal text-[#737373]">
+                    <CalendarIcon />
+                    {formatDateYmd(article.publishDate)}
+                  </time>
                 </div>
-                <time className="inline-flex shrink-0 items-center gap-1 text-sm tracking-normal text-[#737373]">
-                  <CalendarIcon />
-                  {formatDateYmd(article.date)}
-                </time>
-              </div>
-            </article>
+              </article>
+            </Link>
           ))}
         </div>
       </div>

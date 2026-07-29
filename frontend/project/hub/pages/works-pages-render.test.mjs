@@ -118,6 +118,14 @@ test("Hub work pages render the Work contract", async (t) => {
 
       assertNoNestedAnchors(html);
     });
+
+    await t.test("HomePage renders an empty state without generated articles", () => {
+      const html = renderToStaticMarkup(createElement(HomePage));
+
+      assert.ok(html.includes("没有已发布的文章。"));
+      assert.ok(!html.includes("Hub 首页设计：个人能力展示页"));
+      assert.ok(!html.includes("zhangrh.shop 项目说明：Hub、发布和项目边界"));
+    });
   } finally {
     try {
       await server?.close();

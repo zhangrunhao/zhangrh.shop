@@ -17,12 +17,6 @@ export type Article = {
   contentHtml: string;
 };
 
-export type HomeFeaturedArticle = {
-  title: string;
-  summary: string;
-  date: string;
-};
-
 export type HomeAbout = {
   paragraphs: string[];
   email: string;
@@ -32,6 +26,5 @@ export type HomeAbout = {
 
 export type HomeData = {
   featuredWorkIds: string[];
-  featuredArticles: HomeFeaturedArticle[];
   about: HomeAbout;
 };
