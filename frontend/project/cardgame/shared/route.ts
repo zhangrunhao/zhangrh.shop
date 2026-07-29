@@ -18,6 +18,7 @@ export type CardgameRoute =
 export type CardgameNavigationMode = 'push' | 'replace'
 export type CardgameNavigationSource = 'user' | 'server'
 export type CardgameServerPhase = 'waiting' | 'playing' | 'round_hand' | 'game_over'
+export type CardgameRematchState = 'idle' | 'pending' | 'accepted'
 
 export type CardgameSession = {
   roomId: string
@@ -131,21 +132,67 @@ export const resolveExplicitLeaveNavigation = () => ({
 })
 
 export const resolveRematchTransition = (
-  pending: boolean,
-  event: 'request' | 'room-state' | 'error',
+  state: CardgameRematchState,
+  event: 'request' | 'error',
 ) => {
   if (event === 'request') {
-    return pending
-      ? { action: 'ignore' as const, pending: true, clearResult: false }
-      : { action: 'begin' as const, pending: true, clearResult: false }
+    return state === 'idle'
+      ? { action: 'begin' as const, state: 'pending' as const, clearResult: false }
+      : { action: 'ignore' as const, state, clearResult: false }
   }
-  if (!pending) {
-    return { action: 'ignore' as const, pending: false, clearResult: false }
+  if (state !== 'pending') {
+    return { action: 'ignore' as const, state, clearResult: false }
   }
-  if (event === 'error') {
-    return { action: 'fail' as const, pending: false, clearResult: false }
+  return { action: 'fail' as const, state: 'idle' as const, clearResult: false }
+}
+
+export const resolveRoomStateRouteDecision = (
+  roomId: string,
+  status: 'waiting' | 'playing',
+  context: {
+    rematchState: CardgameRematchState
+    gameResultRoomId: string | null
+  },
+) => {
+  const hasMatchingResult = context.gameResultRoomId === roomId
+
+  if (status === 'playing') {
+    return {
+      route: resolveServerRoute(roomId, 'playing'),
+      rematchState: 'idle' as const,
+      clearResult: hasMatchingResult,
+    }
   }
-  return { action: 'succeed' as const, pending: false, clearResult: true }
+
+  if (context.rematchState === 'pending') {
+    return {
+      route: resolveServerRoute(roomId, 'waiting', { isRematch: true }),
+      rematchState: 'accepted' as const,
+      clearResult: hasMatchingResult,
+    }
+  }
+
+  if (context.rematchState === 'accepted') {
+    return {
+      route: resolveServerRoute(roomId, 'waiting', { isRematch: true }),
+      rematchState: 'accepted' as const,
+      clearResult: hasMatchingResult,
+    }
+  }
+
+  if (hasMatchingResult) {
+    return {
+      route: null,
+      rematchState: 'idle' as const,
+      clearResult: false,
+    }
+  }
+
+  return {
+    route: resolveServerRoute(roomId, 'waiting'),
+    rematchState: 'idle' as const,
+    clearResult: false,
+  }
 }
 
 export const resolveSessionRouteGuard = (

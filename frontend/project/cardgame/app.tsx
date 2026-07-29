@@ -10,11 +10,12 @@ import {
   resolveCardgameRoute,
   resolveExplicitLeaveNavigation,
   resolveRematchTransition,
+  resolveRoomStateRouteDecision,
   resolveServerRoute,
   resolveSessionRouteGuard,
   useCardgamePathname,
 } from './shared/route'
-import type { CardgameEntryMode } from './shared/route'
+import type { CardgameEntryMode, CardgameRematchState } from './shared/route'
 
 type CardType = 'A' | 'D' | 'R'
 
@@ -170,14 +171,15 @@ const App = () => {
   const [joinRoomCode, setJoinRoomCode] = useState('')
   const [surveyOpen, setSurveyOpen] = useState(false)
   const [surveyRenderKey, setSurveyRenderKey] = useState(0)
-  const [rematchPending, setRematchPending] = useState(false)
+  const [rematchState, setRematchState] = useState<CardgameRematchState>('idle')
 
   const pendingMessageRef = useRef<string | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const dragIndexRef = useRef<{ source: 'hand' | 'selected'; index: number } | null>(null)
   const startedRef = useRef(false)
   const startModeRef = useRef<CardgameEntryMode | null>(null)
-  const rematchPendingRef = useRef(false)
+  const rematchStateRef = useRef<CardgameRematchState>('idle')
+  const gameOverRef = useRef<GameOver | null>(null)
   const sessionActiveRef = useRef(false)
   const modalOpenRef = useRef(false)
 
@@ -198,10 +200,9 @@ const App = () => {
   const navigateForServer = (
     nextRoomId: string,
     phase: Parameters<typeof resolveServerRoute>[1],
-    isRematch = false,
   ) => {
     navigateCardgame(
-      resolveServerRoute(nextRoomId, phase, { isRematch }),
+      resolveServerRoute(nextRoomId, phase),
       getCardgameNavigationMode('server'),
     )
   }
@@ -251,14 +252,14 @@ const App = () => {
 
   const failPendingRematch = () => {
     const rematchTransition = resolveRematchTransition(
-      rematchPendingRef.current,
+      rematchStateRef.current,
       'error',
     )
     if (rematchTransition.action !== 'fail') {
       return false
     }
-    rematchPendingRef.current = rematchTransition.pending
-    setRematchPending(rematchTransition.pending)
+    rematchStateRef.current = rematchTransition.state
+    setRematchState(rematchTransition.state)
     return true
   }
 
@@ -355,8 +356,9 @@ const App = () => {
     modalOpenRef.current = false
     pendingMessageRef.current = null
     startModeRef.current = null
-    rematchPendingRef.current = false
-    setRematchPending(false)
+    rematchStateRef.current = 'idle'
+    gameOverRef.current = null
+    setRematchState('idle')
   }, [])
 
   const closeAndResetSession = useCallback(() => {
@@ -456,19 +458,26 @@ const App = () => {
       const payload = message.payload as RoomState
       setRoomState(payload)
       if (payload.status === 'waiting' || payload.status === 'playing') {
-        const wasRematchPending = rematchPendingRef.current
-        navigateForServer(payload.roomId, payload.status, wasRematchPending)
-        const rematchTransition = resolveRematchTransition(
-          wasRematchPending,
-          'room-state',
+        const decision = resolveRoomStateRouteDecision(
+          payload.roomId,
+          payload.status,
+          {
+            rematchState: rematchStateRef.current,
+            gameResultRoomId: gameOverRef.current?.roomId ?? null,
+          },
         )
-        if (rematchTransition.action === 'succeed') {
-          rematchPendingRef.current = rematchTransition.pending
-          setRematchPending(rematchTransition.pending)
-          if (rematchTransition.clearResult) {
-            setGameOver(null)
-            setRoundLogs([])
-          }
+        rematchStateRef.current = decision.rematchState
+        setRematchState(decision.rematchState)
+        if (decision.clearResult) {
+          gameOverRef.current = null
+          setGameOver(null)
+          setRoundLogs([])
+        }
+        if (decision.route) {
+          navigateCardgame(
+            decision.route,
+            getCardgameNavigationMode('server'),
+          )
         }
       }
       return
@@ -505,8 +514,9 @@ const App = () => {
 
     if (message.type === 'game_over') {
       const payload = message.payload as GameOver
-      rematchPendingRef.current = false
-      setRematchPending(false)
+      rematchStateRef.current = 'idle'
+      setRematchState('idle')
+      gameOverRef.current = payload
       setGameOver(payload)
       if (!modalOpenRef.current) {
         navigateForServer(payload.roomId, 'game_over')
@@ -610,15 +620,15 @@ const App = () => {
       return
     }
     const rematchTransition = resolveRematchTransition(
-      rematchPendingRef.current,
+      rematchStateRef.current,
       'request',
     )
     if (rematchTransition.action !== 'begin') {
       return
     }
     trackCardgameClick('play_again')
-    rematchPendingRef.current = rematchTransition.pending
-    setRematchPending(rematchTransition.pending)
+    rematchStateRef.current = rematchTransition.state
+    setRematchState(rematchTransition.state)
     setErrorMessage(null)
     sendMessage({
       type: 'rematch',
@@ -1426,7 +1436,7 @@ const App = () => {
               <div className="result-actions">
                 <button
                   className="primary-button"
-                  disabled={rematchPending}
+                  disabled={rematchState === 'pending'}
                   onClick={handleRematch}
                   type="button"
                 >

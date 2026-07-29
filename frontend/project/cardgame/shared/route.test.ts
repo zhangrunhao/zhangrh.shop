@@ -11,6 +11,7 @@ import {
   resolveCardgameRoute,
   resolveExplicitLeaveNavigation,
   resolveRematchTransition,
+  resolveRoomStateRouteDecision,
   resolveServerRoute,
   resolveSessionRouteGuard,
 } from './route'
@@ -245,24 +246,88 @@ test('session route guard requests teardown when an active session leaves its dy
 })
 
 test('rematch transition preserves results until success and blocks duplicate requests', () => {
-  assert.deepEqual(resolveRematchTransition(false, 'request'), {
+  assert.deepEqual(resolveRematchTransition('idle', 'request'), {
     action: 'begin',
-    pending: true,
+    state: 'pending',
     clearResult: false,
   })
-  assert.deepEqual(resolveRematchTransition(true, 'request'), {
+  assert.deepEqual(resolveRematchTransition('pending', 'request'), {
     action: 'ignore',
-    pending: true,
+    state: 'pending',
     clearResult: false,
   })
-  assert.deepEqual(resolveRematchTransition(true, 'error'), {
+  assert.deepEqual(resolveRematchTransition('pending', 'error'), {
     action: 'fail',
-    pending: false,
+    state: 'idle',
     clearResult: false,
   })
-  assert.deepEqual(resolveRematchTransition(true, 'room-state'), {
-    action: 'succeed',
-    pending: false,
+})
+
+test('room state routing keeps both clients able to complete a two-player rematch', () => {
+  const aWaiting = resolveRoomStateRouteDecision('0123', 'waiting', {
+    rematchState: 'pending',
+    gameResultRoomId: '0123',
+  })
+  assert.deepEqual(aWaiting, {
+    route: { name: 'battle', roomId: '0123' },
+    rematchState: 'accepted',
     clearResult: true,
+  })
+
+  const bWaiting = resolveRoomStateRouteDecision('0123', 'waiting', {
+    rematchState: 'idle',
+    gameResultRoomId: '0123',
+  })
+  assert.deepEqual(bWaiting, {
+    route: null,
+    rematchState: 'idle',
+    clearResult: false,
+  })
+
+  const bRequest = resolveRematchTransition(
+    bWaiting.rematchState,
+    'request',
+  )
+  assert.equal(bRequest.state, 'pending')
+  const bAccepted = resolveRoomStateRouteDecision('0123', 'waiting', {
+    rematchState: bRequest.state,
+    gameResultRoomId: '0123',
+  })
+  assert.deepEqual(bAccepted, {
+    route: { name: 'battle', roomId: '0123' },
+    rematchState: 'accepted',
+    clearResult: true,
+  })
+
+  assert.deepEqual(
+    resolveRoomStateRouteDecision('0123', 'playing', {
+      rematchState: aWaiting.rematchState,
+      gameResultRoomId: null,
+    }),
+    {
+      route: { name: 'battle', roomId: '0123' },
+      rematchState: 'idle',
+      clearResult: false,
+    },
+  )
+  assert.deepEqual(
+    resolveRoomStateRouteDecision('0123', 'playing', {
+      rematchState: bAccepted.rematchState,
+      gameResultRoomId: null,
+    }),
+    {
+      route: { name: 'battle', roomId: '0123' },
+      rematchState: 'idle',
+      clearResult: false,
+    },
+  )
+
+  assert.deepEqual(resolveRoomStateRouteDecision('0123', 'waiting', {
+    rematchState: 'idle',
+    gameResultRoomId: null,
+  }), {
+    route: { name: 'room', roomId: '0123' },
+    rematchState: 'idle',
+    clearResult: false,
   })
 })
