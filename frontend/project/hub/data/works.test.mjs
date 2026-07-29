@@ -11,6 +11,7 @@ const worksAssetsDirectory = path.join(assetsDirectory, "works");
 const workIdPattern = /^\d{8}_[a-z0-9]+(?:_[a-z0-9]+)*$/;
 const expectedWorkLinks = {
   "20260517_shotmarker": "https://zhangrh.shop/shotmarker/how-to",
+  "20260729_cardgame": "https://zhangrh.shop/cardgame/",
 };
 
 const readWorksData = () => JSON.parse(fs.readFileSync(worksDataPath, "utf8"));
@@ -22,7 +23,7 @@ test("works data uses the Hub work contract", () => {
 
   assert.deepEqual(
     works.map((work) => work.id),
-    ["20260517_shotmarker"],
+    ["20260517_shotmarker", "20260729_cardgame"],
   );
   assert.deepEqual(
     fs
@@ -30,7 +31,7 @@ test("works data uses the Hub work contract", () => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort(),
-    ["20260517_shotmarker"],
+    ["20260517_shotmarker", "20260729_cardgame"],
   );
 
   for (const work of works) {
@@ -51,7 +52,7 @@ test("works data uses the Hub work contract", () => {
     assert.equal(workUrl.protocol, "https:");
     assert.equal(work.link, expectedWorkLinks[work.id]);
 
-    assert.match(work.status, /^(active|archived)$/);
+    assert.match(work.status, /^(active|paused|archived)$/);
     assert.doesNotMatch(work.coverImage, /^https?:\/\//);
     assert.doesNotMatch(work.coverImage, /\\/);
     assert.equal(path.posix.normalize(work.coverImage), work.coverImage);
@@ -111,4 +112,13 @@ test("works data uses the Hub work contract", () => {
       false,
     );
   }
+
+  assert.deepEqual(works[1], {
+    id: "20260729_cardgame",
+    name: "CardGame",
+    summary: "策略卡牌对战 Demo，当前暂停维护，仍可体验。",
+    link: "https://zhangrh.shop/cardgame/",
+    coverImage: "works/20260729_cardgame/cover.svg",
+    status: "paused",
+  });
 });

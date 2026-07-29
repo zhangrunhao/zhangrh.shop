@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title description">
+  <title id="title">CardGame paused</title>
+  <desc id="description">A dark competitive arena with three strategy cards marked A, D, and R.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#10182c"/>
+      <stop offset=".55" stop-color="#1b1740"/>
+      <stop offset="1" stop-color="#07131d"/>
+    </linearGradient>
+    <radialGradient id="arena" cx="50%" cy="51%" r="58%">
+      <stop stop-color="#4452a0" stop-opacity=".72"/>
+      <stop offset=".55" stop-color="#162558" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#060b19" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#2d437d"/>
+      <stop offset="1" stop-color="#111a38"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#background)"/>
+  <rect width="1600" height="900" fill="url(#arena)"/>
+  <g opacity=".22" stroke="#9db2ff" fill="none">
+    <path d="M0 690C300 510 490 770 800 610s510-10 800-190" stroke-width="3"/>
+    <path d="M0 760C320 575 500 830 820 670s520 10 780-170" stroke-width="2"/>
+    <circle cx="800" cy="500" r="305" stroke-width="2"/>
+    <circle cx="800" cy="500" r="230" stroke-width="1"/>
+  </g>
+  <g transform="translate(500 245) rotate(-13 170 225)">
+    <rect x="0" y="0" width="340" height="450" rx="28" fill="#091329" stroke="#5f83e8" stroke-width="5"/>
+    <rect x="18" y="18" width="304" height="414" rx="20" fill="url(#card)" stroke="#a4c4ff" stroke-opacity=".45" stroke-width="2"/>
+    <path d="M170 94l70 106-70 105-70-105z" fill="#6e8dff" opacity=".72" filter="url(#glow)"/>
+    <text x="42" y="88" fill="#d5e2ff" font-family="Arial, sans-serif" font-size="64" font-weight="700">A</text>
+    <text x="170" y="380" text-anchor="middle" fill="#eff4ff" font-family="Arial, sans-serif" font-size="27" font-weight="700" letter-spacing="7">ASSAULT</text>
+  </g>
+  <g transform="translate(650 205)">
+    <rect x="0" y="0" width="340" height="450" rx="28" fill="#0b1429" stroke="#f2b84b" stroke-width="6"/>
+    <rect x="18" y="18" width="304" height="414" rx="20" fill="#48331c" stroke="#ffdc8a" stroke-opacity=".58" stroke-width="2"/>
+    <circle cx="170" cy="202" r="91" fill="#f0a82e" opacity=".8" filter="url(#glow)"/>
+    <path d="M170 111l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10z" fill="#fff3bc"/>
+    <text x="42" y="88" fill="#fff0c5" font-family="Arial, sans-serif" font-size="64" font-weight="700">D</text>
+    <text x="170" y="380" text-anchor="middle" fill="#fff8e6" font-family="Arial, sans-serif" font-size="27" font-weight="700" letter-spacing="7">DEFEND</text>
+  </g>
+  <g transform="translate(802 245) rotate(13 170 225)">
+    <rect x="0" y="0" width="340" height="450" rx="28" fill="#091329" stroke="#d45cec" stroke-width="5"/>
+    <rect x="18" y="18" width="304" height="414" rx="20" fill="#351c51" stroke="#e6a1ff" stroke-opacity=".55" stroke-width="2"/>
+    <path d="M170 109c57 43 82 96 0 196-82-100-57-153 0-196z" fill="#e06dff" opacity=".82" filter="url(#glow)"/>
+    <text x="42" y="88" fill="#ffe0ff" font-family="Arial, sans-serif" font-size="64" font-weight="700">R</text>
+    <text x="170" y="380" text-anchor="middle" fill="#fff1ff" font-family="Arial, sans-serif" font-size="27" font-weight="700" letter-spacing="7">RITUAL</text>
+  </g>
+  <g text-anchor="middle" font-family="Arial, sans-serif">
+    <text x="800" y="105" fill="#ffffff" font-size="73" font-weight="700" letter-spacing="13">CARDGAME</text>
+    <text x="800" y="815" fill="#ffc968" font-size="29" font-weight="700" letter-spacing="10">PAUSED</text>
+  </g>
+</svg>

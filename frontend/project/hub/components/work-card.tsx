@@ -4,14 +4,21 @@ import { Link } from "./link";
 
 const statusClassName: Record<WorkStatus, string> = {
   active: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  paused: "bg-amber-50 border-amber-200 text-amber-700",
   archived: "bg-neutral-100 border-neutral-300 text-neutral-600",
+};
+
+const statusLabel: Record<WorkStatus, string> = {
+  active: "Active",
+  paused: "Paused",
+  archived: "Archived",
 };
 
 export const WorkStatusBadge = ({ status }: { status: WorkStatus }) => (
   <span
     className={`inline-flex h-[22px] items-center rounded-full border px-2 text-xs font-medium ${statusClassName[status]}`}
   >
-    {status === "active" ? "Active" : "Archived"}
+    {statusLabel[status]}
   </span>
 );
 

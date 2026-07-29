@@ -74,7 +74,12 @@ test("Hub work pages render the Work contract", async (t) => {
 
       for (const [index, work] of WORKS.entries()) {
         const card = cards[index];
-        const statusLabel = work.status === "active" ? "Active" : "Archived";
+        const statusLabels = {
+          active: "Active",
+          paused: "Paused",
+          archived: "Archived",
+        };
+        const statusLabel = statusLabels[work.status];
 
         assert.match(
           card,

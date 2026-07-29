@@ -1,4 +1,4 @@
-export type WorkStatus = "active" | "archived";
+export type WorkStatus = "active" | "paused" | "archived";
 
 export type Work = {
   id: string;

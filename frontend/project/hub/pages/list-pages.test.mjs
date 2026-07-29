@@ -56,7 +56,11 @@ test("work card uses the Work contract and resolved cover", () => {
   const workCard = readHubFile("components/work-card.tsx");
 
   assert.match(workCard, /import type \{ Work, WorkStatus \} from "\.\.\/types";/);
+  assert.match(workCard, /const statusLabel: Record<WorkStatus, string>/);
+  assert.match(workCard, /paused: "bg-amber-50 border-amber-200 text-amber-700"/);
   assert.match(workCard, /Record<WorkStatus, string>/);
+  assert.match(workCard, /paused: "Paused"/);
+  assert.doesNotMatch(workCard, /status === "active" \?/);
   assert.match(workCard, /export const WorkStatusBadge/);
   assert.match(workCard, /export const WorkCard = \(\{ work \}: \{ work: Work \}\)/);
   assert.match(workCard, /src=\{work\.coverImage\}/);
@@ -99,12 +103,12 @@ test("migrated work consumers do not import the legacy Product contract", () => 
   }
 });
 
-test("works data contains ShotMarker only and placeholder article data is removed", () => {
+test("works data contains ShotMarker and CardGame in display order", () => {
   const works = readJson("data/works.json");
 
   assert.deepEqual(
     works.map((work) => work.id),
-    ["20260517_shotmarker"],
+    ["20260517_shotmarker", "20260729_cardgame"],
   );
   assert.equal(hubFileExists("data/articles.json"), false);
 });

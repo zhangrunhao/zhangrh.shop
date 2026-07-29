@@ -6,5 +6,13 @@
     "link": "https://zhangrh.shop/shotmarker/how-to",
     "coverImage": "works/20260517_shotmarker/cover.webp",
     "status": "active"
+  },
+  {
+    "id": "20260729_cardgame",
+    "name": "CardGame",
+    "summary": "策略卡牌对战 Demo，当前暂停维护，仍可体验。",
+    "link": "https://zhangrh.shop/cardgame/",
+    "coverImage": "works/20260729_cardgame/cover.svg",
+    "status": "paused"
   }
 ]
