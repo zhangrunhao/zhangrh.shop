@@ -1,8 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { track } from '../../common/track'
 import { CardgameIcon } from './components/icons'
 import type { CardgameIconName } from './components/icons'
 import { SurveyModal } from './components/survey-modal'
+import {
+  entryModeForRoute,
+  getCardgameNavigationMode,
+  navigateCardgame,
+  resolveCardgameRoute,
+  resolveServerRoute,
+  resolveSessionRouteGuard,
+  useCardgamePathname,
+} from './shared/route'
+import type { CardgameEntryMode } from './shared/route'
 
 type CardType = 'A' | 'D' | 'R'
 
@@ -74,9 +84,6 @@ type RoundLog = {
   pairs: PairLog[]
 }
 
-type Route = 'entry' | 'rules' | 'battle' | 'result'
-type EntryMode = 'create' | 'join' | 'ai'
-
 type CardMeta = {
   label: string
   english: string
@@ -109,7 +116,7 @@ const CARD_META: Record<CardType, CardMeta> = {
   },
 }
 
-const ENTRY_MODES: Array<{ mode: EntryMode; title: string; subtitle: string; icon: CardgameIconName }> = [
+const ENTRY_MODES: Array<{ mode: CardgameEntryMode; title: string; subtitle: string; icon: CardgameIconName }> = [
   { mode: 'create', title: '创建房间', subtitle: '邀请好友对战', icon: 'create' },
   { mode: 'join', title: '加入房间', subtitle: '输入房间号加入', icon: 'join' },
   { mode: 'ai', title: '人机对战', subtitle: '与 AI 练习', icon: 'bot' },
@@ -134,8 +141,14 @@ const trackCardgameClick = (button: string) => {
 }
 
 const App = () => {
-  const [route, setRoute] = useState<Route>('entry')
-  const [entryMode, setEntryMode] = useState<EntryMode>('create')
+  const pathname = useCardgamePathname()
+  const route = useMemo(() => resolveCardgameRoute(pathname), [pathname])
+  const entryMode = entryModeForRoute(route) ?? 'create'
+  const isEntryRoute =
+    route.name === 'entry' ||
+    route.name === 'create' ||
+    route.name === 'join' ||
+    route.name === 'ai'
 
   const [roomState, setRoomState] = useState<RoomState | null>(null)
   const [roundHand, setRoundHand] = useState<RoundHand | null>(null)
@@ -160,7 +173,9 @@ const App = () => {
   const wsRef = useRef<WebSocket | null>(null)
   const dragIndexRef = useRef<{ source: 'hand' | 'selected'; index: number } | null>(null)
   const startedRef = useRef(false)
+  const startModeRef = useRef<CardgameEntryMode | null>(null)
   const sessionActiveRef = useRef(false)
+  const modalOpenRef = useRef(false)
 
   const me = useMemo(() => roomState?.players.find((player) => player.playerId === playerId) ?? null, [
     roomState,
@@ -171,6 +186,20 @@ const App = () => {
     () => roomState?.players.find((player) => player.playerId !== playerId) ?? null,
     [roomState, playerId],
   )
+
+  const navigateForUser = (nextRoute: Parameters<typeof navigateCardgame>[0]) => {
+    navigateCardgame(nextRoute, getCardgameNavigationMode('user'))
+  }
+
+  const navigateForServer = (
+    nextRoomId: string,
+    phase: Parameters<typeof resolveServerRoute>[1],
+  ) => {
+    navigateCardgame(
+      resolveServerRoute(nextRoomId, phase),
+      getCardgameNavigationMode('server'),
+    )
+  }
 
   useEffect(() => {
     if (!modalOpen || !roundResult) {
@@ -197,6 +226,10 @@ const App = () => {
   useEffect(() => {
     sessionActiveRef.current = Boolean(roomId && playerId)
   }, [roomId, playerId])
+
+  useEffect(() => {
+    modalOpenRef.current = modalOpen
+  }, [modalOpen])
 
   const openSurvey = () => {
     setSurveyRenderKey((prev) => prev + 1)
@@ -283,7 +316,7 @@ const App = () => {
     pendingMessageRef.current = payload
   }
 
-  const resetSession = () => {
+  const resetSession = useCallback(() => {
     setRoomState(null)
     setRoundHand(null)
     setSelectedSlots([null, null, null])
@@ -297,7 +330,49 @@ const App = () => {
     setShowDelta(false)
     setModalOpen(false)
     sessionActiveRef.current = false
-  }
+    modalOpenRef.current = false
+    pendingMessageRef.current = null
+    startModeRef.current = null
+  }, [])
+
+  const closeAndResetSession = useCallback(() => {
+    startedRef.current = false
+    const ws = wsRef.current
+    wsRef.current = null
+    if (ws && ws.readyState !== WebSocket.CLOSED) {
+      ws.close()
+    }
+    setConnectionState('idle')
+    resetSession()
+  }, [resetSession])
+
+  useEffect(() => {
+    const session =
+      roomId && playerId
+        ? { roomId, playerId }
+        : null
+    const guard = resolveSessionRouteGuard(route, session)
+
+    if (guard.action === 'allow') {
+      return
+    }
+
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) {
+        return
+      }
+      closeAndResetSession()
+      if (guard.action === 'recover') {
+        setErrorMessage(guard.message)
+        navigateCardgame(guard.route, guard.navigationMode)
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [closeAndResetSession, playerId, roomId, route])
 
   const appendRoundLog = (payload: RoundResult) => {
     const iAmP1InPayload = payload.p1Id === playerId
@@ -337,9 +412,14 @@ const App = () => {
     if (message.type === 'room_created' || message.type === 'room_joined') {
       const payload = message.payload as { roomId?: string; playerId?: string }
       if (payload?.roomId && payload?.playerId) {
+        sessionActiveRef.current = true
         setRoomId(payload.roomId)
         setPlayerId(payload.playerId)
-        setRoute('battle')
+        navigateForServer(
+          payload.roomId,
+          startModeRef.current === 'ai' ? 'playing' : 'waiting',
+        )
+        startModeRef.current = null
       }
       return
     }
@@ -347,6 +427,9 @@ const App = () => {
     if (message.type === 'room_state') {
       const payload = message.payload as RoomState
       setRoomState(payload)
+      if (payload.status === 'waiting' || payload.status === 'playing') {
+        navigateForServer(payload.roomId, payload.status)
+      }
       return
     }
 
@@ -357,6 +440,7 @@ const App = () => {
       setRoundResult(null)
       setStepIndex(0)
       setShowDelta(false)
+      navigateForServer(payload.roomId, 'round_hand')
       if (roomState) {
         const meEntry = roomState.players.find((player) => player.playerId === playerId)
         const oppEntry = roomState.players.find((player) => player.playerId !== playerId)
@@ -372,6 +456,7 @@ const App = () => {
       appendRoundLog(payload)
       setRoundResult(payload)
       setModalOpen(true)
+      modalOpenRef.current = true
       setStepIndex(0)
       setShowDelta(false)
       return
@@ -380,8 +465,8 @@ const App = () => {
     if (message.type === 'game_over') {
       const payload = message.payload as GameOver
       setGameOver(payload)
-      if (!modalOpen) {
-        setRoute('result')
+      if (!modalOpenRef.current) {
+        navigateForServer(payload.roomId, 'game_over')
       }
       return
     }
@@ -393,6 +478,7 @@ const App = () => {
     }
     startedRef.current = true
     resetSession()
+    startModeRef.current = 'ai'
     setErrorMessage(null)
     sendMessage({ type: 'start_bot', payload: { playerName: playerName.trim() || '玩家' } })
   }
@@ -408,6 +494,7 @@ const App = () => {
     }
     startedRef.current = true
     resetSession()
+    startModeRef.current = 'create'
     setErrorMessage(null)
     sendMessage({ type: 'create_room', payload: { playerName: trimmedName } })
   }
@@ -428,6 +515,7 @@ const App = () => {
     }
     startedRef.current = true
     resetSession()
+    startModeRef.current = 'join'
     setErrorMessage(null)
     sendMessage({
       type: 'join_room',
@@ -489,17 +577,11 @@ const App = () => {
         playerId,
       },
     })
-    setRoute('battle')
   }
 
   const handleLeaveGame = () => {
-    startedRef.current = false
-    const ws = wsRef.current
-    if (ws && ws.readyState !== WebSocket.CLOSED) {
-      ws.close()
-    }
-    resetSession()
-    setRoute('entry')
+    closeAndResetSession()
+    navigateForUser({ name: 'entry' })
   }
 
   const toggleSelect = (index: number) => {
@@ -633,7 +715,7 @@ const App = () => {
           问卷
         </button>
 
-        {route === 'entry' && (
+        {isEntryRoute && (
           <section className="entry-wrap">
             <header className="entry-header">
               <h1>Card Clash</h1>
@@ -683,7 +765,7 @@ const App = () => {
                   <button
                     key={mode.mode}
                     className={`mode-card ${entryMode === mode.mode ? 'active' : ''}`}
-                    onClick={() => setEntryMode(mode.mode)}
+                    onClick={() => navigateForUser({ name: mode.mode })}
                     type="button"
                   >
                     <CardgameIcon name={mode.icon} className="mode-icon" />
@@ -707,17 +789,17 @@ const App = () => {
               {errorMessage && <p className="error-text">{errorMessage}</p>}
             </div>
 
-            <button className="rules-link" onClick={() => setRoute('rules')} type="button">
+            <button className="rules-link" onClick={() => navigateForUser({ name: 'rules' })} type="button">
               <CardgameIcon name="help" />
               <span>查看游戏规则</span>
             </button>
           </section>
         )}
 
-        {route === 'rules' && (
+        {route.name === 'rules' && (
           <section className="rules-page">
             <header className="rules-header">
-              <button className="back-link" onClick={() => setRoute('entry')} type="button">
+              <button className="back-link" onClick={() => navigateForUser({ name: 'entry' })} type="button">
                 <CardgameIcon name="back" />
                 <span>返回</span>
               </button>
@@ -877,14 +959,14 @@ const App = () => {
             </div>
 
             <div className="rules-footer">
-              <button className="primary-button large" onClick={() => setRoute('entry')} type="button">
+              <button className="primary-button large" onClick={() => navigateForUser({ name: 'entry' })} type="button">
                 开始游戏
               </button>
             </div>
           </section>
         )}
 
-        {route === 'battle' && (
+        {(route.name === 'room' || route.name === 'battle') && (
           <section className="battle-page">
             <div className="hud-card">
               <div className="hud-left">
@@ -1251,7 +1333,7 @@ const App = () => {
                       setRoundResult(null)
                       setRoundHand(null)
                       if (gameOver) {
-                        setRoute('result')
+                        navigateForServer(gameOver.roomId, 'game_over')
                       }
                     }}
                     type="button"
@@ -1267,7 +1349,7 @@ const App = () => {
           </div>
         )}
 
-        {route === 'result' && (
+        {route.name === 'result' && (
           <section className="result-page">
             <div className="result-card">
               <h2>对局结束</h2>
@@ -1300,6 +1382,22 @@ const App = () => {
                   返回首页
                 </button>
               </div>
+            </div>
+          </section>
+        )}
+
+        {route.name === 'not-found' && (
+          <section className="entry-wrap">
+            <div className="entry-panel">
+              <h2>CardGame 404</h2>
+              <p className="helper-text">这个 CardGame 页面不存在。</p>
+              <button
+                className="primary-button large"
+                onClick={() => navigateForUser({ name: 'entry' })}
+                type="button"
+              >
+                返回入口
+              </button>
             </div>
           </section>
         )}
