@@ -3,6 +3,7 @@ import { track } from '../../common/track'
 import { CardgameIcon } from './components/icons'
 import type { CardgameIconName } from './components/icons'
 import { SurveyModal } from './components/survey-modal'
+import { resolveGameOverView } from './shared/game-view'
 import {
   entryModeForRoute,
   getCardgameNavigationMode,
@@ -735,7 +736,12 @@ const App = () => {
     )
   }
 
-  const iAmP1 = roundResult ? roundResult.p1Id === playerId : true
+  const gameOverView = gameOver
+    ? resolveGameOverView(playerId, roomState?.players ?? [], gameOver)
+    : null
+  const iAmP1 = roundResult
+    ? roundResult.p1Id === playerId
+    : gameOverView?.role === 'p1'
   const resolvedIndex = showDelta ? stepIndex : stepIndex - 1
   const resolvedStep =
     modalOpen && roundResult && resolvedIndex >= 0 ? roundResult.steps[Math.min(resolvedIndex, roundResult.steps.length - 1)] : null
@@ -744,13 +750,13 @@ const App = () => {
     ? iAmP1
       ? resolvedStep.p1Hp
       : resolvedStep.p2Hp
-    : me?.hp ?? roundBaseHp.my
+    : gameOverView?.myHp ?? me?.hp ?? roundBaseHp.my
 
   const opponentFinalHp = resolvedStep
     ? iAmP1
       ? resolvedStep.p2Hp
       : resolvedStep.p1Hp
-    : opponent?.hp ?? roundBaseHp.opponent
+    : gameOverView?.opponentHp ?? opponent?.hp ?? roundBaseHp.opponent
 
   const selectedCount = selectedSlots.filter((value) => value !== null).length
   const canSubmit =
@@ -1415,11 +1421,13 @@ const App = () => {
             <div className="result-card">
               <h2>对局结束</h2>
               <p className="result-title">
-                {gameOver?.result === 'draw'
+                {gameOverView?.outcome === 'draw'
                   ? '平局'
-                  : gameOver?.result === (iAmP1 ? 'p1_win' : 'p2_win')
+                  : gameOverView?.outcome === 'win'
                     ? '胜利'
-                    : '失败'}
+                    : gameOverView?.outcome === 'loss'
+                      ? '失败'
+                      : '对局结束'}
               </p>
               <div className="result-grid">
                 <div>
