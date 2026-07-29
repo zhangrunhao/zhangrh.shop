@@ -99,10 +99,13 @@ test("migrated work consumers do not import the legacy Product contract", () => 
   }
 });
 
-test("works data remains and placeholder article data is removed", () => {
+test("works data contains ShotMarker only and placeholder article data is removed", () => {
   const works = readJson("data/works.json");
 
-  assert.ok(works.length >= 3);
+  assert.deepEqual(
+    works.map((work) => work.id),
+    ["20260517_shotmarker"],
+  );
   assert.equal(hubFileExists("data/articles.json"), false);
 });
 

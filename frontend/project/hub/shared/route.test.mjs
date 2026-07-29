@@ -68,7 +68,7 @@ test("Hub resolves supported routes and rejects retired paths", async (t) => {
 
     await t.test("rejects retired work detail paths", () => {
       for (const pathname of [
-        "/products/20260619_zhangrh_shop",
+        "/products/20260517_shotmarker",
         "/products/missing-work",
       ]) {
         assert.deepEqual(resolveRoute(pathname), { name: "not-found" });

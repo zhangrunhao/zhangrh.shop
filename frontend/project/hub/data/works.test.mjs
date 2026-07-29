@@ -7,10 +7,9 @@ import { fileURLToPath } from "node:url";
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const worksDataPath = path.join(currentDir, "works.json");
 const assetsDirectory = path.resolve(currentDir, "..", "assets");
+const worksAssetsDirectory = path.join(assetsDirectory, "works");
 const workIdPattern = /^\d{8}_[a-z0-9]+(?:_[a-z0-9]+)*$/;
 const expectedWorkLinks = {
-  "20260619_zhangrh_shop": "https://zhangrh.shop/hub/",
-  "20260205_card_game": "https://zhangrh.shop/cardgame/",
   "20260517_shotmarker": "https://zhangrh.shop/shotmarker/support",
 };
 
@@ -20,6 +19,19 @@ test("works data uses the Hub work contract", () => {
   const works = readWorksData();
   const ids = new Set();
   const resolvedAssetsDirectory = fs.realpathSync(assetsDirectory);
+
+  assert.deepEqual(
+    works.map((work) => work.id),
+    ["20260517_shotmarker"],
+  );
+  assert.deepEqual(
+    fs
+      .readdirSync(worksAssetsDirectory, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort(),
+    ["20260517_shotmarker"],
+  );
 
   for (const work of works) {
     assert.deepEqual(
