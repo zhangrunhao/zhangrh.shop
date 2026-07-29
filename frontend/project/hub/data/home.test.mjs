@@ -23,15 +23,7 @@ test("home data matches the Hub landing page brief", () => {
     assert.ok(worksById.has(id));
   }
 
-  assert.ok(data.featuredArticles.length >= 3);
-  for (const article of data.featuredArticles) {
-    assert.equal(typeof article.title, "string");
-    assert.ok(article.title.length > 0);
-    assert.equal(typeof article.summary, "string");
-    assert.ok(article.summary.length > 0);
-    assert.match(article.date, /^\d{4}-\d{2}-\d{2}$/);
-    assert.equal("tags" in article, false);
-  }
+  assert.equal("featuredArticles" in data, false);
 
   assert.equal(data.about.paragraphs.length, 1);
   assert.match(data.about.email, /^mailto:/);
@@ -39,12 +31,8 @@ test("home data matches the Hub landing page brief", () => {
   assert.equal(data.about.aboutLink, "/about");
 });
 
-test("home data keeps card copy concise", () => {
+test("home data keeps about copy concise", () => {
   const data = readHomeData();
-
-  for (const article of data.featuredArticles) {
-    assert.ok(article.summary.length <= 28);
-  }
 
   for (const paragraph of data.about.paragraphs) {
     assert.ok(paragraph.length <= 42);
