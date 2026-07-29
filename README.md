@@ -17,7 +17,7 @@
 | `frontend/project/shotmarker` | ShotMarker 产品页面 |
 | `frontend/common` | 前端项目共用的设备标识与埋点代码 |
 | `backend` | Cardgame 健康检查、房间状态和 WebSocket 对局服务 |
-| `automation/publish` | 根目录的交互式启动、验证和发布入口 |
+| `automation/publish` | 根目录的交互式启动与发布脚本；相关测试由根 `npm test` 和 `npm run check` 调用 |
 
 ## 本地准备
 

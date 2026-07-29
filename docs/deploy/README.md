@@ -9,9 +9,9 @@
 ├── https://zhangrh.shop/hub/        -> Hub HTML
 ├── https://zhangrh.shop/cardgame/   -> Cardgame HTML
 ├── https://zhangrh.shop/shotmarker/ -> ShotMarker HTML
-└── https://zhangrh.shop/api/cardgame/
-    ├── health                       -> Node/Express
-    └── ws                           -> WebSocket
+├── https://zhangrh.shop/api/cardgame/health
+│                                      -> Node/Express
+└── wss://zhangrh.shop/api/cardgame/ws -> WebSocket
 
 前端 HTML 引用的 JS、CSS、图片等静态资源
 └── https://static.zhangrh.shop/zhangrh-shop/<project>/static/
