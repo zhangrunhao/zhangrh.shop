@@ -37,7 +37,7 @@ test("Hub resolves work assets through Vite", async (t) => {
     );
 
     await t.test("resolves every real cover to its matching Vite URL", () => {
-      const coverPaths = ["works/20260517_shotmarker/cover.png"];
+      const coverPaths = ["works/20260517_shotmarker/cover.webp"];
 
       for (const coverPath of coverPaths) {
         const assetUrl = resolveWorkAsset(coverPath);
