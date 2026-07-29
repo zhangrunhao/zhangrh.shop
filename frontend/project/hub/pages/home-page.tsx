@@ -2,6 +2,7 @@ import { FEATURED_WORKS, HOME } from "../shared/data";
 import { ARTICLES } from "../shared/articles";
 import { formatDateYmd } from "../shared/format";
 import { trackHubClick } from "../shared/tracking";
+import type { Article } from "../types";
 import {
   ArrowIcon,
   CalendarIcon,
@@ -15,9 +16,13 @@ import { Link } from "../components/link";
 const sectionHeadingClassName =
   "text-[28px] font-semibold leading-9 tracking-normal text-[#171717]";
 
-const latestArticles = ARTICLES.slice(0, 3);
+type HomePageProps = {
+  articles?: readonly Article[];
+};
 
-export const HomePage = () => {
+export const HomePage = ({ articles = ARTICLES }: HomePageProps) => {
+  const latestArticles = articles.slice(0, 3);
+
   return (
     <section className="pb-16">
       <div className="border-b border-[#e5e5e5] py-16 md:py-20">
