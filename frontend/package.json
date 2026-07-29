@@ -3,10 +3,16 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "dev": "node tools/vite-project.mjs dev",
     "build": "node tools/vite-project.mjs build",
     "lint": "eslint .",
+    "test": "tsx --test",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "build:all": "npm run build hub && npm run build cardgame && npm run build shotmarker",
     "preview": "node tools/vite-project.mjs preview",
     "publish": "node tools/publish.mjs",
     "deploy": "node scripts/deploy-static.mjs"
@@ -30,6 +36,7 @@
     "marked": "^12.0.2",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4"

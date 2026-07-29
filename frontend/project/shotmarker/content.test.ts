@@ -61,7 +61,7 @@ test("how-to page contains the core Chinese usage flow", () => {
   assert.match(text, /用 Apple Watch 给好球打点/);
   assert.match(text, /打开 iPhone 里的训练记录/);
   assert.match(text, /选择视频，生成集锦/);
-  assert.match(text, /双击或转动数码表冠/);
+  assert.match(text, /双击按钮或转动数码表冠/);
 });
 
 test("public links use the production shotmarker route", () => {

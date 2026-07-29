@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "main": "server.js",
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "dev": "nodemon server.js",
     "publish": "node tools/publish.mjs",
