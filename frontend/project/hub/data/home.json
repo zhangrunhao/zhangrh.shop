@@ -1,23 +1,8 @@
 {
-  "featuredWorks": [
-    {
-      "name": "zhangrh.shop",
-      "summary": "个人 Hub，集中展示作品和文章。",
-      "link": "/",
-      "linkLabel": "查看首页"
-    },
-    {
-      "name": "Card Game Demo",
-      "summary": "可玩的同时出牌卡牌原型。",
-      "link": "https://zhangrh.shop/cardgame/",
-      "linkLabel": "试玩 Demo"
-    },
-    {
-      "name": "ShotMarker",
-      "summary": "截图标注工具和支持页面。",
-      "link": "https://zhangrh.shop/shotmarker/",
-      "linkLabel": "查看作品"
-    }
+  "featuredWorkIds": [
+    "20260619_zhangrh_shop",
+    "20260205_card_game",
+    "20260517_shotmarker"
   ],
   "featuredArticles": [
     {

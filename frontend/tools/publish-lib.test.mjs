@@ -1,7 +1,37 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { resolvePublishProject } from './publish-lib.mjs'
+import {
+  PUBLISH_OSS_ASSETS_ENV,
+  buildNpmBuildArgs,
+  buildPublishBuildEnv,
+  resolvePublishProject,
+} from './publish-lib.mjs'
+
+test('buildNpmBuildArgs keeps the selected project pathname base', () => {
+  assert.deepEqual(
+    buildNpmBuildArgs({
+      projectName: 'hub',
+    }),
+    ['run', 'build', '--', 'hub'],
+  )
+})
+
+test('buildPublishBuildEnv enables OSS asset rendering in the build subprocess', () => {
+  assert.deepEqual(
+    buildPublishBuildEnv({
+      env: {
+        PATH: '/test/bin',
+        EXISTING_VALUE: 'preserved',
+      },
+    }),
+    {
+      PATH: '/test/bin',
+      EXISTING_VALUE: 'preserved',
+      [PUBLISH_OSS_ASSETS_ENV]: '1',
+    },
+  )
+})
 
 test('resolvePublishProject prefers direct project arg', async () => {
   const project = await resolvePublishProject({

@@ -5,6 +5,8 @@ import process from 'node:process'
 
 import {
   STATE_FILE_RELATIVE_PATH,
+  buildNpmBuildArgs,
+  buildPublishBuildEnv,
   listProjects,
   loadState,
   resolvePublishProject,
@@ -68,7 +70,15 @@ const main = async () => {
 
   const repoRoot = findRepoRoot(cwd) ?? path.resolve(cwd, '..')
   run('git', ['pull'], { cwd: repoRoot })
-  run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build', '--', project], { cwd })
+  // This new process loads the pulled Vite and OSS configuration before building.
+  run(
+    process.platform === 'win32' ? 'npm.cmd' : 'npm',
+    buildNpmBuildArgs({ projectName: project }),
+    {
+      cwd,
+      env: buildPublishBuildEnv({ env: process.env }),
+    },
+  )
   run(process.execPath, [path.join(cwd, 'scripts', 'publish-oss-assets.mjs'), project], { cwd })
   run(process.execPath, [path.join(cwd, 'scripts', 'deploy-static.mjs'), project], { cwd })
 }

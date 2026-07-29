@@ -7,7 +7,7 @@ import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ProductDetailPage } from "./pages/product-detail-page";
 import { ProductsPage } from "./pages/products-page";
-import { PRODUCTS } from "./shared/data";
+import { WORKS } from "./shared/data";
 import { resolvePageName, trackHubLoadPage } from "./shared/tracking";
 import { resolveRoute, usePathname } from "./shared/route";
 
@@ -17,8 +17,8 @@ export const App = () => {
 
   useEffect(() => {
     if (route.name === "product-detail") {
-      const product = PRODUCTS.find((item) => item.id === route.productId);
-      document.title = product ? `${product.name} - 作品详情` : "作品详情";
+      const work = WORKS.find((item) => item.id === route.productId);
+      document.title = work ? `${work.name} - 作品详情` : "作品详情";
       return;
     }
 

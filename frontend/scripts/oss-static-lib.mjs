@@ -31,6 +31,15 @@ const normalizeProjectName = (projectName) => {
   return normalized
 }
 
+export const buildProjectPublicBase = ({ config, projectName }) =>
+  `${[
+    trimTrailingSlashes(config.publicBaseUrl),
+    trimSlashes(config.uploadRoot),
+    normalizeProjectName(projectName),
+  ]
+    .filter(Boolean)
+    .join('/')}/`
+
 export const buildStaticObjectKey = ({ config, projectName, relativeStaticPath }) => {
   if (slashNormalize(relativeStaticPath).split('/').includes('..')) {
     throw new Error(`Expected static asset path under static/: ${relativeStaticPath}`)

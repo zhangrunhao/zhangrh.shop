@@ -1,14 +1,7 @@
-import { useMemo } from "react";
-import { ProductCard } from "../components/product-card";
-import { PRODUCTS } from "../shared/data";
-import { sortByDateDesc } from "../shared/format";
+import { WorkCard } from "../components/work-card";
+import { WORKS } from "../shared/data";
 
 export const ProductsPage = () => {
-  const products = useMemo(
-    () => sortByDateDesc(PRODUCTS, (item) => item.currentVersionCommitDate),
-    [],
-  );
-
   return (
     <section className="space-y-6 pb-14 pt-8">
       <div>
@@ -21,8 +14,8 @@ export const ProductsPage = () => {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+        {WORKS.map((work) => (
+          <WorkCard key={work.id} work={work} />
         ))}
       </div>
     </section>

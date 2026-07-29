@@ -4,7 +4,7 @@
 
 **目标：** 将 Hub 作品内容统一到 `works.json`，让首页只引用作品 ID，并让本地作品图片经过 Vite 构建后自动进入现有 OSS 上传流程。
 
-**架构：** `works.json` 保存唯一作品内容，`home.json.featuredWorkIds` 保存首页选择和顺序。Hub 用 `import.meta.glob` 建立本地图片资源映射，Vite 负责生成带哈希的图片文件。发布构建使用项目对应的 OSS absolute base，现有上传脚本继续递归上传 `dist/<project>/static`。
+**架构：** `works.json` 保存唯一作品内容，`home.json.featuredWorkIds` 保存首页选择和顺序。Hub 用 `import.meta.glob` 建立本地图片资源映射，Vite 负责生成带哈希的图片文件。发布 build 子进程用环境开关启用 Vite `experimental.renderBuiltUrl`，只把构建资源 URL 指向项目对应的 OSS 地址；Vite `base` 继续保持 `/<project>/`，现有上传脚本继续递归上传 `dist/<project>/static`。
 
 **技术栈：** React、TypeScript、Vite、Node.js test runner、Aliyun OSS 发布脚本。
 
@@ -303,6 +303,10 @@ npm run build -- hub
 
 - Modify: `frontend/scripts/oss-static-lib.mjs`
 - Modify: `frontend/scripts/oss-static-lib.test.mjs`
+- Modify: `frontend/vite.config.ts`
+- Create: `frontend/vite.config.test.mjs`
+- Modify: `frontend/tsconfig.app.json`
+- Modify: `frontend/tsconfig.node.json`
 - Modify: `frontend/tools/publish-lib.mjs`
 - Modify: `frontend/tools/publish-lib.test.mjs`
 - Modify: `frontend/tools/publish.mjs`
@@ -318,32 +322,45 @@ projectName = hub
 
 验证尾部只有一个 `/`，并复用现有项目名校验。
 
-- [ ] **Step 2：为发布构建参数写失败测试**
+- [ ] **Step 2：为发布 build 参数和环境开关写失败测试**
 
-在 `publish-lib.test.mjs` 增加纯函数测试，期望构建参数包含：
+在 `publish-lib.test.mjs` 增加纯函数测试，期望构建参数保持：
 
 ```text
-run build -- hub --base https://static.zhangrh.shop/zhangrh-shop/hub/
+run build -- hub
 ```
 
-- [ ] **Step 3：运行测试并确认 RED**
+参数不得包含绝对 `--base`。另一个纯函数在保留现有环境的同时设置明确的 OSS 资源构建开关。
+
+- [ ] **Step 3：为 Vite 资源 URL 和 pathname 路由写失败测试**
+
+增加真实离线构建测试：
+
+- Hub 发布构建的 HTML、JS、CSS 和封面使用完整 OSS URL。
+- Hub bundle 中 `import.meta.env.BASE_URL` 仍编译为 `/hub/`，内部链接不使用 OSS 域名。
+- ShotMarker bundle 同样保留 `/shotmarker/`，support、privacy 和 how-to 路由不使用 OSS 域名。
+
+- [ ] **Step 4：运行测试并确认 RED**
 
 ```bash
 cd /Users/runhaozhang/Documents/project/zhangrh.shop/frontend
 node --test \
   scripts/oss-static-lib.test.mjs \
-  tools/publish-lib.test.mjs
+  tools/publish-lib.test.mjs \
+  vite.config.test.mjs
 ```
 
-预期：失败，因为 OSS 项目 base 和发布构建参数帮助函数尚不存在。
+预期：失败，因为发布环境帮助函数和 Vite OSS 资源 renderer 尚不存在。
 
-- [ ] **Step 4：实现 OSS 项目 base**
+- [ ] **Step 5：实现 OSS 项目 public base**
 
 在 `oss-static-lib.mjs` 增加根据现有 `publicBaseUrl`、`uploadRoot` 和 `projectName` 生成项目 base 的纯函数。
 
-- [ ] **Step 5：实现并接入发布构建参数**
+- [ ] **Step 6：接入发布 build 环境开关**
 
-在 `publish-lib.mjs` 增加纯函数生成 Vite 构建参数。`publish.mjs` 使用该函数，使发布构建传入项目对应的 absolute OSS base。
+在 `publish-lib.mjs` 增加纯函数生成无绝对 `--base` 的 npm build 参数，并生成带 OSS 资源开关的子进程环境。
+
+`publish.mjs` 必须先完成 `git pull`，再启动新的 npm build 子进程。发布父进程不导入或计算 OSS public base；新 build 进程加载 pull 后的共享 Vite 配置、`OSS_STATIC_CONFIG` 和 `buildProjectPublicBase`，避免构建与上传使用不同版本的配置。
 
 本地命令：
 
@@ -353,16 +370,26 @@ npm run build -- hub
 
 保持现有 `/hub/` base，不依赖 OSS。
 
-- [ ] **Step 6：运行发布脚本单元测试并确认 GREEN**
+- [ ] **Step 7：用 `renderBuiltUrl` 分离资源地址与路由 base**
 
-重复 Step 3 的命令。
+共享 Vite 配置只在 build 子进程收到 OSS 资源开关时设置 `experimental.renderBuiltUrl`，为当前项目生成：
 
-- [ ] **Step 7：执行无网络的生产构建验证**
+```text
+https://static.zhangrh.shop/zhangrh-shop/<project>/static/<file>
+```
+
+Vite `base` 不变，发布构建中的 `import.meta.env.BASE_URL` 仍为 `/<project>/`。普通本地构建不设置 renderer。
+
+- [ ] **Step 8：运行相关测试并确认 GREEN**
+
+重复 Step 4 的命令。
+
+- [ ] **Step 9：执行无网络的发布构建验证**
 
 ```bash
 cd /Users/runhaozhang/Documents/project/zhangrh.shop/frontend
-npm run build -- hub \
-  --base https://static.zhangrh.shop/zhangrh-shop/hub/ \
+ZHANGRH_SHOP_PUBLISH_OSS_ASSETS=1 \
+  npm run build -- hub \
   --outDir /tmp/zhangrh-shop-hub-oss-build-check
 ```
 
@@ -378,6 +405,7 @@ rg -n "https://static\\.zhangrh\\.shop/zhangrh-shop/hub/static/" \
 
 - HTML 的 JS/CSS URL 指向 OSS。
 - JS 中的作品封面 URL 指向 OSS。
+- JS 中的 pathname 路由 base 保持 `/hub/`，内部链接不指向 OSS。
 - 临时构建目录的 `static` 下包含作品图片。
 
 本任务不调用真实 OSS API，不修改服务器。
@@ -399,6 +427,7 @@ cd /Users/runhaozhang/Documents/project/zhangrh.shop/frontend
 node --test \
   scripts/*.test.mjs \
   tools/*.test.mjs \
+  vite.config.test.mjs \
   project/hub/data/*.test.mjs \
   project/hub/pages/*.test.mjs
 ```

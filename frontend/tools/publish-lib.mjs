@@ -6,6 +6,15 @@ import { buildMenuLines, getMenuRewindLineCount } from '../../automation/publish
 
 export const STATE_FILE_RELATIVE_PATH = path.join('.cache', 'frontend-publish-state.json')
 
+export const PUBLISH_OSS_ASSETS_ENV = 'ZHANGRH_SHOP_PUBLISH_OSS_ASSETS'
+
+export const buildNpmBuildArgs = ({ projectName }) => ['run', 'build', '--', projectName]
+
+export const buildPublishBuildEnv = ({ env }) => ({
+  ...env,
+  [PUBLISH_OSS_ASSETS_ENV]: '1',
+})
+
 export const listProjects = (projectRoot) => {
   if (!fs.existsSync(projectRoot)) {
     return []
