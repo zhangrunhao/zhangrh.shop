@@ -1,157 +1,85 @@
-# zhangrh.shop 启动与发布说明
+# zhangrh.shop 运行手册
 
-本文档只记录日常最常用的本地启动、验证和发布命令。
+当前仓库维护 `hub`、`cardgame`、`shotmarker` 三个前端项目和一个 `backend` 服务。所有命令均以仓库根目录为起点。
 
-## 目录结构
+## 环境准备
 
-```txt
-zhangrh.shop/
-├── frontend/    多个 Vite 前端项目：hub、cardgame、shotmarker
-├── backend/     Node/Express 后端，目前主要服务 cardgame
-└── automation/  根目录交互式启动和发布脚本
-```
-
-## 首次准备
-
-前端和后端不是 npm workspace，需要分别安装依赖：
+使用 Node.js 24，并分别安装前后端依赖：
 
 ```bash
-cd /Users/runhaozhang/Documents/project/zhangrh.shop/frontend
-npm install
-
-cd /Users/runhaozhang/Documents/project/zhangrh.shop/backend
-npm install
+npm --prefix frontend ci
+npm --prefix backend ci
 ```
 
 ## 本地启动
 
-日常只需要在项目根目录执行：
+交互式选择一个前端项目或后端：
 
 ```bash
-cd /Users/runhaozhang/Documents/project/zhangrh.shop
 npm run dev
 ```
 
-然后用上下键选择要启动的项目：
+也可以在不同终端直接启动：
 
-- `后端`
-- `前端 (hub)`
-- `前端 (cardgame)`
-- `前端 (shotmarker)`
-
-如果选择前端项目，Vite 会输出本地访问地址，通常是：
-
-```txt
-http://127.0.0.1:5173/
+```bash
+npm --prefix backend run dev
+npm --prefix frontend run dev -- hub
+npm --prefix frontend run dev -- cardgame
+npm --prefix frontend run dev -- shotmarker
 ```
 
-如果选择后端，会启动 `backend` 的开发服务。
+Cardgame 的 Vite 开发服务器会把 `/api` 和 WebSocket 请求代理到 `http://localhost:3001`，因此联调时需要同时启动后端和 Cardgame 前端。
 
 ## 本地验证
 
-### 根目录自动化测试
-
 ```bash
-cd /Users/runhaozhang/Documents/project/zhangrh.shop
+# 根自动化、前端和后端测试
 npm test
-```
 
-### 前端验证
+# 测试、lint、类型检查和全部前端构建
+npm run check
 
-```bash
-cd /Users/runhaozhang/Documents/project/zhangrh.shop/frontend
-npm run lint
-npm run build -- hub
-```
+# 单独构建一个前端项目
+npm --prefix frontend run build -- hub
 
-把 `hub` 换成其他项目名可构建对应前端项目。
-
-### 后端测试
-
-```bash
-cd /Users/runhaozhang/Documents/project/zhangrh.shop/backend
-npm test
+# 单独测试后端
+npm --prefix backend test
 ```
 
 ## 发布前提
 
-发布需要本机具备：
-
-- 可以访问服务器 `root@101.200.185.29` 的 SSH 权限。
-- 已安装 `rsync`。
-- 发布前端时需要 OSS 环境变量：
-
-```bash
-export OSS_ACCESS_KEY_ID="..."
-export OSS_ACCESS_KEY_SECRET="..."
-```
-
-前端发布会执行 `git pull`，发布前先确认当前分支和工作区状态符合预期。
+- 本机可通过 SSH 访问 `zhangrh.shop`，并已安装 `rsync`。
+- 发布前端前设置 `OSS_ACCESS_KEY_ID` 和 `OSS_ACCESS_KEY_SECRET`。
+- 前端发布脚本首先执行 `git pull`；运行前确认当前分支和工作区允许拉取远端更新。
 
 ## 发布
 
-日常只需要在项目根目录执行：
+在根目录交互式选择发布目标：
 
 ```bash
-cd /Users/runhaozhang/Documents/project/zhangrh.shop
 npm run publish
 ```
 
-运行后选择要发布的目标：
+也可以直接发布指定目标：
 
-- `后端`
-- `前端 (hub)`
-- `前端 (cardgame)`
-- `前端 (shotmarker)`
+```bash
+npm --prefix frontend run publish -- hub
+npm --prefix frontend run publish -- cardgame
+npm --prefix frontend run publish -- shotmarker
+npm --prefix backend run publish
+```
 
-选择前端项目时，发布流程是：
+前端发布流程与仓库脚本一致：
 
 1. 在仓库根目录执行 `git pull`。
 2. 构建指定前端项目。
-3. 上传 `dist/<project>/static` 静态资源到 OSS。
-4. 重写 HTML 中的静态资源地址。
-5. 上传 HTML 到服务器目录：
+3. 上传 `dist/<project>/static` 下的静态资源到 OSS，并把 HTML 中的资源地址改写为 `https://static.zhangrh.shop/zhangrh-shop/<project>/static/...`。
+4. 把 `dist/<project>` 中的 HTML 上传到 `/opt/zhangrh-shop/site/<project>/`。
 
-```txt
-root@101.200.185.29:/opt/zhangrh-shop/site/<project>/
-```
-
-默认静态资源地址：
-
-```txt
-https://static.zhangrh.shop/zhangrh-shop/<project>/static/<file>
-```
-
-选择后端时，发布流程是：
-
-1. 用 `rsync` 上传后端运行文件到服务器：
-
-```txt
-root@101.200.185.29:/opt/zhangrh-shop/backend/
-```
-
-2. 在服务器执行：
+后端发布会把运行文件同步到 `/opt/zhangrh-shop/backend/`，随后在 `/opt/zhangrh-shop` 执行：
 
 ```bash
-cd /opt/zhangrh-shop && docker compose up -d --build backend
+docker compose up -d --build backend
 ```
 
-## 常用目标
-
-```bash
-# 启动前端或后端：执行后选择项目
-cd /Users/runhaozhang/Documents/project/zhangrh.shop
-npm run dev
-
-# 发布前端或后端：执行后选择项目
-cd /Users/runhaozhang/Documents/project/zhangrh.shop
-npm run publish
-
-# 单独构建 hub
-cd /Users/runhaozhang/Documents/project/zhangrh.shop/frontend
-npm run build -- hub
-
-# 单独测试后端
-cd /Users/runhaozhang/Documents/project/zhangrh.shop/backend
-npm test
-```
+部署结构和发布后的只读检查见 [部署文档](./docs/deploy/README.md)。
