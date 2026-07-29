@@ -101,7 +101,8 @@ test("homepage uses the latest three generated articles with numeric links", () 
     homePage,
     /import \{ ARTICLES \} from "\.\.\/shared\/articles";/,
   );
-  assert.match(homePage, /const latestArticles = ARTICLES\.slice\(0, 3\);/);
+  assert.match(homePage, /\{ articles = ARTICLES \}: HomePageProps/);
+  assert.match(homePage, /const latestArticles = articles\.slice\(0, 3\);/);
   assert.match(
     homePage,
     /<Link\s+key=\{article\.id\}\s+to=\{`\/articles\/\$\{article\.id\}`\}/,

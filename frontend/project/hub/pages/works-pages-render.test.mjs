@@ -62,6 +62,7 @@ test("Hub work pages render the Work contract", async (t) => {
     const { FEATURED_WORKS, WORKS } = await server.ssrLoadModule(
       "/shared/data.ts",
     );
+    const { ARTICLES } = await server.ssrLoadModule("/shared/articles.ts");
 
     await t.test("ProductsPage renders accessible work cards in data order", () => {
       const html = renderToStaticMarkup(createElement(ProductsPage));
@@ -119,8 +120,29 @@ test("Hub work pages render the Work contract", async (t) => {
       assertNoNestedAnchors(html);
     });
 
-    await t.test("HomePage renders an empty state without generated articles", () => {
+    await t.test("HomePage renders the latest generated articles in order", () => {
       const html = renderToStaticMarkup(createElement(HomePage));
+      let previousLinkIndex = -1;
+
+      for (const article of ARTICLES.slice(0, 3)) {
+        const link = `href="/articles/${article.id}"`;
+        const linkIndex = html.indexOf(link);
+
+        assert.ok(linkIndex > previousLinkIndex);
+        assert.ok(
+          html
+            .slice(linkIndex, html.indexOf("</a>", linkIndex))
+            .includes(article.name),
+        );
+
+        previousLinkIndex = linkIndex;
+      }
+    });
+
+    await t.test("HomePage renders an empty state without generated articles", () => {
+      const html = renderToStaticMarkup(
+        createElement(HomePage, { articles: [] }),
+      );
 
       assert.ok(html.includes("没有已发布的文章。"));
       assert.ok(!html.includes("Hub 首页设计：个人能力展示页"));
