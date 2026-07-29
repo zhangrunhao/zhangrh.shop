@@ -59,9 +59,6 @@ test("Hub work pages render the Work contract", async (t) => {
       "/pages/products-page.tsx",
     );
     const { HomePage } = await server.ssrLoadModule("/pages/home-page.tsx");
-    const { ProductDetailPage } = await server.ssrLoadModule(
-      "/pages/product-detail-page.tsx",
-    );
     const { FEATURED_WORKS, WORKS } = await server.ssrLoadModule(
       "/shared/data.ts",
     );
@@ -83,6 +80,8 @@ test("Hub work pages render the Work contract", async (t) => {
           new RegExp(`<h2[^>]*>${escapeRegExp(work.name)}</h2>`),
         );
         assert.ok(card.includes(`href="${work.link}"`));
+        assert.ok(card.includes('target="_blank"'));
+        assert.ok(card.includes('rel="noreferrer"'));
         assert.ok(card.includes(`aria-label="查看 ${work.name}"`));
         assert.ok(card.includes(`src="${work.coverImage}"`));
         assert.match(card, /<img\b[^>]*alt=""/);
@@ -107,35 +106,17 @@ test("Hub work pages render the Work contract", async (t) => {
         assert.ok(
           html.slice(linkIndex, closingAnchorIndex).includes(work.name),
         );
+        assert.ok(
+          html.slice(linkIndex, closingAnchorIndex).includes('target="_blank"'),
+        );
+        assert.ok(
+          html.slice(linkIndex, closingAnchorIndex).includes('rel="noreferrer"'),
+        );
 
         previousLinkIndex = linkIndex;
       }
 
       assertNoNestedAnchors(html);
-    });
-
-    await t.test("ProductDetailPage renders known and missing works", () => {
-      const work = WORKS[0];
-      const knownHtml = renderToStaticMarkup(
-        createElement(ProductDetailPage, { productId: work.id }),
-      );
-      const statusLabel = work.status === "active" ? "Active" : "Archived";
-
-      assert.ok(knownHtml.includes(work.name));
-      assert.ok(knownHtml.includes(`src="${work.coverImage}"`));
-      assert.ok(knownHtml.includes(statusLabel));
-      assert.match(
-        knownHtml,
-        /href="\/products"[\s\S]*?<svg class="size-3\.5 rotate-180"/,
-      );
-
-      const missingHtml = renderToStaticMarkup(
-        createElement(ProductDetailPage, { productId: "missing-work" }),
-      );
-
-      assert.ok(missingHtml.includes("作品不存在"));
-      assert.ok(missingHtml.includes("未找到对应作品"));
-      assert.ok(missingHtml.includes('href="/products"'));
     });
   } finally {
     try {

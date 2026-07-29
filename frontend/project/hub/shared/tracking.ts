@@ -6,7 +6,6 @@ export const HUB_PROJECT = "hub";
 export type HubPageName =
   | "home"
   | "products"
-  | "product_detail"
   | "articles"
   | "about"
   | "not_found";
@@ -19,9 +18,6 @@ export type HubButton =
   | "main_view_articles";
 
 export const resolvePageName = (route: Route): HubPageName => {
-  if (route.name === "product-detail") {
-    return "product_detail";
-  }
   if (route.name === "not-found") {
     return "not_found";
   }

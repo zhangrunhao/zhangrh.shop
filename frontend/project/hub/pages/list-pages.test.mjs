@@ -71,32 +71,19 @@ test("work card uses the Work contract and resolved cover", () => {
   assert.doesNotMatch(workCard, /ProductDetailMeta/);
 });
 
-test("work detail and app titles find works by ID", () => {
+test("retired work detail page and routing logic are removed", () => {
   const app = readHubFile("app.tsx");
-  const productDetailPage = readHubFile("pages/product-detail-page.tsx");
+  const appHeader = readHubFile("components/app-header.tsx");
+  const constants = readHubFile("shared/constants.ts");
+  const route = readHubFile("shared/route.ts");
+  const tracking = readHubFile("shared/tracking.ts");
 
-  assert.match(app, /import \{ WORKS \} from "\.\/shared\/data";/);
-  assert.match(app, /WORKS\.find\(\(item\) => item\.id === route\.productId\)/);
-  assert.match(app, /const work = WORKS\.find/);
-  assert.match(productDetailPage, /import \{ WORKS \} from "\.\.\/shared\/data";/);
-  assert.match(
-    productDetailPage,
-    /const work = WORKS\.find\(\(item\) => item\.id === productId\)/,
-  );
-  assert.match(productDetailPage, /src=\{work\.coverImage\}/);
-  assert.match(productDetailPage, /<WorkStatusBadge status=\{work\.status\} \/>/);
-  assert.match(
-    productDetailPage,
-    /<ArrowIcon className="size-3\.5 rotate-180" \/>/,
-  );
-
-  for (const source of [app, productDetailPage]) {
-    assert.doesNotMatch(source, /\bPRODUCTS\b/);
+  assert.equal(hubFileExists("pages/product-detail-page.tsx"), false);
+  for (const source of [app, appHeader, constants, route]) {
+    assert.doesNotMatch(source, /product-detail|productId|ProductDetailPage/);
   }
-  assert.doesNotMatch(productDetailPage, /resolveImageUrl/);
-  assert.doesNotMatch(productDetailPage, /currentVersion/);
-  assert.doesNotMatch(productDetailPage, /currentVersionCommitDate/);
-  assert.doesNotMatch(productDetailPage, /ProductDetailMeta/);
+  assert.doesNotMatch(app, /\bWORKS\b/);
+  assert.doesNotMatch(tracking, /product_detail|product-detail/);
 });
 
 test("migrated work consumers do not import the legacy Product contract", () => {
@@ -104,7 +91,6 @@ test("migrated work consumers do not import the legacy Product contract", () => 
     readHubFile("components/work-card.tsx"),
     readHubFile("pages/home-page.tsx"),
     readHubFile("pages/products-page.tsx"),
-    readHubFile("pages/product-detail-page.tsx"),
     readHubFile("app.tsx"),
   ];
 
@@ -144,6 +130,7 @@ test("retired hub modules and data are removed", () => {
     "components/review-card.tsx",
     "components/section-title.tsx",
     "data/reviews.json",
+    "pages/product-detail-page.tsx",
     "pages/reviews-page.tsx",
     "pages/zhengtian-page.tsx",
   ];

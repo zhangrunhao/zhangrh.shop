@@ -8,6 +8,11 @@ const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const worksDataPath = path.join(currentDir, "works.json");
 const assetsDirectory = path.resolve(currentDir, "..", "assets");
 const workIdPattern = /^\d{8}_[a-z0-9]+(?:_[a-z0-9]+)*$/;
+const expectedWorkLinks = {
+  "20260619_zhangrh_shop": "https://zhangrh.shop/hub/",
+  "20260205_card_game": "https://zhangrh.shop/cardgame/",
+  "20260517_shotmarker": "https://zhangrh.shop/shotmarker/support",
+};
 
 const readWorksData = () => JSON.parse(fs.readFileSync(worksDataPath, "utf8"));
 
@@ -29,6 +34,10 @@ test("works data uses the Hub work contract", () => {
       assert.equal(typeof work[field], "string");
       assert.ok(work[field].trim().length > 0);
     }
+
+    const workUrl = new URL(work.link);
+    assert.equal(workUrl.protocol, "https:");
+    assert.equal(work.link, expectedWorkLinks[work.id]);
 
     assert.match(work.status, /^(active|archived)$/);
     assert.doesNotMatch(work.coverImage, /^https?:\/\//);

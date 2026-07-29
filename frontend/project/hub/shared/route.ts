@@ -4,7 +4,6 @@ import { normalizePath } from "../routing";
 export type Route =
   | { name: "home" }
   | { name: "products" }
-  | { name: "product-detail"; productId: string }
   | { name: "articles" }
   | { name: "about" }
   | { name: "not-found" };
@@ -23,14 +22,6 @@ export const resolveRoute = (pathname: string): Route => {
   }
   if (path === "/about") {
     return { name: "about" };
-  }
-
-  const productDetailMatch = path.match(/^\/products\/([^/]+)$/);
-  if (productDetailMatch?.[1]) {
-    return {
-      name: "product-detail",
-      productId: decodeURIComponent(productDetailMatch[1]),
-    };
   }
 
   return { name: "not-found" };

@@ -7,7 +7,7 @@ export const GITHUB_LINK = "https://github.com/zhangrunhao";
 export type NavItem = {
   label: string;
   to: string;
-  routeName: Exclude<Route["name"], "not-found" | "product-detail" | "home">;
+  routeName: Exclude<Route["name"], "not-found" | "home">;
   icon: "product" | "idea" | "about";
   button: Extract<
     HubButton,

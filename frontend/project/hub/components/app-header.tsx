@@ -20,9 +20,7 @@ export const AppHeader = ({ routeName }: { routeName: Route["name"] }) => (
 
       <nav className="flex items-center gap-1">
         {NAV_ITEMS.map((item) => {
-          const active =
-            routeName === item.routeName ||
-            (routeName === "product-detail" && item.routeName === "products");
+          const active = routeName === item.routeName;
           return (
             <Link
               key={item.to}
