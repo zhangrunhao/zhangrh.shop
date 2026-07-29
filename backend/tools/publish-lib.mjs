@@ -1,5 +1,5 @@
 export const DEFAULT_RSYNC_USER = 'root'
-export const DEFAULT_RSYNC_HOST = '101.200.185.29'
+export const DEFAULT_RSYNC_HOST = 'zhangrh.shop'
 export const DEFAULT_RSYNC_DEST = '/opt/zhangrh-shop/backend'
 export const DEFAULT_COMPOSE_ROOT = '/opt/zhangrh-shop'
 

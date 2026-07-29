@@ -4,12 +4,14 @@ import assert from 'node:assert/strict'
 import {
   DEFAULT_COMPOSE_ROOT,
   DEFAULT_RSYNC_DEST,
+  DEFAULT_RSYNC_HOST,
   buildRemoteComposeCommand,
   buildRsyncArgs,
   ensureTrailingSlash,
 } from './publish-lib.mjs'
 
 test('backend publish default destination is the compose backend directory', () => {
+  assert.equal(DEFAULT_RSYNC_HOST, 'zhangrh.shop')
   assert.equal(DEFAULT_RSYNC_DEST, '/opt/zhangrh-shop/backend')
 })
 

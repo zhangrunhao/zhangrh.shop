@@ -14,7 +14,7 @@ import {
 test('defaults use compose site rsync target', () => {
   assert.equal(DEFAULT_PROJECT_NAME, 'hub')
   assert.equal(DEFAULT_RSYNC_USER, 'root')
-  assert.equal(DEFAULT_RSYNC_HOST, '101.200.185.29')
+  assert.equal(DEFAULT_RSYNC_HOST, 'zhangrh.shop')
   assert.equal(DEFAULT_RSYNC_DEST, '/opt/zhangrh-shop/site')
 })
 

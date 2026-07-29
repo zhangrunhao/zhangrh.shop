@@ -23,7 +23,7 @@ const usage = () => {
   console.log('Usage: npm run publish [project-name]')
   console.log(`Available projects: ${available}`)
   console.log('Tip: 在终端中可直接上下键选择项目')
-  console.log('Publish flow: git pull -> build -> upload static assets to OSS -> upload HTML to 101.200.185.29')
+  console.log('Publish flow: git pull -> build -> upload static assets to OSS -> upload HTML to zhangrh.shop')
 }
 
 const findRepoRoot = (start) => {
