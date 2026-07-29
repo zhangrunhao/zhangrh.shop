@@ -9,6 +9,8 @@ import {
   isCardgameSessionRoute,
   navigateCardgame,
   resolveCardgameRoute,
+  resolveExplicitLeaveNavigation,
+  resolveRematchTransition,
   resolveServerRoute,
   resolveSessionRouteGuard,
 } from './route'
@@ -154,12 +156,22 @@ test('navigateCardgame uses the requested history method and emits an app naviga
   }
 })
 
+test('explicit leave navigation replaces the current session route', () => {
+  assert.deepEqual(resolveExplicitLeaveNavigation(), {
+    mode: 'replace',
+    route: { name: 'entry' },
+  })
+})
+
 test('session route guard allows only a matching in-memory session', () => {
   const route = { name: 'battle', roomId: '0123' } as const
 
   assert.equal(isCardgameSessionRoute(route), true)
   assert.deepEqual(
-    resolveSessionRouteGuard(route, { roomId: '0123', playerId: 'player-1' }),
+    resolveSessionRouteGuard(route, {
+      session: { roomId: '0123', playerId: 'player-1' },
+      gameResult: null,
+    }),
     { action: 'allow' },
   )
 
@@ -169,7 +181,7 @@ test('session route guard allows only a matching in-memory session', () => {
     { roomId: '9999', playerId: 'player-1' },
     { roomId: '0123', playerId: '' },
   ]) {
-    assert.deepEqual(resolveSessionRouteGuard(route, session), {
+    assert.deepEqual(resolveSessionRouteGuard(route, { session, gameResult: null }), {
       action: 'recover',
       message: CARDGAME_RECOVERY_MESSAGE,
       navigationMode: 'replace',
@@ -178,11 +190,44 @@ test('session route guard allows only a matching in-memory session', () => {
   }
 })
 
+test('result route guard requires a matching in-memory game result', () => {
+  const route = { name: 'result', roomId: '0123' } as const
+  const session = { roomId: '0123', playerId: 'player-1' }
+  const recovery = {
+    action: 'recover',
+    message: CARDGAME_RECOVERY_MESSAGE,
+    navigationMode: 'replace',
+    route: { name: 'entry' },
+  } as const
+
+  assert.deepEqual(
+    resolveSessionRouteGuard(route, { session, gameResult: null }),
+    recovery,
+  )
+  assert.deepEqual(
+    resolveSessionRouteGuard(route, {
+      session,
+      gameResult: { roomId: '9999' },
+    }),
+    recovery,
+  )
+  assert.deepEqual(
+    resolveSessionRouteGuard(route, {
+      session,
+      gameResult: { roomId: '0123' },
+    }),
+    { action: 'allow' },
+  )
+})
+
 test('session route guard requests teardown when an active session leaves its dynamic route', () => {
   assert.deepEqual(
     resolveSessionRouteGuard(
       { name: 'create' },
-      { roomId: '0123', playerId: 'player-1' },
+      {
+        session: { roomId: '0123', playerId: 'player-1' },
+        gameResult: null,
+      },
     ),
     { action: 'teardown' },
   )
@@ -190,8 +235,34 @@ test('session route guard requests teardown when an active session leaves its dy
   assert.deepEqual(
     resolveSessionRouteGuard(
       { name: 'battle', roomId: '0123' },
-      { roomId: '0123', playerId: 'player-1' },
+      {
+        session: { roomId: '0123', playerId: 'player-1' },
+        gameResult: null,
+      },
     ),
     { action: 'allow' },
   )
+})
+
+test('rematch transition preserves results until success and blocks duplicate requests', () => {
+  assert.deepEqual(resolveRematchTransition(false, 'request'), {
+    action: 'begin',
+    pending: true,
+    clearResult: false,
+  })
+  assert.deepEqual(resolveRematchTransition(true, 'request'), {
+    action: 'ignore',
+    pending: true,
+    clearResult: false,
+  })
+  assert.deepEqual(resolveRematchTransition(true, 'error'), {
+    action: 'fail',
+    pending: false,
+    clearResult: false,
+  })
+  assert.deepEqual(resolveRematchTransition(true, 'room-state'), {
+    action: 'succeed',
+    pending: false,
+    clearResult: true,
+  })
 })

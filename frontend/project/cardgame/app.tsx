@@ -8,6 +8,8 @@ import {
   getCardgameNavigationMode,
   navigateCardgame,
   resolveCardgameRoute,
+  resolveExplicitLeaveNavigation,
+  resolveRematchTransition,
   resolveServerRoute,
   resolveSessionRouteGuard,
   useCardgamePathname,
@@ -168,6 +170,7 @@ const App = () => {
   const [joinRoomCode, setJoinRoomCode] = useState('')
   const [surveyOpen, setSurveyOpen] = useState(false)
   const [surveyRenderKey, setSurveyRenderKey] = useState(0)
+  const [rematchPending, setRematchPending] = useState(false)
 
   const pendingMessageRef = useRef<string | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
@@ -246,6 +249,19 @@ const App = () => {
     setPlayerName(generateRecommendedNickname())
   }
 
+  const failPendingRematch = () => {
+    const rematchTransition = resolveRematchTransition(
+      rematchPendingRef.current,
+      'error',
+    )
+    if (rematchTransition.action !== 'fail') {
+      return false
+    }
+    rematchPendingRef.current = rematchTransition.pending
+    setRematchPending(rematchTransition.pending)
+    return true
+  }
+
   const buildWsUrls = () => {
     const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws'
     const wsPath = '/api/cardgame/ws'
@@ -292,6 +308,7 @@ const App = () => {
           openWithUrl(urls[attempt])
           return
         }
+        failPendingRematch()
         setErrorMessage('连接失败，请确认后端 3001 已启动。')
       })
 
@@ -301,6 +318,9 @@ const App = () => {
         }
         startedRef.current = false
         setConnectionState('idle')
+        if (failPendingRematch()) {
+          setErrorMessage('连接已断开，请重试。')
+        }
       })
     }
 
@@ -336,6 +356,7 @@ const App = () => {
     pendingMessageRef.current = null
     startModeRef.current = null
     rematchPendingRef.current = false
+    setRematchPending(false)
   }, [])
 
   const closeAndResetSession = useCallback(() => {
@@ -354,7 +375,10 @@ const App = () => {
       roomId && playerId
         ? { roomId, playerId }
         : null
-    const guard = resolveSessionRouteGuard(route, session)
+    const guard = resolveSessionRouteGuard(route, {
+      session,
+      gameResult: gameOver ? { roomId: gameOver.roomId } : null,
+    })
 
     if (guard.action === 'allow') {
       return
@@ -375,7 +399,7 @@ const App = () => {
     return () => {
       cancelled = true
     }
-  }, [closeAndResetSession, playerId, roomId, route])
+  }, [closeAndResetSession, gameOver, playerId, roomId, route])
 
   const appendRoundLog = (payload: RoundResult) => {
     const iAmP1InPayload = payload.p1Id === playerId
@@ -405,7 +429,7 @@ const App = () => {
 
     if (message.type === 'error') {
       const payload = message.payload as { message?: string }
-      rematchPendingRef.current = false
+      failPendingRematch()
       setErrorMessage(payload?.message ?? '服务器错误')
       if (!sessionActiveRef.current) {
         startedRef.current = false
@@ -432,9 +456,19 @@ const App = () => {
       const payload = message.payload as RoomState
       setRoomState(payload)
       if (payload.status === 'waiting' || payload.status === 'playing') {
-        navigateForServer(payload.roomId, payload.status, rematchPendingRef.current)
-        if (payload.status === 'playing') {
-          rematchPendingRef.current = false
+        const wasRematchPending = rematchPendingRef.current
+        navigateForServer(payload.roomId, payload.status, wasRematchPending)
+        const rematchTransition = resolveRematchTransition(
+          wasRematchPending,
+          'room-state',
+        )
+        if (rematchTransition.action === 'succeed') {
+          rematchPendingRef.current = rematchTransition.pending
+          setRematchPending(rematchTransition.pending)
+          if (rematchTransition.clearResult) {
+            setGameOver(null)
+            setRoundLogs([])
+          }
         }
       }
       return
@@ -472,6 +506,7 @@ const App = () => {
     if (message.type === 'game_over') {
       const payload = message.payload as GameOver
       rematchPendingRef.current = false
+      setRematchPending(false)
       setGameOver(payload)
       if (!modalOpenRef.current) {
         navigateForServer(payload.roomId, 'game_over')
@@ -571,14 +606,20 @@ const App = () => {
   }
 
   const handleRematch = () => {
-    trackCardgameClick('play_again')
     if (!roomId || !playerId) {
       return
     }
-    setGameOver(null)
-    setRoundLogs([])
+    const rematchTransition = resolveRematchTransition(
+      rematchPendingRef.current,
+      'request',
+    )
+    if (rematchTransition.action !== 'begin') {
+      return
+    }
+    trackCardgameClick('play_again')
+    rematchPendingRef.current = rematchTransition.pending
+    setRematchPending(rematchTransition.pending)
     setErrorMessage(null)
-    rematchPendingRef.current = true
     sendMessage({
       type: 'rematch',
       payload: {
@@ -589,8 +630,9 @@ const App = () => {
   }
 
   const handleLeaveGame = () => {
+    const leaveNavigation = resolveExplicitLeaveNavigation()
     closeAndResetSession()
-    navigateForUser({ name: 'entry' })
+    navigateCardgame(leaveNavigation.route, leaveNavigation.mode)
   }
 
   const toggleSelect = (index: number) => {
@@ -1358,7 +1400,7 @@ const App = () => {
           </div>
         )}
 
-        {route.name === 'result' && (
+        {route.name === 'result' && gameOver?.roomId === route.roomId && (
           <section className="result-page">
             <div className="result-card">
               <h2>对局结束</h2>
@@ -1380,8 +1422,14 @@ const App = () => {
                 </div>
               </div>
               <p className="result-round">回合数：{gameOver?.round ?? roomState?.round ?? 0}</p>
+              {errorMessage && <p className="error-text">{errorMessage}</p>}
               <div className="result-actions">
-                <button className="primary-button" onClick={handleRematch} type="button">
+                <button
+                  className="primary-button"
+                  disabled={rematchPending}
+                  onClick={handleRematch}
+                  type="button"
+                >
                   再来一局
                 </button>
                 <button className="survey-inline-button" onClick={openSurvey} type="button">

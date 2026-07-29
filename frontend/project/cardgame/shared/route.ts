@@ -24,6 +24,11 @@ export type CardgameSession = {
   playerId: string
 }
 
+export type CardgameSessionGuardContext = {
+  session: CardgameSession | null
+  gameResult: { roomId: string } | null
+}
+
 export type CardgameSessionRouteGuard =
   | { action: 'allow' }
   | { action: 'teardown' }
@@ -120,14 +125,41 @@ export const getCardgameNavigationMode = (
   source: CardgameNavigationSource,
 ): CardgameNavigationMode => (source === 'user' ? 'push' : 'replace')
 
+export const resolveExplicitLeaveNavigation = () => ({
+  mode: 'replace' as const,
+  route: { name: 'entry' as const },
+})
+
+export const resolveRematchTransition = (
+  pending: boolean,
+  event: 'request' | 'room-state' | 'error',
+) => {
+  if (event === 'request') {
+    return pending
+      ? { action: 'ignore' as const, pending: true, clearResult: false }
+      : { action: 'begin' as const, pending: true, clearResult: false }
+  }
+  if (!pending) {
+    return { action: 'ignore' as const, pending: false, clearResult: false }
+  }
+  if (event === 'error') {
+    return { action: 'fail' as const, pending: false, clearResult: false }
+  }
+  return { action: 'succeed' as const, pending: false, clearResult: true }
+}
+
 export const resolveSessionRouteGuard = (
   route: CardgameRoute,
-  session: CardgameSession | null,
+  context: CardgameSessionGuardContext,
 ): CardgameSessionRouteGuard => {
+  const { session } = context
   const hasSession = Boolean(session?.roomId && session.playerId)
 
   if (isCardgameSessionRoute(route)) {
-    if (hasSession && route.roomId === session?.roomId) {
+    const hasMatchingSession = hasSession && route.roomId === session?.roomId
+    const hasMatchingResult =
+      route.name !== 'result' || context.gameResult?.roomId === route.roomId
+    if (hasMatchingSession && hasMatchingResult) {
       return { action: 'allow' }
     }
     return {
