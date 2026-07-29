@@ -228,7 +228,7 @@ input {
   cursor: pointer;
 }
 
-.rules-link img {
+.rules-link svg {
   width: 16px;
   height: 16px;
 }
@@ -274,7 +274,7 @@ input {
   cursor: pointer;
 }
 
-.back-link img {
+.back-link svg {
   width: 20px;
   height: 20px;
 }
@@ -353,7 +353,7 @@ input {
   font-weight: 700;
 }
 
-.rules-card-title img {
+.rules-card-title svg {
   width: 20px;
   height: 20px;
 }
@@ -680,7 +680,7 @@ input {
   line-height: 28px;
 }
 
-.hp-center img {
+.hp-center svg {
   width: 20px;
   height: 20px;
 }
@@ -855,6 +855,18 @@ input {
   height: 48px;
 }
 
+.game-card.tone-attack .card-icon {
+  color: #e85d3c;
+}
+
+.game-card.tone-defense .card-icon {
+  color: #3b82c8;
+}
+
+.game-card.tone-recover .card-icon {
+  color: #10b981;
+}
+
 .game-card .card-title {
   font-size: 20px;
   line-height: 28px;
@@ -952,7 +964,7 @@ input {
   gap: 12px;
 }
 
-.info-card img {
+.info-card svg {
   width: 20px;
   height: 20px;
   opacity: 0.6;
@@ -982,7 +994,7 @@ input {
   gap: 12px;
 }
 
-.effect-panel img {
+.effect-panel svg {
   width: 20px;
   height: 20px;
 }

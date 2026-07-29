@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { track } from '../../common/track'
+import { CardgameIcon } from './components/icons'
+import type { CardgameIconName } from './components/icons'
 import { SurveyModal } from './components/survey-modal'
 
 type CardType = 'A' | 'D' | 'R'
@@ -80,21 +82,8 @@ type CardMeta = {
   english: string
   tag: CardType
   tone: 'attack' | 'defense' | 'recover'
-  iconUrl: string
+  icon: CardgameIconName
 }
-
-const ICON_ENTRY_CREATE = 'https://www.figma.com/api/mcp/asset/0fd62a56-94ec-435b-abf0-886e670b51d5'
-const ICON_ENTRY_JOIN = 'https://www.figma.com/api/mcp/asset/171d65c5-d77a-44ba-8616-b5b51c11c701'
-const ICON_ENTRY_BOT = 'https://www.figma.com/api/mcp/asset/02ccbe2d-3118-4431-9141-98c7add65d0c'
-const ICON_HELP = 'https://www.figma.com/api/mcp/asset/fb2bdaba-d757-4edf-a1c2-8a065cc4b03e'
-const ICON_BACK = 'https://www.figma.com/api/mcp/asset/180765f7-9b56-4654-89aa-8ed145b5e364'
-const ICON_SWORD = 'https://www.figma.com/api/mcp/asset/a10fb6ed-c7e4-4bb5-8bcc-79400d8af2fd'
-const ICON_SHIELD = 'https://www.figma.com/api/mcp/asset/392f3429-1f4e-4f12-9abe-3d9eb1ae64f1'
-const ICON_HEART_LINE = 'https://www.figma.com/api/mcp/asset/28811ea7-9bf1-4c86-aea2-dc1993ffff6b'
-const ICON_HP = 'https://www.figma.com/api/mcp/asset/c66df5b1-8210-45bd-9888-52a42ca5622d'
-const ICON_ALERT = 'https://www.figma.com/api/mcp/asset/a9555e6b-0cb8-437e-83e7-83bef46e7c07'
-const ICON_DECK = 'https://www.figma.com/api/mcp/asset/47c6d034-b8e0-4070-9e1d-baf4dee24b81'
-const ICON_DISCARD = 'https://www.figma.com/api/mcp/asset/6cd1188b-406e-42af-9ade-4f01d5e86c04'
 
 const CARD_META: Record<CardType, CardMeta> = {
   A: {
@@ -102,28 +91,28 @@ const CARD_META: Record<CardType, CardMeta> = {
     english: 'ATTACK',
     tag: 'A',
     tone: 'attack',
-    iconUrl: ICON_SWORD,
+    icon: 'sword',
   },
   D: {
     label: '防守',
     english: 'DEFENSE',
     tag: 'D',
     tone: 'defense',
-    iconUrl: ICON_SHIELD,
+    icon: 'shield',
   },
   R: {
     label: '休养',
     english: 'RECOVER',
     tag: 'R',
     tone: 'recover',
-    iconUrl: ICON_HEART_LINE,
+    icon: 'heart',
   },
 }
 
-const ENTRY_MODES: Array<{ mode: EntryMode; title: string; subtitle: string; icon: string }> = [
-  { mode: 'create', title: '创建房间', subtitle: '邀请好友对战', icon: ICON_ENTRY_CREATE },
-  { mode: 'join', title: '加入房间', subtitle: '输入房间号加入', icon: ICON_ENTRY_JOIN },
-  { mode: 'ai', title: '人机对战', subtitle: '与 AI 练习', icon: ICON_ENTRY_BOT },
+const ENTRY_MODES: Array<{ mode: EntryMode; title: string; subtitle: string; icon: CardgameIconName }> = [
+  { mode: 'create', title: '创建房间', subtitle: '邀请好友对战', icon: 'create' },
+  { mode: 'join', title: '加入房间', subtitle: '输入房间号加入', icon: 'join' },
+  { mode: 'ai', title: '人机对战', subtitle: '与 AI 练习', icon: 'bot' },
 ]
 
 const NICKNAME_PREFIX = ['疾风', '烈焰', '寒霜', '星尘', '黑曜', '青岚', '赤羽', '流光']
@@ -697,7 +686,7 @@ const App = () => {
                     onClick={() => setEntryMode(mode.mode)}
                     type="button"
                   >
-                    <img src={mode.icon} alt="" className="mode-icon" />
+                    <CardgameIcon name={mode.icon} className="mode-icon" />
                     <div className="mode-title">{mode.title}</div>
                     <div className="mode-subtitle">{mode.subtitle}</div>
                   </button>
@@ -719,7 +708,7 @@ const App = () => {
             </div>
 
             <button className="rules-link" onClick={() => setRoute('rules')} type="button">
-              <img src={ICON_HELP} alt="" />
+              <CardgameIcon name="help" />
               <span>查看游戏规则</span>
             </button>
           </section>
@@ -729,7 +718,7 @@ const App = () => {
           <section className="rules-page">
             <header className="rules-header">
               <button className="back-link" onClick={() => setRoute('entry')} type="button">
-                <img src={ICON_BACK} alt="" />
+                <CardgameIcon name="back" />
                 <span>返回</span>
               </button>
               <h2>游戏规则</h2>
@@ -775,15 +764,12 @@ const App = () => {
                     <div key={card} className="rules-card-column">
                       <div className={`game-card tone-${meta.tone}`}>
                         <div className="card-badge">{meta.tag}</div>
-                        <img src={meta.iconUrl} alt="" className="card-icon" />
+                        <CardgameIcon name={meta.icon} className="card-icon" />
                         <div className="card-title">{meta.label}</div>
                         <div className="card-subtitle">{meta.english}</div>
                       </div>
                       <div className={`rules-card-title tone-${meta.tone}`}>
-                        <img
-                          src={card === 'A' ? ICON_SWORD : card === 'D' ? ICON_SHIELD : ICON_HEART_LINE}
-                          alt=""
-                        />
+                        <CardgameIcon name={meta.icon} />
                         <span>
                           {meta.label} ({card === 'A' ? 'Attack' : card === 'D' ? 'Defense' : 'Recover'})
                         </span>
@@ -934,7 +920,7 @@ const App = () => {
                 <div className="hp-track">
                   <div className="hp-fill" style={{ width: `${Math.max(0, Math.min(100, (myFinalHp / 10) * 100))}%` }} />
                   <div className="hp-center">
-                    <img src={ICON_HP} alt="" />
+                    <CardgameIcon name="hp" />
                     <span>HP</span>
                   </div>
                 </div>
@@ -947,7 +933,7 @@ const App = () => {
                     style={{ width: `${Math.max(0, Math.min(100, (opponentFinalHp / 10) * 100))}%` }}
                   />
                   <div className="hp-center">
-                    <img src={ICON_HP} alt="" />
+                    <CardgameIcon name="hp" />
                     <span>HP</span>
                   </div>
                 </div>
@@ -999,7 +985,7 @@ const App = () => {
                               onDrop={() => handleDrop(slot)}
                             >
                               <div className="card-badge">{meta.tag}</div>
-                              <img src={meta.iconUrl} alt="" className="card-icon" />
+                              <CardgameIcon name={meta.icon} className="card-icon" />
                               <div className="card-title">{meta.label}</div>
                               <div className="card-subtitle">{meta.english}</div>
                             </div>
@@ -1041,7 +1027,7 @@ const App = () => {
                           >
                             <div className={`game-card tone-${meta.tone}`}>
                               <div className="card-badge">{meta.tag}</div>
-                              <img src={meta.iconUrl} alt="" className="card-icon" />
+                              <CardgameIcon name={meta.icon} className="card-icon" />
                               <div className="card-title">{meta.label}</div>
                               <div className="card-subtitle">{meta.english}</div>
                             </div>
@@ -1061,14 +1047,14 @@ const App = () => {
                     <h4>我方信息</h4>
                     <div className="info-row">
                       <div className="info-card">
-                        <img src={ICON_DECK} alt="" />
+                        <CardgameIcon name="deck" />
                         <div>
                           <span>牌库</span>
                           <strong>{roundHand?.deck.length ?? 0}</strong>
                         </div>
                       </div>
                       <div className="info-card">
-                        <img src={ICON_DISCARD} alt="" />
+                        <CardgameIcon name="discard" />
                         <div>
                           <span>弃牌堆</span>
                           <strong>{roundHand?.discard.length ?? 0}</strong>
@@ -1081,14 +1067,14 @@ const App = () => {
                     <h4>对手信息</h4>
                     <div className="info-row">
                       <div className="info-card">
-                        <img src={ICON_DECK} alt="" />
+                        <CardgameIcon name="deck" />
                         <div>
                           <span>牌库</span>
                           <strong>{roundHand?.opponentDeck.length ?? 0}</strong>
                         </div>
                       </div>
                       <div className="info-card">
-                        <img src={ICON_DISCARD} alt="" />
+                        <CardgameIcon name="discard" />
                         <div>
                           <span>弃牌堆</span>
                           <strong>{roundHand?.opponentDiscard.length ?? 0}</strong>
@@ -1099,7 +1085,7 @@ const App = () => {
                 </div>
 
                 <div className="effect-panel">
-                  <img src={ICON_ALERT} alt="" />
+                  <CardgameIcon name="alert" />
                   <div>
                     <strong>状态效果区（预留）</strong>
                     <p>未来版本将显示能量、护盾、持续效果等</p>
@@ -1188,9 +1174,8 @@ const App = () => {
                       <span>你</span>
                       <div className={`game-card tone-${CARD_META[iAmP1 ? roundResult.steps[stepIndex].p1Card : roundResult.steps[stepIndex].p2Card].tone}`}>
                         <div className="card-badge">{iAmP1 ? roundResult.steps[stepIndex].p1Card : roundResult.steps[stepIndex].p2Card}</div>
-                        <img
-                          src={CARD_META[iAmP1 ? roundResult.steps[stepIndex].p1Card : roundResult.steps[stepIndex].p2Card].iconUrl}
-                          alt=""
+                        <CardgameIcon
+                          name={CARD_META[iAmP1 ? roundResult.steps[stepIndex].p1Card : roundResult.steps[stepIndex].p2Card].icon}
                           className="card-icon"
                         />
                         <div className="card-title">{CARD_META[iAmP1 ? roundResult.steps[stepIndex].p1Card : roundResult.steps[stepIndex].p2Card].label}</div>
@@ -1204,9 +1189,8 @@ const App = () => {
                       <span>对手</span>
                       <div className={`game-card tone-${CARD_META[iAmP1 ? roundResult.steps[stepIndex].p2Card : roundResult.steps[stepIndex].p1Card].tone}`}>
                         <div className="card-badge">{iAmP1 ? roundResult.steps[stepIndex].p2Card : roundResult.steps[stepIndex].p1Card}</div>
-                        <img
-                          src={CARD_META[iAmP1 ? roundResult.steps[stepIndex].p2Card : roundResult.steps[stepIndex].p1Card].iconUrl}
-                          alt=""
+                        <CardgameIcon
+                          name={CARD_META[iAmP1 ? roundResult.steps[stepIndex].p2Card : roundResult.steps[stepIndex].p1Card].icon}
                           className="card-icon"
                         />
                         <div className="card-title">{CARD_META[iAmP1 ? roundResult.steps[stepIndex].p2Card : roundResult.steps[stepIndex].p1Card].label}</div>
