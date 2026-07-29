@@ -10,7 +10,7 @@ const assetsDirectory = path.resolve(currentDir, "..", "assets");
 const worksAssetsDirectory = path.join(assetsDirectory, "works");
 const workIdPattern = /^\d{8}_[a-z0-9]+(?:_[a-z0-9]+)*$/;
 const expectedWorkLinks = {
-  "20260517_shotmarker": "https://zhangrh.shop/shotmarker/support",
+  "20260517_shotmarker": "https://zhangrh.shop/shotmarker/how-to",
 };
 
 const readWorksData = () => JSON.parse(fs.readFileSync(worksDataPath, "utf8"));
