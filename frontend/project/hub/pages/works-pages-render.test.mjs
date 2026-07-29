@@ -59,10 +59,41 @@ test("Hub work pages render the Work contract", async (t) => {
       "/pages/products-page.tsx",
     );
     const { HomePage } = await server.ssrLoadModule("/pages/home-page.tsx");
+    const { WorkStatusBadge } = await server.ssrLoadModule(
+      "/components/work-card.tsx",
+    );
     const { FEATURED_WORKS, WORKS } = await server.ssrLoadModule(
       "/shared/data.ts",
     );
     const { ARTICLES } = await server.ssrLoadModule("/shared/articles.ts");
+
+    await t.test("WorkStatusBadge renders every supported status", () => {
+      const expectations = {
+        active: {
+          label: "Active",
+          classTokens: ["bg-emerald-50", "border-emerald-200", "text-emerald-700"],
+        },
+        paused: {
+          label: "Paused",
+          classTokens: ["bg-amber-50", "border-amber-200", "text-amber-700"],
+        },
+        archived: {
+          label: "Archived",
+          classTokens: ["bg-neutral-100", "border-neutral-300", "text-neutral-600"],
+        },
+      };
+
+      for (const [status, expectation] of Object.entries(expectations)) {
+        const html = renderToStaticMarkup(
+          createElement(WorkStatusBadge, { status }),
+        );
+
+        assert.ok(html.includes(`>${expectation.label}</span>`));
+        for (const classToken of expectation.classTokens) {
+          assert.ok(html.includes(classToken));
+        }
+      }
+    });
 
     await t.test("ProductsPage renders accessible work cards in data order", () => {
       const html = renderToStaticMarkup(createElement(ProductsPage));

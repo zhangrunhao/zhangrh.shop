@@ -56,11 +56,6 @@ test("work card uses the Work contract and resolved cover", () => {
   const workCard = readHubFile("components/work-card.tsx");
 
   assert.match(workCard, /import type \{ Work, WorkStatus \} from "\.\.\/types";/);
-  assert.match(workCard, /const statusLabel: Record<WorkStatus, string>/);
-  assert.match(workCard, /paused: "bg-amber-50 border-amber-200 text-amber-700"/);
-  assert.match(workCard, /Record<WorkStatus, string>/);
-  assert.match(workCard, /paused: "Paused"/);
-  assert.doesNotMatch(workCard, /status === "active" \?/);
   assert.match(workCard, /export const WorkStatusBadge/);
   assert.match(workCard, /export const WorkCard = \(\{ work \}: \{ work: Work \}\)/);
   assert.match(workCard, /src=\{work\.coverImage\}/);

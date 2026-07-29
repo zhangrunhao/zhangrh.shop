@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -46,10 +47,31 @@ test("Hub resolves work assets through Vite", async (t) => {
         const assetUrl = resolveWorkAsset(coverPath);
         assert.equal(typeof assetUrl, "string");
         assert.ok(assetUrl.length > 0);
-        assert.ok(
-          decodeURIComponent(assetUrl).includes(coverPath) ||
-            assetUrl.startsWith("data:image/svg+xml"),
-        );
+
+        if (coverPath.endsWith(".svg")) {
+          assert.match(assetUrl, /^data:image\/svg\+xml/);
+
+          const [, metadata, payload] =
+            assetUrl.match(/^data:image\/svg\+xml([^,]*),(.*)$/s) ?? [];
+          assert.equal(typeof payload, "string");
+
+          const decodedSvg = metadata.includes(";base64")
+            ? Buffer.from(payload, "base64").toString("utf8")
+            : decodeURIComponent(payload);
+          const sourceSvg = fs.readFileSync(
+            path.join(projectRoot, "assets", coverPath),
+            "utf8",
+          );
+
+          for (const marker of ["CARDGAME", "PAUSED", ">A<", ">D<", ">R<"]) {
+            assert.ok(sourceSvg.includes(marker));
+            assert.ok(decodedSvg.includes(marker));
+          }
+          continue;
+        }
+
+        assert.equal(assetUrl.startsWith("data:image/svg+xml"), false);
+        assert.ok(decodeURIComponent(assetUrl).includes(coverPath));
       }
     });
 
