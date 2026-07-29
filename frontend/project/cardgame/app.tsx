@@ -174,6 +174,7 @@ const App = () => {
   const dragIndexRef = useRef<{ source: 'hand' | 'selected'; index: number } | null>(null)
   const startedRef = useRef(false)
   const startModeRef = useRef<CardgameEntryMode | null>(null)
+  const rematchPendingRef = useRef(false)
   const sessionActiveRef = useRef(false)
   const modalOpenRef = useRef(false)
 
@@ -194,9 +195,10 @@ const App = () => {
   const navigateForServer = (
     nextRoomId: string,
     phase: Parameters<typeof resolveServerRoute>[1],
+    isRematch = false,
   ) => {
     navigateCardgame(
-      resolveServerRoute(nextRoomId, phase),
+      resolveServerRoute(nextRoomId, phase, { isRematch }),
       getCardgameNavigationMode('server'),
     )
   }
@@ -333,6 +335,7 @@ const App = () => {
     modalOpenRef.current = false
     pendingMessageRef.current = null
     startModeRef.current = null
+    rematchPendingRef.current = false
   }, [])
 
   const closeAndResetSession = useCallback(() => {
@@ -402,6 +405,7 @@ const App = () => {
 
     if (message.type === 'error') {
       const payload = message.payload as { message?: string }
+      rematchPendingRef.current = false
       setErrorMessage(payload?.message ?? '服务器错误')
       if (!sessionActiveRef.current) {
         startedRef.current = false
@@ -428,7 +432,10 @@ const App = () => {
       const payload = message.payload as RoomState
       setRoomState(payload)
       if (payload.status === 'waiting' || payload.status === 'playing') {
-        navigateForServer(payload.roomId, payload.status)
+        navigateForServer(payload.roomId, payload.status, rematchPendingRef.current)
+        if (payload.status === 'playing') {
+          rematchPendingRef.current = false
+        }
       }
       return
     }
@@ -464,6 +471,7 @@ const App = () => {
 
     if (message.type === 'game_over') {
       const payload = message.payload as GameOver
+      rematchPendingRef.current = false
       setGameOver(payload)
       if (!modalOpenRef.current) {
         navigateForServer(payload.roomId, 'game_over')
@@ -570,6 +578,7 @@ const App = () => {
     setGameOver(null)
     setRoundLogs([])
     setErrorMessage(null)
+    rematchPendingRef.current = true
     sendMessage({
       type: 'rematch',
       payload: {

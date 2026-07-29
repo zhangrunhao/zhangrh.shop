@@ -7,6 +7,7 @@ import {
   entryModeForRoute,
   getCardgameNavigationMode,
   isCardgameSessionRoute,
+  navigateCardgame,
   resolveCardgameRoute,
   resolveServerRoute,
   resolveSessionRouteGuard,
@@ -83,11 +84,74 @@ test('resolveServerRoute maps server phases to session routes', () => {
   assert.deepEqual(resolveServerRoute('0123', 'playing'), { name: 'battle', roomId: '0123' })
   assert.deepEqual(resolveServerRoute('0123', 'round_hand'), { name: 'battle', roomId: '0123' })
   assert.deepEqual(resolveServerRoute('0123', 'game_over'), { name: 'result', roomId: '0123' })
+  assert.deepEqual(resolveServerRoute('0123', 'waiting', { isRematch: true }), {
+    name: 'battle',
+    roomId: '0123',
+  })
 })
 
 test('user navigation pushes while server phase navigation replaces', () => {
   assert.equal(getCardgameNavigationMode('user'), 'push')
   assert.equal(getCardgameNavigationMode('server'), 'replace')
+})
+
+test('navigateCardgame uses the requested history method and emits an app navigation event', () => {
+  const historyCalls: string[] = []
+  const eventTypes: string[] = []
+  const windowDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'window')
+  const popStateEventDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'PopStateEvent')
+  const location = { pathname: '/cardgame/' }
+
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: {
+      location,
+      history: {
+        pushState: (_state: unknown, _unused: string, pathname: string) => {
+          historyCalls.push(`push:${pathname}`)
+          location.pathname = pathname
+        },
+        replaceState: (_state: unknown, _unused: string, pathname: string) => {
+          historyCalls.push(`replace:${pathname}`)
+          location.pathname = pathname
+        },
+      },
+      dispatchEvent: (event: Event) => {
+        eventTypes.push(event.type)
+        return true
+      },
+    },
+  })
+  Object.defineProperty(globalThis, 'PopStateEvent', {
+    configurable: true,
+    value: class extends Event {},
+  })
+
+  try {
+    navigateCardgame({ name: 'create' }, 'push')
+    navigateCardgame({ name: 'rules' }, 'replace')
+
+    assert.deepEqual(historyCalls, [
+      'push:/cardgame/create',
+      'replace:/cardgame/rules',
+    ])
+    assert.deepEqual(eventTypes, [
+      'cardgame:navigation',
+      'cardgame:navigation',
+    ])
+    assert.equal(eventTypes.includes('popstate'), false)
+  } finally {
+    if (windowDescriptor) {
+      Object.defineProperty(globalThis, 'window', windowDescriptor)
+    } else {
+      Reflect.deleteProperty(globalThis, 'window')
+    }
+    if (popStateEventDescriptor) {
+      Object.defineProperty(globalThis, 'PopStateEvent', popStateEventDescriptor)
+    } else {
+      Reflect.deleteProperty(globalThis, 'PopStateEvent')
+    }
+  }
 })
 
 test('session route guard allows only a matching in-memory session', () => {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 export const CARDGAME_BASE_PATH = '/cardgame'
 export const CARDGAME_RECOVERY_MESSAGE = '对局已结束或无法恢复，请重新开始。'
+const CARDGAME_NAVIGATION_EVENT = 'cardgame:navigation'
 
 export type CardgameEntryMode = 'create' | 'join' | 'ai'
 
@@ -103,9 +104,10 @@ export const isCardgameSessionRoute = (
 export const resolveServerRoute = (
   roomId: string,
   phase: CardgameServerPhase,
+  options: { isRematch?: boolean } = {},
 ): Extract<CardgameRoute, { roomId: string }> => {
   requireRoomId(roomId)
-  if (phase === 'waiting') {
+  if (phase === 'waiting' && !options.isRematch) {
     return { name: 'room', roomId }
   }
   if (phase === 'game_over') {
@@ -156,7 +158,7 @@ export const navigateCardgame = (
   } else {
     window.history.pushState({}, '', pathname)
   }
-  window.dispatchEvent(new PopStateEvent('popstate'))
+  window.dispatchEvent(new Event(CARDGAME_NAVIGATION_EVENT))
 }
 
 export const useCardgamePathname = () => {
@@ -165,7 +167,11 @@ export const useCardgamePathname = () => {
   useEffect(() => {
     const handlePopstate = () => setPathname(window.location.pathname)
     window.addEventListener('popstate', handlePopstate)
-    return () => window.removeEventListener('popstate', handlePopstate)
+    window.addEventListener(CARDGAME_NAVIGATION_EVENT, handlePopstate)
+    return () => {
+      window.removeEventListener('popstate', handlePopstate)
+      window.removeEventListener(CARDGAME_NAVIGATION_EVENT, handlePopstate)
+    }
   }, [])
 
   return pathname
