@@ -4,4 +4,7 @@ import { createProjectConfig } from "../../vite.config";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
-export default createProjectConfig({ projectRoot });
+export default createProjectConfig({
+  projectRoot,
+  publicDir: path.resolve(projectRoot, ".generated", "public"),
+});

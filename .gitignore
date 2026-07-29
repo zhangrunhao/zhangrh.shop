@@ -19,6 +19,7 @@ dist-ssr
 .DS_Store
 .worktrees
 .cache/
+frontend/project/hub/.generated/
 *.suo
 *.ntvs*
 *.njsproj
