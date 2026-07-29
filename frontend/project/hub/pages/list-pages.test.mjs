@@ -99,12 +99,23 @@ test("migrated work consumers do not import the legacy Product contract", () => 
   }
 });
 
-test("works and article lists have placeholder test data", () => {
+test("works data remains and placeholder article data is removed", () => {
   const works = readJson("data/works.json");
-  const articles = readJson("data/articles.json");
 
   assert.ok(works.length >= 3);
-  assert.ok(articles.length >= 3);
+  assert.equal(hubFileExists("data/articles.json"), false);
+});
+
+test("article list reads generated articles and links by numeric id", () => {
+  const articlesPage = readHubFile("pages/articles-page.tsx");
+  const articleData = readHubFile("shared/articles.ts");
+
+  assert.match(articlesPage, /from "\.\.\/shared\/articles"/);
+  assert.match(articlesPage, /to=\{`\/articles\/\$\{article\.id\}`\}/);
+  assert.match(articlesPage, /没有已发布的文章/);
+  assert.doesNotMatch(articlesPage, /测试文章列表/);
+  assert.match(articleData, /import\.meta\.glob/);
+  assert.match(articleData, /\.generated\/articles\.json/);
 });
 
 test("article route uses /articles and old content paths are removed", () => {
@@ -114,8 +125,12 @@ test("article route uses /articles and old content paths are removed", () => {
 
   assert.match(route, /path === "\/articles"/);
   assert.match(route, /name: "articles"/);
+  assert.match(route, /name: "article-detail"/);
+  assert.match(route, /\\d\{6\}/);
   assert.match(app, /route\.name === "articles"/);
+  assert.match(app, /route\.name === "article-detail"/);
   assert.match(tracking, /\| "articles"/);
+  assert.match(tracking, /\| "article_detail"/);
 
   assert.doesNotMatch(route, /path === "\/ideas"/);
   assert.doesNotMatch(route, /path === "\/reviews"/);

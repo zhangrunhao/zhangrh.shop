@@ -2,10 +2,12 @@ import { useEffect, useMemo } from "react";
 import { AppFooter } from "./components/app-footer";
 import { AppHeader } from "./components/app-header";
 import { AboutPage } from "./pages/about-page";
+import { ArticleDetailPage } from "./pages/article-detail-page";
 import { ArticlesPage } from "./pages/articles-page";
 import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ProductsPage } from "./pages/products-page";
+import { ARTICLES } from "./shared/articles";
 import { resolvePageName, trackHubLoadPage } from "./shared/tracking";
 import { resolveRoute, usePathname } from "./shared/route";
 
@@ -14,6 +16,12 @@ export const App = () => {
   const route = useMemo(() => resolveRoute(pathname), [pathname]);
 
   useEffect(() => {
+    if (route.name === "article-detail") {
+      const article = ARTICLES.find((item) => item.id === route.articleId);
+      document.title = article ? `${article.name} - 文章` : "文章不存在";
+      return;
+    }
+
     const titleMap = {
       home: "张润昊 - 前端开发者",
       products: "作品 - zhangrh.shop",
@@ -35,6 +43,9 @@ export const App = () => {
         {route.name === "home" ? <HomePage /> : null}
         {route.name === "products" ? <ProductsPage /> : null}
         {route.name === "articles" ? <ArticlesPage /> : null}
+        {route.name === "article-detail" ? (
+          <ArticleDetailPage articleId={route.articleId} />
+        ) : null}
         {route.name === "about" ? <AboutPage /> : null}
         {route.name === "not-found" ? <NotFoundPage /> : null}
       </main>

@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -84,6 +84,24 @@ const configPath = path.join(projectRoot, project, 'vite.config.ts')
 if (!fs.existsSync(configPath)) {
   console.error(`Missing Vite config: ${configPath}`)
   process.exit(1)
+}
+
+if (project === 'hub' && (command === 'dev' || command === 'build')) {
+  const preparationScript = path.join(
+    projectRoot,
+    project,
+    'scripts',
+    'prepare-articles.mjs',
+  )
+  const preparationMode = command === 'build' ? 'production' : 'development'
+  const preparation = spawnSync(
+    process.execPath,
+    [preparationScript, preparationMode],
+    { stdio: 'inherit' },
+  )
+  if (preparation.status !== 0) {
+    process.exit(preparation.status ?? 1)
+  }
 }
 
 const viteBin = path.join(

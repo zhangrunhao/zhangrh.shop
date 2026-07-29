@@ -14,6 +14,7 @@ export type Article = {
   name: string;
   summary: string;
   publishDate: string;
+  contentHtml: string;
 };
 
 export type HomeFeaturedArticle = {

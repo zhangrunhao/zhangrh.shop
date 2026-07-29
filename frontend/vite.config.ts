@@ -21,8 +21,10 @@ const sharedConfig = defineConfig({
 
 export const createProjectConfig = ({
   projectRoot,
+  publicDir,
 }: {
   projectRoot: string
+  publicDir?: string
 }) => {
   const projectName = path.basename(projectRoot)
   const distRoot = path.resolve(projectRoot, '../../dist', projectName)
@@ -40,6 +42,7 @@ export const createProjectConfig = ({
     return mergeConfig(sharedConfig, {
       root: projectRoot,
       base: command === 'build' || isPreview ? basePath : '/',
+      ...(publicDir ? { publicDir } : {}),
       appType: 'spa',
       experimental: publicAssetBase
         ? {
