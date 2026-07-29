@@ -160,7 +160,8 @@ a {
 
 .how-to-hero-inner,
 .how-to-steps,
-.how-to-tips {
+.how-to-tips,
+.how-to-related-links {
   width: min(1120px, 100%);
   margin: 0 auto;
 }
@@ -378,6 +379,69 @@ a {
   font-weight: 600;
 }
 
+.how-to-page .how-to-related-links {
+  padding: 18px 24px 92px;
+}
+
+.how-to-related-link-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  border-top: 1px solid #d7d7dc;
+  padding-top: 28px;
+}
+
+.how-to-related-link {
+  min-height: 156px;
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  border: 1px solid #d7d7dc;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111111;
+  padding: 22px 52px 22px 22px;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.how-to-related-link:hover,
+.how-to-related-link:focus-visible {
+  border-color: #0071e3;
+  transform: translateY(-2px);
+}
+
+.how-to-related-link:focus-visible {
+  outline: 3px solid rgba(0, 113, 227, 0.22);
+  outline-offset: 3px;
+}
+
+.how-to-related-link h3 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.how-to-related-link p {
+  margin: 0;
+  color: #6e6e73;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.how-to-related-link span {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  color: #0071e3;
+  font-size: 22px;
+  line-height: 1;
+}
+
 @media (max-width: 920px) {
   .how-to-page .how-to-hero {
     min-height: auto;
@@ -422,7 +486,8 @@ a {
     min-height: 0;
   }
 
-  .how-to-tip-grid {
+  .how-to-tip-grid,
+  .how-to-related-link-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -433,7 +498,8 @@ a {
   }
 
   .how-to-page .how-to-steps,
-  .how-to-page .how-to-tips {
+  .how-to-page .how-to-tips,
+  .how-to-page .how-to-related-links {
     padding-left: 18px;
     padding-right: 18px;
   }

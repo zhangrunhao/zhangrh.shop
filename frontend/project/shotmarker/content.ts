@@ -3,9 +3,34 @@ export const CONTACT_EMAIL = "zhangrhweb@gmail.com";
 export const SUPPORT_PATH = "/shotmarker/support";
 export const PRIVACY_PATH = "/shotmarker/privacy";
 export const HOW_TO_PATH = "/shotmarker/how-to";
+export const ZHANGRH_SHOP_URL = "https://zhangrh.shop/hub/";
 export const EFFECTIVE_DATE = "May 17, 2026";
 export const LAST_UPDATED = "2026-05-17";
 export const DEVELOPER = "Rain / ShotMarker";
+
+export type HowToRelatedLink = {
+  title: string;
+  description: string;
+  href: string;
+};
+
+export const HOW_TO_RELATED_LINKS: readonly HowToRelatedLink[] = [
+  {
+    title: "ShotMarker Support",
+    description: "获取使用帮助、反馈问题。",
+    href: SUPPORT_PATH,
+  },
+  {
+    title: "Privacy Policy",
+    description: "查看 ShotMarker 隐私政策。",
+    href: PRIVACY_PATH,
+  },
+  {
+    title: "zhangrh.shop",
+    description: "返回 zhangrh.shop 作品主页。",
+    href: ZHANGRH_SHOP_URL,
+  },
+];
 
 export type ContentBlock =
   | { kind: "paragraph"; text: string; className?: string }

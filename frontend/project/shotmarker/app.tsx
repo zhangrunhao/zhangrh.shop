@@ -3,6 +3,7 @@ import {
   APP_NAME,
   CONTACT_EMAIL,
   DEVELOPER,
+  HOW_TO_RELATED_LINKS,
   howToPage,
   LAST_UPDATED,
   privacyPage,
@@ -116,7 +117,7 @@ const stepVisuals = [
   },
 ] as const;
 
-const HowToPage = () => (
+export const HowToPage = () => (
   <main className="how-to-page">
     <section className="how-to-hero" aria-labelledby="how-to-title">
       <div className="how-to-hero-inner">
@@ -181,6 +182,24 @@ const HowToPage = () => (
         </div>
       </section>
     ) : null}
+
+    <section
+      className="how-to-related-links"
+      aria-labelledby="how-to-related-links-title"
+    >
+      <div className="how-to-section-title compact">
+        <h2 id="how-to-related-links-title">相关链接</h2>
+      </div>
+      <div className="how-to-related-link-grid">
+        {HOW_TO_RELATED_LINKS.map((link) => (
+          <a className="how-to-related-link" href={link.href} key={link.href}>
+            <h3>{link.title}</h3>
+            <p>{link.description}</p>
+            <span aria-hidden="true">→</span>
+          </a>
+        ))}
+      </div>
+    </section>
   </main>
 );
 
