@@ -130,6 +130,11 @@ test("Hub work pages render the Work contract", async (t) => {
     await t.test("HomePage renders linked featured cards without nested links", () => {
       const html = renderToStaticMarkup(createElement(HomePage));
       let previousLinkIndex = -1;
+      const statusLabels = {
+        active: "Active",
+        paused: "Paused",
+        archived: "Archived",
+      };
 
       for (const work of FEATURED_WORKS) {
         const link = `href="${work.link}"`;
@@ -148,6 +153,11 @@ test("Hub work pages render the Work contract", async (t) => {
         );
         assert.ok(
           html.slice(linkIndex, closingAnchorIndex).includes('rel="noreferrer"'),
+        );
+        assert.ok(
+          html
+            .slice(linkIndex, closingAnchorIndex)
+            .includes(`>${statusLabels[work.status]}</span>`),
         );
 
         previousLinkIndex = linkIndex;

@@ -12,6 +12,7 @@ import {
   MailIcon,
 } from "../components/icons";
 import { Link } from "../components/link";
+import { WorkStatusBadge } from "../components/work-card";
 
 const sectionHeadingClassName =
   "text-[28px] font-semibold leading-9 tracking-normal text-[#171717]";
@@ -86,9 +87,7 @@ export const HomePage = ({ articles = ARTICLES }: HomePageProps) => {
                   <h3 className="text-[20px] font-semibold leading-7 tracking-normal text-[#171717]">
                     {work.name}
                   </h3>
-                  <span className="rounded-md bg-[#f5f5f5] px-2 py-1 text-xs font-medium tracking-normal text-[#737373]">
-                    Work
-                  </span>
+                  <WorkStatusBadge status={work.status} />
                 </div>
                 <p className="mt-4 text-sm leading-6 tracking-normal text-[#525252]">
                   {work.summary}
