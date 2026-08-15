@@ -44,7 +44,7 @@
 - Create: `backend/tools/track-query.test.mjs`
 - Create: `backend/projects/track-query.js`
 
-- [ ] **Step 1：创建真实临时目录测试夹具**
+- [x] **Step 1：创建真实临时目录测试夹具**
 
 在 `backend/tools/track-query.test.mjs` 写入测试公共部分：
 
@@ -94,7 +94,7 @@ const createLogDir = async (t) => {
 const writeCurrent = (logDir, content) => writeFile(path.join(logDir, 'events.jsonl'), content)
 ```
 
-- [ ] **Step 2：写基础聚合失败测试**
+- [x] **Step 2：写基础聚合失败测试**
 
 追加一个覆盖跨项目设备去重、稳定排序、页面/按钮维度和北京时间 daily 的测试：
 
@@ -182,7 +182,7 @@ test('returns ninety zero-filled Shanghai days for an empty readable directory',
 })
 ```
 
-- [ ] **Step 3：运行目标测试并确认 RED**
+- [x] **Step 3：运行目标测试并确认 RED**
 
 Run:
 
@@ -192,7 +192,7 @@ node --test --test-name-pattern='summarizes valid plain JSONL|returns ninety zer
 
 Expected: FAIL，原因是 `../projects/track-query.js` 尚不存在；不能接受语法错误或夹具错误作为 RED。
 
-- [ ] **Step 4：实现最小公共类型、时间范围和普通 JSONL 聚合**
+- [x] **Step 4：实现最小公共类型、时间范围和普通 JSONL 聚合**
 
 在 `backend/projects/track-query.js` 实现以下公开接口和内部结构：
 
@@ -265,7 +265,7 @@ buildResponse(state)
 
 本任务的最小版本只需让单个普通 `events.jsonl` 的有效记录通过；gzip、轮转竞争和资源失败在后续任务补充。所有返回数组必须按 Spec 的字符串顺序排序，`generated_at` 使用聚合完成时的真实 UTC ISO 时间。
 
-- [ ] **Step 5：运行目标测试并确认 GREEN**
+- [x] **Step 5：运行目标测试并确认 GREEN**
 
 Run:
 
@@ -275,7 +275,7 @@ node --test --test-name-pattern='summarizes valid plain JSONL|returns ninety zer
 
 Expected: 1 个目标测试 PASS，没有未处理 Promise、资源泄漏或警告。
 
-- [ ] **Step 6：提交基础聚合**
+- [x] **Step 6：提交基础聚合**
 
 ```bash
 git add backend/projects/track-query.js backend/tools/track-query.test.mjs
@@ -291,7 +291,7 @@ git commit -m 'feat: 实现埋点日志基础聚合'
 - Modify: `backend/tools/track-query.test.mjs`
 - Modify: `backend/projects/track-query.js`
 
-- [ ] **Step 1：写 URL 解码、未知维度和项目过滤失败测试**
+- [x] **Step 1：写 URL 解码、未知维度和项目过滤失败测试**
 
 追加测试：
 
@@ -330,7 +330,7 @@ test('decodes form query params and keeps unknown dimension values', async (t) =
 })
 ```
 
-- [ ] **Step 2：写字段拒绝和 request_id 去重失败测试**
+- [x] **Step 2：写字段拒绝和 request_id 去重失败测试**
 
 使用数据驱动方式追加：
 
@@ -361,7 +361,7 @@ test('rejects invalid records and deduplicates valid request ids', async (t) => 
 })
 ```
 
-- [ ] **Step 3：写时间分类、空行、损坏 JSON、忽略维度和尾行闭环失败测试**
+- [x] **Step 3：写时间分类、空行、损坏 JSON、忽略维度和尾行闭环失败测试**
 
 追加：
 
@@ -410,7 +410,7 @@ test('accepts a complete final JSON object without a trailing newline', async (t
 })
 ```
 
-- [ ] **Step 4：运行新增测试并确认 RED**
+- [x] **Step 4：运行新增测试并确认 RED**
 
 Run:
 
@@ -420,7 +420,7 @@ node --test --test-name-pattern='decodes form|rejects invalid|classifies every' 
 
 Expected: FAIL，分别暴露项目过滤、严格字段验证或诊断分类尚未实现；基础测试继续通过。
 
-- [ ] **Step 5：实现严格验证与固定分类顺序**
+- [x] **Step 5：实现严格验证与固定分类顺序**
 
 在 `track-query.js` 中按以下顺序处理每一行：
 
@@ -449,7 +449,7 @@ const PROJECTS = new Set(['hub', 'cardgame'])
 
 `request_id` 在完整字段和 params 验证成功后立即加入本次查询的 `Set`，因此后续范围外或项目过滤记录的重复副本仍分类为 duplicate。所有聚合 Set 只在记录最终纳入后更新。
 
-- [ ] **Step 6：运行聚合测试并确认 GREEN**
+- [x] **Step 6：运行聚合测试并确认 GREEN**
 
 Run:
 
@@ -459,7 +459,7 @@ node --test --test-name-pattern='summarizes valid|decodes form|rejects invalid|c
 
 Expected: 4 个目标测试全部 PASS，且 `included_records === totals.events`。
 
-- [ ] **Step 7：提交校验和诊断**
+- [x] **Step 7：提交校验和诊断**
 
 ```bash
 git add backend/projects/track-query.js backend/tools/track-query.test.mjs
@@ -475,7 +475,7 @@ git commit -m 'feat: 完善埋点记录校验与诊断'
 - Modify: `backend/tools/track-query.test.mjs`
 - Modify: `backend/projects/track-query.js`
 
-- [ ] **Step 1：补充 gzip 与文件系统测试依赖**
+- [x] **Step 1：补充 gzip 与文件系统测试依赖**
 
 把测试文件的导入扩展为：
 
@@ -488,7 +488,7 @@ import { promisify } from 'node:util'
 const gzip = promisify(gzipCallback)
 ```
 
-- [ ] **Step 2：写当前、未压缩轮转和 gzip 联合读取失败测试**
+- [x] **Step 2：写当前、未压缩轮转和 gzip 联合读取失败测试**
 
 ```js
 test('reads rotated plain and gzip files without double-counting same-date pairs', async (t) => {
@@ -529,7 +529,7 @@ test('reads rotated plain and gzip files without double-counting same-date pairs
 })
 ```
 
-- [ ] **Step 3：写查询期间追加数据不混入固定快照的失败测试**
+- [x] **Step 3：写查询期间追加数据不混入固定快照的失败测试**
 
 ```js
 test('does not include bytes appended after the query snapshot', async (t) => {
@@ -560,7 +560,7 @@ test('does not include bytes appended after the query snapshot', async (t) => {
 
 测试必须确认追加发生时 `summaryPromise` 尚未完成；如果已经完成，增加初始记录数量，不能通过放宽断言掩盖竞态。
 
-- [ ] **Step 4：写 inode 竞争重试和持续竞争失败测试**
+- [x] **Step 4：写 inode 竞争重试和持续竞争失败测试**
 
 `track-query.js` 必须通过共享的 `fs.promises` 对象调用 `lstat/open/readdir`，测试才能在单进程内精确替换 `open`。追加：
 
@@ -607,7 +607,7 @@ test('retries one inode replacement and rejects a second consecutive race', asyn
 })
 ```
 
-- [ ] **Step 5：写缺失目录和损坏 gzip 失败测试**
+- [x] **Step 5：写缺失目录和损坏 gzip 失败测试**
 
 ```js
 test('maps missing directories and corrupt gzip files to unavailable errors', async (t) => {
@@ -627,7 +627,7 @@ test('maps missing directories and corrupt gzip files to unavailable errors', as
 })
 ```
 
-- [ ] **Step 6：运行轮转测试并确认 RED**
+- [x] **Step 6：运行轮转测试并确认 RED**
 
 Run:
 
@@ -637,7 +637,7 @@ node --test --test-name-pattern='reads rotated|does not include bytes|retries on
 
 Expected: FAIL，原因是轮转文件、gzip 或快照大小尚未实现。
 
-- [ ] **Step 7：实现受控文件发现和两次快照尝试**
+- [x] **Step 7：实现受控文件发现和两次快照尝试**
 
 实现严格候选规则：
 
@@ -659,7 +659,7 @@ const ROTATED_FILE_PATTERN = /^events\.jsonl-(\d{8})(\.gz)?$/
 
 普通文件使用固定 `start/end` 的读取流；gzip 文件先用同样的压缩字节范围创建流，再经过 `createGunzip()`，不创建临时文件。流错误统一转换为 `TrackLogUnavailableError`，但资源上限和超时错误必须保持原类型。
 
-- [ ] **Step 8：运行全部聚合测试并确认 GREEN**
+- [x] **Step 8：运行全部聚合测试并确认 GREEN**
 
 Run:
 
@@ -669,7 +669,7 @@ node --test --test-name-pattern='summarizes valid|decodes form|rejects invalid|c
 
 Expected: 所有目标测试 PASS；同日期 `.gz` 记录没有重复计数。
 
-- [ ] **Step 9：提交轮转读取**
+- [x] **Step 9：提交轮转读取**
 
 ```bash
 git add backend/projects/track-query.js backend/tools/track-query.test.mjs
@@ -685,7 +685,7 @@ git commit -m 'feat: 支持埋点轮转日志快照读取'
 - Modify: `backend/tools/track-query.test.mjs`
 - Modify: `backend/projects/track-query.js`
 
-- [ ] **Step 1：写单行、params 和解压总量上限失败测试**
+- [x] **Step 1：写单行、params 和解压总量上限失败测试**
 
 ```js
 test('rejects oversized lines and decoded input while classifying oversized params', async (t) => {
@@ -732,7 +732,7 @@ test('rejects oversized lines and decoded input while classifying oversized para
 })
 ```
 
-- [ ] **Step 2：写设备数和维度 key 上限失败测试**
+- [x] **Step 2：写设备数和维度 key 上限失败测试**
 
 ```js
 test('rejects aggregation cardinality above configured limits', async (t) => {
@@ -776,7 +776,7 @@ test('rejects aggregation cardinality above configured limits', async (t) => {
 })
 ```
 
-- [ ] **Step 3：写超时和主动让出事件循环失败测试**
+- [x] **Step 3：写超时和主动让出事件循环失败测试**
 
 ```js
 test('times out and yields to the event loop during large scans', async (t) => {
@@ -817,7 +817,7 @@ test('times out and yields to the event loop during large scans', async (t) => {
 })
 ```
 
-- [ ] **Step 4：运行资源测试并确认 RED**
+- [x] **Step 4：运行资源测试并确认 RED**
 
 Run:
 
@@ -827,7 +827,7 @@ node --test --test-name-pattern='rejects oversized|rejects aggregation|times out
 
 Expected: FAIL，缺少至少一种明确资源保护行为；不能把无关 I/O 错误当作预期失败。
 
-- [ ] **Step 5：实现有界分行器和统一截止时间**
+- [x] **Step 5：实现有界分行器和统一截止时间**
 
 实现要求：
 
@@ -840,7 +840,7 @@ Expected: FAIL，缺少至少一种明确资源保护行为；不能把无关 I/
 - `maxUniqueDevices` 检查最终纳入记录的全局设备集合；`maxDimensionKeys` 分别检查 event/page/button Map 的 key 数。
 - 任何上限失败不返回部分统计。
 
-- [ ] **Step 6：运行完整聚合测试文件并确认 GREEN**
+- [x] **Step 6：运行完整聚合测试文件并确认 GREEN**
 
 Run:
 
@@ -850,7 +850,7 @@ node --test backend/tools/track-query.test.mjs
 
 Expected: 所有聚合测试 PASS；进程退出，没有悬挂 timer 或打开句柄。
 
-- [ ] **Step 7：提交资源保护**
+- [x] **Step 7：提交资源保护**
 
 ```bash
 git add backend/projects/track-query.js backend/tools/track-query.test.mjs
@@ -866,7 +866,7 @@ git commit -m 'feat: 增加埋点查询资源保护'
 - Create: `backend/tools/track-route.test.mjs`
 - Create: `backend/projects/track.js`
 
-- [ ] **Step 1：创建真实 Express 测试服务器夹具**
+- [x] **Step 1：创建真实 Express 测试服务器夹具**
 
 在 `backend/tools/track-route.test.mjs` 写入：
 
@@ -938,7 +938,7 @@ const startApp = async (t, options = {}) => {
 }
 ```
 
-- [ ] **Step 2：写默认参数、合法参数和严格路径失败测试**
+- [x] **Step 2：写默认参数、合法参数和严格路径失败测试**
 
 ```js
 test('accepts only the exact lowercase summary route and valid query values', async (t) => {
@@ -974,7 +974,7 @@ test('accepts only the exact lowercase summary route and valid query values', as
 })
 ```
 
-- [ ] **Step 3：写 query 参数拒绝失败测试**
+- [x] **Step 3：写 query 参数拒绝失败测试**
 
 ```js
 test('rejects malformed duplicate and unknown query parameters before scanning', async (t) => {
@@ -1010,7 +1010,7 @@ test('rejects malformed duplicate and unknown query parameters before scanning',
 })
 ```
 
-- [ ] **Step 4：写并发和错误映射失败测试**
+- [x] **Step 4：写并发和错误映射失败测试**
 
 ```js
 test('allows one scan and rejects concurrent requests without leaking the counter', async (t) => {
@@ -1079,7 +1079,7 @@ test('returns a sanitized internal error without logging raw exception content',
 })
 ```
 
-- [ ] **Step 5：运行路由测试并确认 RED**
+- [x] **Step 5：运行路由测试并确认 RED**
 
 Run:
 
@@ -1089,7 +1089,7 @@ node --test backend/tools/track-route.test.mjs
 
 Expected: FAIL，原因是 `projects/track.js` 尚不存在。
 
-- [ ] **Step 6：实现严格 Router、校验和错误响应**
+- [x] **Step 6：实现严格 Router、校验和错误响应**
 
 在 `backend/projects/track.js` 实现：
 
@@ -1157,7 +1157,7 @@ console.error('track_query_failed', {
 })
 ```
 
-- [ ] **Step 7：运行路由和全部 Backend 测试并确认 GREEN**
+- [x] **Step 7：运行路由和全部 Backend 测试并确认 GREEN**
 
 Run:
 
@@ -1168,7 +1168,7 @@ npm --prefix backend test
 
 Expected: Track 路由测试和既有 Cardgame/发布测试全部 PASS。
 
-- [ ] **Step 8：提交 HTTP 路由**
+- [x] **Step 8：提交 HTTP 路由**
 
 ```bash
 git add backend/projects/track.js backend/tools/track-route.test.mjs
@@ -1184,7 +1184,7 @@ git commit -m 'feat: 添加埋点公开查询路由'
 - Modify: `backend/server.js`
 - Modify: `backend/tools/track-route.test.mjs`
 
-- [ ] **Step 1：写默认目录契约失败测试**
+- [x] **Step 1：写默认目录契约失败测试**
 
 在 `track-route.test.mjs` 增加对生产入口源码的最小静态契约测试，避免启动真实长期监听进程：
 
@@ -1200,7 +1200,7 @@ test('server registers Track with the configured read-only log directory', async
 })
 ```
 
-- [ ] **Step 2：运行测试并确认 RED**
+- [x] **Step 2：运行测试并确认 RED**
 
 Run:
 
@@ -1210,7 +1210,7 @@ node --test --test-name-pattern='server registers Track' backend/tools/track-rou
 
 Expected: FAIL，因为 `backend/server.js` 尚未导入或注册 Track。
 
-- [ ] **Step 3：修改 Backend 入口**
+- [x] **Step 3：修改 Backend 入口**
 
 把 `backend/server.js` 调整为：
 
@@ -1243,7 +1243,7 @@ server.listen(PORT, () => {
 
 Track 注册不能访问文件系统；目录缺失必须等到查询时才返回 `503`，Backend 启动、`/health` 和 Cardgame 注册不受影响。
 
-- [ ] **Step 4：运行 Backend 全部测试并确认 GREEN**
+- [x] **Step 4：运行 Backend 全部测试并确认 GREEN**
 
 Run:
 
@@ -1253,7 +1253,7 @@ npm --prefix backend test
 
 Expected: 全部 PASS，没有新增 npm 依赖或 lockfile 变化。
 
-- [ ] **Step 5：确认生产发布边界无需改动**
+- [x] **Step 5：确认生产发布边界无需改动**
 
 Run:
 
@@ -1263,7 +1263,7 @@ git diff -- backend/Dockerfile backend/package.json backend/package-lock.json ba
 
 Expected: 无输出。`Dockerfile` 已复制 `projects`，发布白名单已包含 `projects/***`。
 
-- [ ] **Step 6：提交 Backend 接入**
+- [x] **Step 6：提交 Backend 接入**
 
 ```bash
 git add backend/server.js backend/tools/track-route.test.mjs
@@ -1280,7 +1280,7 @@ git commit -m 'feat: 接入埋点查询服务'
 - Modify: `docs/deploy/README.md`
 - Modify: `RUNBOOK.md`
 
-- [ ] **Step 1：更新前端埋点数据边界**
+- [x] **Step 1：更新前端埋点数据边界**
 
 在 `frontend/docs/track.md` 把“仓库中没有可确认的持久化”替换为以下事实：
 
@@ -1300,7 +1300,7 @@ GET /api/track/summary?days=<1-90>&project=<hub|cardgame>
 该接口第一阶段无需鉴权，结果属于公开、低风险的产品观察数据。客户端事件和设备标识均可伪造，不能用于计费、风控、审计或强一致业务指标。
 ````
 
-- [ ] **Step 2：更新部署架构和服务器私有资产边界**
+- [x] **Step 2：更新部署架构和服务器私有资产边界**
 
 在 `docs/deploy/README.md`：
 
@@ -1315,7 +1315,7 @@ curl --fail-with-body 'https://zhangrh.shop/api/track/summary?days=1'
 
 5. 明确发布脚本不会修改服务器 Compose、Nginx 或 `/etc/logrotate.d`。
 
-- [ ] **Step 3：更新运行手册**
+- [x] **Step 3：更新运行手册**
 
 在 `RUNBOOK.md` 增加“埋点查询”章节，包含：
 
@@ -1341,7 +1341,7 @@ curl --fail-with-body \
 
 文档不得包含真实 IP、访问日志、设备 ID、Token、证书内容、Compose 全文或 Nginx 私有配置全文。
 
-- [ ] **Step 4：检查公开仓库隐私边界**
+- [x] **Step 4：检查公开仓库隐私边界**
 
 Run:
 
@@ -1358,7 +1358,7 @@ rg -o -N 'Device[0-9]{6}' \
 
 Expected: 第一条命令无输出；第二条只列出 `Device` 前缀的明确合成测试值，不出现真实设备样本。
 
-- [ ] **Step 5：提交公开文档**
+- [x] **Step 5：提交公开文档**
 
 ```bash
 git add frontend/docs/track.md docs/deploy/README.md RUNBOOK.md
@@ -1373,7 +1373,7 @@ git commit -m 'docs: 更新埋点持久化与查询说明'
 
 - Modify: `docs/superpowers/plans/2026-08-15-track-jsonl-query-api.md`（只勾选实际完成的步骤）
 
-- [ ] **Step 1：运行 Backend 目标测试**
+- [x] **Step 1：运行 Backend 目标测试**
 
 ```bash
 node --test backend/tools/track-query.test.mjs
@@ -1382,7 +1382,7 @@ node --test backend/tools/track-route.test.mjs
 
 Expected: 两个测试文件全部 PASS、0 FAIL。
 
-- [ ] **Step 2：运行 Backend 全部测试**
+- [x] **Step 2：运行 Backend 全部测试**
 
 ```bash
 npm --prefix backend test
@@ -1390,7 +1390,7 @@ npm --prefix backend test
 
 Expected: 新 Track 测试与既有 Cardgame/发布测试全部 PASS。
 
-- [ ] **Step 3：运行仓库级验证**
+- [x] **Step 3：运行仓库级验证**
 
 ```bash
 npm test
@@ -1399,7 +1399,7 @@ npm run check
 
 Expected: 自动化、前端、Backend 测试、lint、类型检查和全部前端构建成功。
 
-- [ ] **Step 4：检查文件范围和格式**
+- [x] **Step 4：检查文件范围和格式**
 
 ```bash
 git status --short
@@ -1415,7 +1415,7 @@ Expected:
 - 最后一条命令无输出。
 - 不包含生产 Compose、Nginx 配置、logrotate 文件或真实数据。
 
-- [ ] **Step 5：核对 Spec 完成标准**
+- [x] **Step 5：核对 Spec 完成标准**
 
 逐项确认：
 
@@ -1432,14 +1432,14 @@ Expected:
 未新增认证、Session、管理页面、npm 依赖或生产私有资产。
 ```
 
-- [ ] **Step 6：提交计划完成状态（仅在确有勾选变化时）**
+- [x] **Step 6：提交计划完成状态（仅在确有勾选变化时）**
 
 ```bash
 git add docs/superpowers/plans/2026-08-15-track-jsonl-query-api.md
 git commit -m 'docs: 完成埋点查询实现计划'
 ```
 
-- [ ] **Step 7：停止在本地实现边界**
+- [x] **Step 7：停止在本地实现边界**
 
 不要执行以下服务器变更：
 
