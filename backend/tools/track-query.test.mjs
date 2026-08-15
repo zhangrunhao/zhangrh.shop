@@ -119,3 +119,104 @@ test('returns ninety zero-filled Shanghai days for an empty readable directory',
   assert.deepEqual(result.daily.at(-1), { date: '2026-08-15', events: 0, devices: 0 })
   assert.equal(result.diagnostics.files_read, 0)
 })
+
+test('decodes form query params and keeps unknown dimension values', async (t) => {
+  const logDir = await createLogDir(t)
+  await writeCurrent(
+    logDir,
+    jsonl(
+      record({
+        request_id: requestId(10),
+        event: 'future_event.v2',
+        params_encoded: '%7B%22page_name%22%3A%22ideas%22%2C%22button%22%3A%22a+b%2Bc%22%2C%22extra%22%3A1%7D',
+      }),
+      record({
+        request_id: requestId(11),
+        project: 'cardgame',
+        params_encoded: encodeParams({ button: 'create_room' }),
+      }),
+    ),
+  )
+
+  const result = await summarizeTrackEvents({ logDir, days: 1, project: 'hub', now: FIXED_NOW })
+
+  assert.equal(result.totals.events, 1)
+  assert.deepEqual(result.event_breakdown, [
+    { project: 'hub', event: 'future_event.v2', events: 1, devices: 1 },
+  ])
+  assert.deepEqual(result.page_breakdown, [
+    { project: 'hub', page_name: 'ideas', events: 1, devices: 1 },
+  ])
+  assert.deepEqual(result.button_breakdown, [
+    { project: 'hub', button: 'a b+c', events: 1, devices: 1 },
+  ])
+  assert.equal(result.diagnostics.project_filtered_records, 1)
+})
+
+test('rejects invalid records and deduplicates valid request ids', async (t) => {
+  const logDir = await createLogDir(t)
+  const invalidRecords = [
+    record({ request_id: requestId(20), schema_version: 2 }),
+    record({ request_id: 'A'.repeat(32) }),
+    record({ request_id: requestId(22), received_at: 'not-a-date' }),
+    record({ request_id: requestId(23), client_time: '1e12' }),
+    record({ request_id: requestId(24), project: 'audit' }),
+    record({ request_id: requestId(25), device_id: 'short' }),
+    record({ request_id: requestId(26), event: '1bad' }),
+    record({ request_id: requestId(27), params_encoded: '%E0%A4%A' }),
+    record({ request_id: requestId(28), params_encoded: encodeParams([]) }),
+  ]
+  const accepted = record({ request_id: requestId(29) })
+
+  await writeCurrent(logDir, jsonl(...invalidRecords, accepted, accepted))
+
+  const result = await summarizeTrackEvents({ logDir, days: 1, project: null, now: FIXED_NOW })
+
+  assert.equal(result.totals.events, 1)
+  assert.equal(result.diagnostics.rejected_records, invalidRecords.length)
+  assert.equal(result.diagnostics.duplicate_records, 1)
+  assert.equal(result.diagnostics.included_records, 1)
+})
+
+test('classifies every scanned line and ignores only invalid dimensions', async (t) => {
+  const logDir = await createLogDir(t)
+  const tooLong = 'x'.repeat(129)
+  const content = [
+    '',
+    '{bad json}',
+    JSON.stringify(record({ request_id: requestId(30), project: 'diagnostic' })),
+    JSON.stringify(record({ request_id: requestId(31), received_at: '2026-08-14T15:59:59.999Z' })),
+    JSON.stringify(record({ request_id: requestId(32), project: 'cardgame' })),
+    JSON.stringify(record({
+      request_id: requestId(33),
+      params_encoded: encodeParams({ page_name: tooLong, button: 42 }),
+    })),
+    '{"schema_version":1',
+  ].join('\n')
+  await writeCurrent(logDir, content)
+
+  const result = await summarizeTrackEvents({ logDir, days: 1, project: 'hub', now: FIXED_NOW })
+
+  assert.equal(result.diagnostics.lines_read, 7)
+  assert.equal(result.diagnostics.empty_lines, 1)
+  assert.equal(result.diagnostics.invalid_json_lines, 1)
+  assert.equal(result.diagnostics.rejected_records, 1)
+  assert.equal(result.diagnostics.duplicate_records, 0)
+  assert.equal(result.diagnostics.out_of_range_records, 1)
+  assert.equal(result.diagnostics.project_filtered_records, 1)
+  assert.equal(result.diagnostics.included_records, 1)
+  assert.equal(result.diagnostics.ignored_dimensions, 2)
+  assert.equal(result.diagnostics.partial_lines, 1)
+  assert.equal(result.totals.events, 1)
+})
+
+test('accepts a complete final JSON object without a trailing newline', async (t) => {
+  const logDir = await createLogDir(t)
+  await writeCurrent(logDir, JSON.stringify(record({ request_id: requestId(34) })))
+
+  const result = await summarizeTrackEvents({ logDir, days: 1, project: null, now: FIXED_NOW })
+
+  assert.equal(result.totals.events, 1)
+  assert.equal(result.diagnostics.lines_read, 1)
+  assert.equal(result.diagnostics.partial_lines, 0)
+})

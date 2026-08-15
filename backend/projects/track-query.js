@@ -5,6 +5,12 @@ const fileSystem = fs.promises
 
 const TRACK_TIMEZONE = 'Asia/Shanghai'
 const SHANGHAI_OFFSET_MS = 8 * 60 * 60 * 1000
+const MAX_PARAMS_BYTES = 16 * 1024
+const REQUEST_ID_PATTERN = /^[0-9a-f]{32}$/
+const CLIENT_TIME_PATTERN = /^\d{10,16}$/
+const DEVICE_ID_PATTERN = /^[A-Za-z0-9]{12}$/
+const EVENT_PATTERN = /^[A-Za-z][A-Za-z0-9_.:-]{0,63}$/
+const PROJECTS = new Set(['hub', 'cardgame'])
 
 export class TrackLogUnavailableError extends Error {
   constructor(message = 'track log is unavailable', options) {
@@ -79,8 +85,55 @@ const createDiagnostics = () => ({
 
 const decodeParams = (encoded) => {
   const decoded = decodeURIComponent(encoded.replace(/\+/g, ' '))
+  if (Buffer.byteLength(decoded, 'utf8') > MAX_PARAMS_BYTES) return null
   const params = JSON.parse(decoded)
   return params && typeof params === 'object' && !Array.isArray(params) ? params : null
+}
+
+const isDimension = (value) => {
+  return typeof value === 'string' && value.length >= 1 && value.length <= 128
+}
+
+const parseRecord = (parsed, diagnostics) => {
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+  if (parsed.schema_version !== 1) return null
+  if (typeof parsed.request_id !== 'string' || !REQUEST_ID_PATTERN.test(parsed.request_id)) return null
+  if (typeof parsed.received_at !== 'string') return null
+
+  const receivedMs = Date.parse(parsed.received_at)
+  if (!Number.isFinite(receivedMs)) return null
+  if (typeof parsed.client_time !== 'string' || !CLIENT_TIME_PATTERN.test(parsed.client_time)) return null
+  if (typeof parsed.project !== 'string' || !PROJECTS.has(parsed.project)) return null
+  if (typeof parsed.device_id !== 'string' || !DEVICE_ID_PATTERN.test(parsed.device_id)) return null
+  if (typeof parsed.event !== 'string' || !EVENT_PATTERN.test(parsed.event)) return null
+  if (typeof parsed.params_encoded !== 'string') return null
+
+  let params
+  try {
+    params = decodeParams(parsed.params_encoded)
+  } catch {
+    return null
+  }
+  if (!params) return null
+
+  const dimensions = {}
+  for (const key of ['page_name', 'button']) {
+    if (!Object.hasOwn(params, key)) continue
+    if (isDimension(params[key])) {
+      dimensions[key] = params[key]
+    } else {
+      diagnostics.ignored_dimensions += 1
+    }
+  }
+
+  return {
+    requestId: parsed.request_id,
+    receivedMs,
+    project: parsed.project,
+    deviceId: parsed.device_id,
+    event: parsed.event,
+    ...dimensions,
+  }
 }
 
 const addCount = (map, key, values, deviceId) => {
@@ -115,6 +168,7 @@ const createState = (range, project) => ({
   pages: new Map(),
   buttons: new Map(),
   daily: new Map(range.dates.map((date) => [date, { date, events: 0, deviceIds: new Set() }])),
+  requestIds: new Set(),
   earliestMs: null,
   latestMs: null,
 })
@@ -134,55 +188,51 @@ const includeLine = (state, line) => {
     return
   }
 
-  let params
-  try {
-    params = decodeParams(parsed.params_encoded)
-  } catch {
-    state.diagnostics.rejected_records += 1
-    return
-  }
-  if (!params) {
+  const parsedRecord = parseRecord(parsed, state.diagnostics)
+  if (!parsedRecord) {
     state.diagnostics.rejected_records += 1
     return
   }
 
-  const receivedMs = Date.parse(parsed.received_at)
-  if (!Number.isFinite(receivedMs)) {
-    state.diagnostics.rejected_records += 1
+  if (state.requestIds.has(parsedRecord.requestId)) {
+    state.diagnostics.duplicate_records += 1
     return
   }
+  state.requestIds.add(parsedRecord.requestId)
+
+  const { receivedMs } = parsedRecord
   if (receivedMs < state.range.fromMs || receivedMs > state.range.toMs) {
     state.diagnostics.out_of_range_records += 1
     return
   }
-  if (state.project && parsed.project !== state.project) {
+  if (state.project && parsedRecord.project !== state.project) {
     state.diagnostics.project_filtered_records += 1
     return
   }
 
-  const deviceId = parsed.device_id
+  const deviceId = parsedRecord.deviceId
   state.deviceIds.add(deviceId)
-  addCount(state.projects, parsed.project, { project: parsed.project }, deviceId)
+  addCount(state.projects, parsedRecord.project, { project: parsedRecord.project }, deviceId)
   addCount(
     state.events,
-    JSON.stringify([parsed.project, parsed.event]),
-    { project: parsed.project, event: parsed.event },
+    JSON.stringify([parsedRecord.project, parsedRecord.event]),
+    { project: parsedRecord.project, event: parsedRecord.event },
     deviceId,
   )
 
-  if (typeof params.page_name === 'string' && params.page_name.length > 0) {
+  if (parsedRecord.page_name) {
     addCount(
       state.pages,
-      JSON.stringify([parsed.project, params.page_name]),
-      { project: parsed.project, page_name: params.page_name },
+      JSON.stringify([parsedRecord.project, parsedRecord.page_name]),
+      { project: parsedRecord.project, page_name: parsedRecord.page_name },
       deviceId,
     )
   }
-  if (typeof params.button === 'string' && params.button.length > 0) {
+  if (parsedRecord.button) {
     addCount(
       state.buttons,
-      JSON.stringify([parsed.project, params.button]),
-      { project: parsed.project, button: params.button },
+      JSON.stringify([parsedRecord.project, parsedRecord.button]),
+      { project: parsedRecord.project, button: parsedRecord.button },
       deviceId,
     )
   }
@@ -232,7 +282,16 @@ const readCurrentFile = async (logDir, state) => {
         newlineIndex = pending.indexOf('\n')
       }
     }
-    if (pending.length > 0) includeLine(state, pending.replace(/\r$/, ''))
+    if (pending.length > 0) {
+      const finalLine = pending.replace(/\r$/, '')
+      try {
+        JSON.parse(finalLine)
+        includeLine(state, finalLine)
+      } catch {
+        state.diagnostics.lines_read += 1
+        state.diagnostics.partial_lines += 1
+      }
+    }
   } catch (error) {
     if (error instanceof TrackLogUnavailableError) throw error
     throw new TrackLogUnavailableError(undefined, { cause: error })
