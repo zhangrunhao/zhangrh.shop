@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 import express from 'express'
@@ -63,6 +64,14 @@ const startApp = async (t, options = {}) => {
   const address = server.address()
   return `http://127.0.0.1:${address.port}`
 }
+
+test('server registers Track with the configured read-only log directory', async () => {
+  const source = await readFile(new URL('../server.js', import.meta.url), 'utf8')
+  assert.match(source, /import \{ registerTrack \} from ['"]\.\/projects\/track\.js['"]/)
+  assert.match(source, /process\.env\.TRACK_LOG_DIR/)
+  assert.match(source, /\/var\/log\/nginx\/track/)
+  assert.match(source, /registerTrack\(app,/)
+})
 
 test('accepts only the exact lowercase summary route and valid query values', async (t) => {
   const calls = []
