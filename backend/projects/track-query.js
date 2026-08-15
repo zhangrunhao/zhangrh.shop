@@ -1,16 +1,23 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { StringDecoder } from 'node:string_decoder'
+import { setImmediate as yieldToEventLoop } from 'node:timers/promises'
+import { createGunzip } from 'node:zlib'
 
 const fileSystem = fs.promises
 
 const TRACK_TIMEZONE = 'Asia/Shanghai'
 const SHANGHAI_OFFSET_MS = 8 * 60 * 60 * 1000
+const CURRENT_FILE = 'events.jsonl'
+const ROTATED_FILE_PATTERN = /^events\.jsonl-(\d{8})(\.gz)?$/
 const MAX_PARAMS_BYTES = 16 * 1024
 const REQUEST_ID_PATTERN = /^[0-9a-f]{32}$/
 const CLIENT_TIME_PATTERN = /^\d{10,16}$/
 const DEVICE_ID_PATTERN = /^[A-Za-z0-9]{12}$/
 const EVENT_PATTERN = /^[A-Za-z][A-Za-z0-9_.:-]{0,63}$/
 const PROJECTS = new Set(['hub', 'cardgame'])
+
+class SnapshotRaceError extends Error {}
 
 export class TrackLogUnavailableError extends Error {
   constructor(message = 'track log is unavailable', options) {
@@ -248,7 +255,18 @@ const includeLine = (state, line) => {
   state.diagnostics.included_records += 1
 }
 
-const readCurrentFile = async (logDir, state) => {
+const isValidRotationDate = (value) => {
+  const year = Number(value.slice(0, 4))
+  const month = Number(value.slice(4, 6))
+  const day = Number(value.slice(6, 8))
+  const parsed = new Date(0)
+  parsed.setUTCHours(0, 0, 0, 0)
+  parsed.setUTCFullYear(year, month - 1, day)
+
+  return value === parsed.toISOString().slice(0, 10).replaceAll('-', '')
+}
+
+const discoverCandidates = async (logDir) => {
   let entries
   try {
     entries = await fileSystem.readdir(logDir, { withFileTypes: true })
@@ -256,47 +274,166 @@ const readCurrentFile = async (logDir, state) => {
     throw new TrackLogUnavailableError(undefined, { cause: error })
   }
 
-  const currentEntry = entries.find((entry) => entry.name === 'events.jsonl' && entry.isFile())
-  if (!currentEntry) return
+  let current = null
+  const rotations = new Map()
+  for (const entry of entries) {
+    if (!entry.isFile()) continue
+    if (entry.name === CURRENT_FILE) {
+      current = { name: entry.name, current: true, compressed: false }
+      continue
+    }
 
-  let fileHandle
+    const match = ROTATED_FILE_PATTERN.exec(entry.name)
+    if (!match || !isValidRotationDate(match[1])) continue
+    const candidate = {
+      name: entry.name,
+      date: match[1],
+      current: false,
+      compressed: Boolean(match[2]),
+    }
+    const existing = rotations.get(candidate.date)
+    if (!existing || (existing.compressed && !candidate.compressed)) {
+      rotations.set(candidate.date, candidate)
+    }
+  }
+
+  const candidates = [...rotations.values()].sort((left, right) => left.date.localeCompare(right.date))
+  if (current) candidates.push(current)
+  return candidates
+}
+
+const closeSnapshot = async (snapshot) => {
+  await Promise.all(snapshot.map((file) => file.handle.close().catch(() => {})))
+}
+
+const isSnapshotRaceError = (error) => {
+  return error instanceof SnapshotRaceError || ['ENOENT', 'ELOOP', 'EISDIR'].includes(error?.code)
+}
+
+const openSnapshotAttempt = async (logDir) => {
+  const candidates = await discoverCandidates(logDir)
+  const snapshot = []
+
   try {
-    fileHandle = await fileSystem.open(path.join(logDir, currentEntry.name), 'r')
-    const stats = await fileHandle.stat()
-    state.diagnostics.files_read += 1
-    if (stats.size === 0) return
+    for (const candidate of candidates) {
+      const filePath = path.join(logDir, candidate.name)
+      let before
+      try {
+        before = await fileSystem.lstat(filePath)
+      } catch (error) {
+        if (isSnapshotRaceError(error)) throw new SnapshotRaceError(undefined, { cause: error })
+        throw error
+      }
+      if (!before.isFile()) throw new SnapshotRaceError()
 
-    const stream = fileHandle.createReadStream({
-      start: 0,
-      end: stats.size - 1,
-      autoClose: false,
-    })
-    let pending = ''
+      let handle
+      try {
+        const noFollow = fs.constants.O_NOFOLLOW ?? 0
+        handle = await fileSystem.open(filePath, fs.constants.O_RDONLY | noFollow)
+      } catch (error) {
+        if (isSnapshotRaceError(error)) throw new SnapshotRaceError(undefined, { cause: error })
+        throw error
+      }
+
+      let after
+      try {
+        after = await handle.stat()
+        if (!after.isFile() || before.dev !== after.dev || before.ino !== after.ino) {
+          throw new SnapshotRaceError()
+        }
+        snapshot.push({ ...candidate, handle, size: after.size })
+      } catch (error) {
+        await handle.close().catch(() => {})
+        throw error
+      }
+    }
+    return snapshot
+  } catch (error) {
+    await closeSnapshot(snapshot)
+    throw error
+  }
+}
+
+const openSnapshot = async (logDir) => {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await openSnapshotAttempt(logDir)
+    } catch (error) {
+      if (isSnapshotRaceError(error) && attempt === 0) continue
+      if (error instanceof TrackLogUnavailableError) throw error
+      throw new TrackLogUnavailableError(undefined, { cause: error })
+    }
+  }
+  throw new TrackLogUnavailableError()
+}
+
+const readSnapshotFile = async (snapshotFile, state, limits = {}) => {
+  state.diagnostics.files_read += 1
+  if (snapshotFile.compressed) state.diagnostics.compressed_files_read += 1
+  if (snapshotFile.size === 0 && !snapshotFile.compressed) return
+  if (snapshotFile.size === 0) throw new TrackLogUnavailableError()
+
+  const readStream = snapshotFile.handle.createReadStream({
+    start: 0,
+    end: snapshotFile.size - 1,
+    autoClose: false,
+    highWaterMark: limits.readChunkBytes ?? 64 * 1024,
+  })
+  let stream = readStream
+  if (snapshotFile.compressed) {
+    const gunzip = createGunzip()
+    readStream.once('error', (error) => gunzip.destroy(error))
+    stream = readStream.pipe(gunzip)
+  }
+
+  const decoder = new StringDecoder('utf8')
+  let pending = ''
+  let linesSinceYield = 0
+  const yieldEveryLines = limits.yieldEveryLines ?? 500
+
+  try {
     for await (const chunk of stream) {
-      pending += chunk.toString('utf8')
+      pending += decoder.write(chunk)
       let newlineIndex = pending.indexOf('\n')
       while (newlineIndex !== -1) {
         const line = pending.slice(0, newlineIndex).replace(/\r$/, '')
         pending = pending.slice(newlineIndex + 1)
         includeLine(state, line)
+        linesSinceYield += 1
+        if (linesSinceYield >= yieldEveryLines) {
+          linesSinceYield = 0
+          await yieldToEventLoop()
+        }
         newlineIndex = pending.indexOf('\n')
       }
     }
+    pending += decoder.end()
     if (pending.length > 0) {
       const finalLine = pending.replace(/\r$/, '')
       try {
         JSON.parse(finalLine)
         includeLine(state, finalLine)
       } catch {
-        state.diagnostics.lines_read += 1
-        state.diagnostics.partial_lines += 1
+        if (snapshotFile.current) {
+          state.diagnostics.lines_read += 1
+          state.diagnostics.partial_lines += 1
+        } else {
+          includeLine(state, finalLine)
+        }
       }
     }
   } catch (error) {
-    if (error instanceof TrackLogUnavailableError) throw error
+    if (
+      error instanceof TrackLogUnavailableError
+      || error instanceof TrackLogTooLargeError
+      || error instanceof TrackQueryTimeoutError
+    ) {
+      throw error
+    }
     throw new TrackLogUnavailableError(undefined, { cause: error })
   } finally {
-    await fileHandle?.close().catch(() => {})
+    stream.destroy()
+    if (stream !== readStream) readStream.destroy()
   }
 }
 
@@ -321,9 +458,16 @@ const buildResponse = (state) => ({
   diagnostics: state.diagnostics,
 })
 
-export async function summarizeTrackEvents({ logDir, days, project, now }) {
+export async function summarizeTrackEvents({ logDir, days, project, now, limits }) {
   const range = buildRange(days, now)
   const state = createState(range, project)
-  await readCurrentFile(logDir, state)
-  return buildResponse(state)
+  const snapshot = await openSnapshot(logDir)
+  try {
+    for (const snapshotFile of snapshot) {
+      await readSnapshotFile(snapshotFile, state, limits)
+    }
+    return buildResponse(state)
+  } finally {
+    await closeSnapshot(snapshot)
+  }
 }

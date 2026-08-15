@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import fs from 'node:fs'
+import { appendFile, mkdtemp, rename, rm, symlink, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
+import { promisify } from 'node:util'
+import { gzip as gzipCallback } from 'node:zlib'
 
 import {
   summarizeTrackEvents,
@@ -12,6 +15,7 @@ import {
 } from '../projects/track-query.js'
 
 const FIXED_NOW = new Date('2026-08-15T12:30:00.000Z')
+const gzip = promisify(gzipCallback)
 
 const requestId = (value) => value.toString(16).padStart(32, '0')
 
@@ -219,4 +223,129 @@ test('accepts a complete final JSON object without a trailing newline', async (t
   assert.equal(result.totals.events, 1)
   assert.equal(result.diagnostics.lines_read, 1)
   assert.equal(result.diagnostics.partial_lines, 0)
+})
+
+test('reads rotated plain and gzip files without double-counting same-date pairs', async (t) => {
+  const logDir = await createLogDir(t)
+  await writeFile(
+    path.join(logDir, 'events.jsonl-20260813.gz'),
+    await gzip(jsonl(record({ request_id: requestId(40), received_at: '2026-08-13T16:01:00.000Z' }))),
+  )
+  await writeFile(
+    path.join(logDir, 'events.jsonl-20260814'),
+    jsonl(record({ request_id: requestId(41), received_at: '2026-08-14T16:01:00.000Z' })),
+  )
+  await writeFile(
+    path.join(logDir, 'events.jsonl-20260814.gz'),
+    await gzip(jsonl(record({
+      request_id: requestId(42),
+      received_at: '2026-08-14T17:01:00.000Z',
+      project: 'cardgame',
+    }))),
+  )
+  await writeCurrent(
+    logDir,
+    jsonl(record({ request_id: requestId(43), received_at: '2026-08-15T12:00:00.000Z' })),
+  )
+  await writeFile(path.join(logDir, 'events.jsonl-20260230'), jsonl(record({ request_id: requestId(44) })))
+  await writeFile(path.join(logDir, 'unrelated.jsonl'), jsonl(record({ request_id: requestId(45) })))
+  await symlink(path.join(logDir, 'events.jsonl'), path.join(logDir, 'events.jsonl-20260812'))
+
+  const result = await summarizeTrackEvents({ logDir, days: 3, project: null, now: FIXED_NOW })
+
+  assert.equal(result.totals.events, 3)
+  assert.equal(result.diagnostics.files_read, 3)
+  assert.equal(result.diagnostics.compressed_files_read, 1)
+  assert.equal(result.diagnostics.duplicate_records, 0)
+  assert.deepEqual(result.projects, [
+    { project: 'hub', events: 3, devices: 1 },
+  ])
+})
+
+test('does not include bytes appended after the query snapshot', async (t) => {
+  const logDir = await createLogDir(t)
+  const initial = Array.from({ length: 5_000 }, (_, index) =>
+    record({ request_id: requestId(1_000 + index) }),
+  )
+  await writeCurrent(logDir, jsonl(...initial))
+
+  let settled = false
+  const summaryPromise = summarizeTrackEvents({
+    logDir,
+    days: 1,
+    project: null,
+    now: FIXED_NOW,
+    limits: { readChunkBytes: 128, yieldEveryLines: 1 },
+  })
+  void summaryPromise.then(
+    () => { settled = true },
+    () => { settled = true },
+  )
+
+  await new Promise((resolve) => setTimeout(resolve, 25))
+  assert.equal(settled, false, 'query must still be reading when the append occurs')
+  await appendFile(
+    path.join(logDir, 'events.jsonl'),
+    jsonl(record({ request_id: requestId(9_999) })),
+  )
+
+  const result = await summaryPromise
+  assert.equal(result.totals.events, 5_000)
+})
+
+test('retries one inode replacement and rejects a second consecutive race', async (t) => {
+  const logDir = await createLogDir(t)
+  const currentPath = path.join(logDir, 'events.jsonl')
+  await writeCurrent(logDir, jsonl(record({ request_id: requestId(46) })))
+
+  const originalOpen = fs.promises.open
+  t.after(() => {
+    fs.promises.open = originalOpen
+  })
+
+  let replacements = 0
+  fs.promises.open = async (target, ...args) => {
+    if (target === currentPath && replacements === 0) {
+      replacements += 1
+      await rename(currentPath, `${currentPath}.swap-${replacements}`)
+      await writeCurrent(logDir, jsonl(record({ request_id: requestId(47) })))
+    }
+    return originalOpen(target, ...args)
+  }
+
+  const recovered = await summarizeTrackEvents({ logDir, days: 1, project: null, now: FIXED_NOW })
+  assert.equal(replacements, 1)
+  assert.equal(recovered.totals.events, 1)
+
+  replacements = 0
+  fs.promises.open = async (target, ...args) => {
+    if (target === currentPath && replacements < 2) {
+      replacements += 1
+      await rename(currentPath, `${currentPath}.persistent-${replacements}`)
+      await writeCurrent(logDir, jsonl(record({ request_id: requestId(48 + replacements) })))
+    }
+    return originalOpen(target, ...args)
+  }
+
+  await assert.rejects(
+    summarizeTrackEvents({ logDir, days: 1, project: null, now: FIXED_NOW }),
+    TrackLogUnavailableError,
+  )
+  assert.equal(replacements, 2)
+})
+
+test('maps missing directories and corrupt gzip files to unavailable errors', async (t) => {
+  const missingDir = path.join(os.tmpdir(), `track-missing-${Date.now()}`)
+  await assert.rejects(
+    summarizeTrackEvents({ logDir: missingDir, days: 1, project: null, now: FIXED_NOW }),
+    TrackLogUnavailableError,
+  )
+
+  const logDir = await createLogDir(t)
+  await writeCurrent(logDir, '')
+  await writeFile(path.join(logDir, 'events.jsonl-20260815.gz'), 'not gzip')
+  await assert.rejects(
+    summarizeTrackEvents({ logDir, days: 1, project: null, now: FIXED_NOW }),
+    TrackLogUnavailableError,
+  )
 })
