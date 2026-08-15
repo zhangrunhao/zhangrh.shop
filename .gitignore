@@ -26,3 +26,5 @@ frontend/project/hub/.generated/
 *.sw?
 
 output/
+.playwright-cli
+.superpowers
