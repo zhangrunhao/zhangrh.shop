@@ -9,6 +9,9 @@
 ├── https://zhangrh.shop/hub/        -> Hub HTML
 ├── https://zhangrh.shop/cardgame/   -> Cardgame HTML
 ├── https://zhangrh.shop/shotmarker/ -> ShotMarker HTML
+├── https://zhangrh.shop/track        -> Nginx 返回 204 并写入 JSONL
+├── https://zhangrh.shop/api/track/summary
+│                                      -> Node/Express 只读流式聚合 JSONL
 ├── https://zhangrh.shop/api/cardgame/health
 │                                      -> Node/Express
 └── wss://zhangrh.shop/api/cardgame/ws -> WebSocket
@@ -25,6 +28,8 @@
 
 ```text
 /opt/zhangrh-shop/
+├── data/
+│   └── track/                 # 埋点 JSONL 持久目录（服务器私有维护）
 ├── site/
 │   ├── hub/
 │   ├── cardgame/
@@ -38,7 +43,7 @@
     └── projects/
 ```
 
-Compose 的项目根目录是 `/opt/zhangrh-shop`。仓库没有包含目标环境的 Compose 或网关配置；其具体内容不在本文档中推断。
+Compose 的项目根目录是 `/opt/zhangrh-shop`。`data/track` 是逻辑上的宿主机持久目录，由 Nginx 写入并以只读方式挂载给 Backend。目标环境的 Compose、Nginx、logrotate 和该数据目录都由服务器私有维护，不提交到当前仓库；其具体配置内容不在本文档中推断。
 
 ## OSS 配置
 
@@ -81,6 +86,16 @@ cd /opt/zhangrh-shop
 docker compose up -d --build backend
 ```
 
+首次启用埋点查询时，必须先在服务器完成以下私有基础设施，再发布 Backend：
+
+1. 建立并校验 Track 宿主机持久目录及 Nginx 写权限。
+2. 配置 `/track` 的 schema v1 JSONL 写入和 logrotate。
+3. 在 Compose 中把同一目录只读挂载到 Backend，并设置对应的 `TRACK_LOG_DIR`。
+4. 为精确路径 `/api/track/summary` 配置公网只读代理和专用限流。
+5. 验证 Nginx、logrotate 和 Compose 配置后，再运行 Backend 发布命令。
+
+仓库发布脚本只同步 Backend 受控运行文件并重建 `backend` 服务；它不会修改服务器 Compose、Nginx、`/etc/logrotate.d` 或 Track 数据目录。
+
 ## 线上只读验证
 
 发布完成后可从本地检查公开入口，不修改线上状态：
@@ -90,9 +105,10 @@ curl -I https://zhangrh.shop/hub/
 curl -I https://zhangrh.shop/cardgame/
 curl -I https://zhangrh.shop/shotmarker/
 curl https://zhangrh.shop/api/cardgame/health
+curl --fail-with-body 'https://zhangrh.shop/api/track/summary?days=1'
 ```
 
-前三个请求应返回可访问的 HTML 响应；健康检查应返回包含 `ok: true` 和 `project: "cardgame"` 的 JSON。若前端 HTML 可访问但页面资源加载失败，再检查浏览器网络面板中 `static.zhangrh.shop` 的资源请求。
+前三个请求应返回可访问的 HTML 响应；Cardgame 健康检查应返回包含 `ok: true` 和 `project: "cardgame"` 的 JSON；Track 查询应返回包含 `range`、`totals`、breakdown、`daily` 和 `diagnostics` 的 JSON。若前端 HTML 可访问但页面资源加载失败，再检查浏览器网络面板中 `static.zhangrh.shop` 的资源请求。
 
 ## 私有台账维护
 

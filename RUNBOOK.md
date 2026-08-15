@@ -52,6 +52,32 @@ npm --prefix backend test
 - 发布前端前设置 `OSS_ACCESS_KEY_ID` 和 `OSS_ACCESS_KEY_SECRET`。
 - 前端发布脚本首先执行 `git pull`；运行前确认当前分支和工作区允许拉取远端更新。
 
+## 埋点查询
+
+默认查询最近 30 个上海自然日：
+
+```bash
+curl --fail-with-body \
+  'https://zhangrh.shop/api/track/summary?days=30'
+```
+
+按项目查询最近 90 天并保存 JSON：
+
+```bash
+curl --fail-with-body \
+  'https://zhangrh.shop/api/track/summary?days=90&project=hub' \
+  --output track-summary.json
+```
+
+该接口是公开只读汇总；原始客户端事件和设备标识可伪造，不能把结果用于计费、风控或审计。稳定错误的处置方式如下：
+
+- `400`：调用参数错误，修正 `days`/`project`，或删除未知、重复参数。
+- `429`：Nginx 公网限流，等待后重试。
+- `503 track_query_busy`：已有扫描，至少等待 `Retry-After` 指定的秒数。
+- `503 track_log_unavailable`：只检查 Track 挂载、目录权限、gzip 和轮转竞争；不要把重启整个站点作为第一动作。
+- `503 track_log_too_large`：JSONL 已超过第一阶段设计规模，停止重复查询并重新设计存储。
+- `503 track_query_timeout`：扫描超过 20 秒，检查文件规模、损坏 gzip 和主机 I/O。
+
 ## 发布
 
 在根目录交互式选择发布目标：
