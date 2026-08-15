@@ -93,3 +93,19 @@ curl https://zhangrh.shop/api/cardgame/health
 ```
 
 前三个请求应返回可访问的 HTML 响应；健康检查应返回包含 `ok: true` 和 `project: "cardgame"` 的 JSON。若前端 HTML 可访问但页面资源加载失败，再检查浏览器网络面板中 `static.zhangrh.shop` 的资源请求。
+
+## 私有台账维护
+
+完整的服务器、域名、证书和部署关系记录保存在 `docs/private.local/`。该目录是独立的私有 Git 仓库，并被当前公开仓库忽略；密码、SSH 私钥和 Token 仍只保存在 1Password。
+
+修改台账后，在 `zhangrh.shop` 仓库根目录依次执行：
+
+```bash
+git -C docs/private.local status --short
+git -C docs/private.local add -A
+git -C docs/private.local diff --cached
+git -C docs/private.local commit -m "docs: 更新项目台账"
+git -C docs/private.local push
+```
+
+提交前必须检查暂存差异，确认其中没有密码、私钥、Token 或 `.env` 实际值。`git -C docs/private.local status --short --branch` 应在推送后显示工作区干净，且 `main` 与 `origin/main` 同步。
