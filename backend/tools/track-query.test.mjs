@@ -349,3 +349,123 @@ test('maps missing directories and corrupt gzip files to unavailable errors', as
     TrackLogUnavailableError,
   )
 })
+
+test('rejects oversized lines and decoded input while classifying oversized params', async (t) => {
+  const lineDir = await createLogDir(t)
+  await writeCurrent(lineDir, `${'x'.repeat(65)}\n`)
+  await assert.rejects(
+    summarizeTrackEvents({
+      logDir: lineDir,
+      days: 1,
+      project: null,
+      now: FIXED_NOW,
+      limits: { maxLineBytes: 64 },
+    }),
+    TrackLogTooLargeError,
+  )
+
+  const paramsDir = await createLogDir(t)
+  await writeCurrent(
+    paramsDir,
+    jsonl(record({ params_encoded: encodeParams({ button: 'x'.repeat(65) }) })),
+  )
+  const paramsResult = await summarizeTrackEvents({
+    logDir: paramsDir,
+    days: 1,
+    project: null,
+    now: FIXED_NOW,
+    limits: { maxParamsBytes: 64 },
+  })
+  assert.equal(paramsResult.totals.events, 0)
+  assert.equal(paramsResult.diagnostics.rejected_records, 1)
+
+  const totalDir = await createLogDir(t)
+  await writeCurrent(totalDir, jsonl(record()))
+  await assert.rejects(
+    summarizeTrackEvents({
+      logDir: totalDir,
+      days: 1,
+      project: null,
+      now: FIXED_NOW,
+      limits: { maxDecodedBytes: 32 },
+    }),
+    TrackLogTooLargeError,
+  )
+})
+
+test('rejects aggregation cardinality above configured limits', async (t) => {
+  const deviceDir = await createLogDir(t)
+  await writeCurrent(
+    deviceDir,
+    jsonl(
+      record({ request_id: requestId(50), device_id: 'Device000001' }),
+      record({ request_id: requestId(51), device_id: 'Device000002' }),
+    ),
+  )
+  await assert.rejects(
+    summarizeTrackEvents({
+      logDir: deviceDir,
+      days: 1,
+      project: null,
+      now: FIXED_NOW,
+      limits: { maxUniqueDevices: 1 },
+    }),
+    TrackLogTooLargeError,
+  )
+
+  const dimensionDir = await createLogDir(t)
+  await writeCurrent(
+    dimensionDir,
+    jsonl(
+      record({ request_id: requestId(52), event: 'event_a' }),
+      record({ request_id: requestId(53), event: 'event_b' }),
+    ),
+  )
+  await assert.rejects(
+    summarizeTrackEvents({
+      logDir: dimensionDir,
+      days: 1,
+      project: null,
+      now: FIXED_NOW,
+      limits: { maxDimensionKeys: 1 },
+    }),
+    TrackLogTooLargeError,
+  )
+})
+
+test('times out and yields to the event loop during large scans', async (t) => {
+  const timeoutDir = await createLogDir(t)
+  await writeCurrent(timeoutDir, jsonl(record()))
+  await assert.rejects(
+    summarizeTrackEvents({
+      logDir: timeoutDir,
+      days: 1,
+      project: null,
+      now: FIXED_NOW,
+      limits: { timeoutMs: 0 },
+    }),
+    TrackQueryTimeoutError,
+  )
+
+  const yieldDir = await createLogDir(t)
+  const records = Array.from({ length: 20 }, (_, index) =>
+    record({ request_id: requestId(60 + index) }),
+  )
+  await writeCurrent(yieldDir, jsonl(...records))
+
+  let timerRan = false
+  setTimeout(() => {
+    timerRan = true
+  }, 0)
+
+  const result = await summarizeTrackEvents({
+    logDir: yieldDir,
+    days: 1,
+    project: null,
+    now: FIXED_NOW,
+    limits: { yieldEveryLines: 1, readChunkBytes: 64 },
+  })
+
+  assert.equal(result.totals.events, 20)
+  assert.equal(timerRan, true)
+})

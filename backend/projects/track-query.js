@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { StringDecoder } from 'node:string_decoder'
 import { setImmediate as yieldToEventLoop } from 'node:timers/promises'
 import { createGunzip } from 'node:zlib'
 
@@ -10,14 +9,45 @@ const TRACK_TIMEZONE = 'Asia/Shanghai'
 const SHANGHAI_OFFSET_MS = 8 * 60 * 60 * 1000
 const CURRENT_FILE = 'events.jsonl'
 const ROTATED_FILE_PATTERN = /^events\.jsonl-(\d{8})(\.gz)?$/
-const MAX_PARAMS_BYTES = 16 * 1024
 const REQUEST_ID_PATTERN = /^[0-9a-f]{32}$/
 const CLIENT_TIME_PATTERN = /^\d{10,16}$/
 const DEVICE_ID_PATTERN = /^[A-Za-z0-9]{12}$/
 const EVENT_PATTERN = /^[A-Za-z][A-Za-z0-9_.:-]{0,63}$/
 const PROJECTS = new Set(['hub', 'cardgame'])
 
+const DEFAULT_LIMITS = Object.freeze({
+  timeoutMs: 20_000,
+  maxDecodedBytes: 64 * 1024 * 1024,
+  maxLineBytes: 32 * 1024,
+  maxParamsBytes: 16 * 1024,
+  maxUniqueDevices: 100_000,
+  maxDimensionKeys: 10_000,
+  yieldEveryLines: 500,
+  readChunkBytes: 64 * 1024,
+})
+
 class SnapshotRaceError extends Error {}
+
+const resolveLimits = (overrides = {}) => ({ ...DEFAULT_LIMITS, ...overrides })
+
+const createDeadline = (timeoutMs) => {
+  const controller = new AbortController()
+  const deadlineMs = Date.now() + timeoutMs
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  timer.unref()
+
+  return {
+    signal: controller.signal,
+    check() {
+      if (controller.signal.aborted || Date.now() >= deadlineMs) {
+        throw new TrackQueryTimeoutError()
+      }
+    },
+    close() {
+      clearTimeout(timer)
+    },
+  }
+}
 
 export class TrackLogUnavailableError extends Error {
   constructor(message = 'track log is unavailable', options) {
@@ -90,9 +120,9 @@ const createDiagnostics = () => ({
   partial_lines: 0,
 })
 
-const decodeParams = (encoded) => {
+const decodeParams = (encoded, maxParamsBytes) => {
   const decoded = decodeURIComponent(encoded.replace(/\+/g, ' '))
-  if (Buffer.byteLength(decoded, 'utf8') > MAX_PARAMS_BYTES) return null
+  if (Buffer.byteLength(decoded, 'utf8') > maxParamsBytes) return null
   const params = JSON.parse(decoded)
   return params && typeof params === 'object' && !Array.isArray(params) ? params : null
 }
@@ -101,7 +131,7 @@ const isDimension = (value) => {
   return typeof value === 'string' && value.length >= 1 && value.length <= 128
 }
 
-const parseRecord = (parsed, diagnostics) => {
+const parseRecord = (parsed, diagnostics, limits) => {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
   if (parsed.schema_version !== 1) return null
   if (typeof parsed.request_id !== 'string' || !REQUEST_ID_PATTERN.test(parsed.request_id)) return null
@@ -117,7 +147,7 @@ const parseRecord = (parsed, diagnostics) => {
 
   let params
   try {
-    params = decodeParams(parsed.params_encoded)
+    params = decodeParams(parsed.params_encoded, limits.maxParamsBytes)
   } catch {
     return null
   }
@@ -165,10 +195,14 @@ const serializeCounts = (map, keys) => {
     .map(({ deviceIds, ...entry }) => ({ ...entry, devices: deviceIds.size }))
 }
 
-const createState = (range, project) => ({
+const createState = (range, project, limits, deadline) => ({
   range,
   project,
+  limits,
+  deadline,
   diagnostics: createDiagnostics(),
+  decodedBytes: 0,
+  linesSinceYield: 0,
   deviceIds: new Set(),
   projects: new Map(),
   events: new Map(),
@@ -195,7 +229,7 @@ const includeLine = (state, line) => {
     return
   }
 
-  const parsedRecord = parseRecord(parsed, state.diagnostics)
+  const parsedRecord = parseRecord(parsed, state.diagnostics, state.limits)
   if (!parsedRecord) {
     state.diagnostics.rejected_records += 1
     return
@@ -218,11 +252,32 @@ const includeLine = (state, line) => {
   }
 
   const deviceId = parsedRecord.deviceId
+  const eventKey = JSON.stringify([parsedRecord.project, parsedRecord.event])
+  const pageKey = parsedRecord.page_name
+    ? JSON.stringify([parsedRecord.project, parsedRecord.page_name])
+    : null
+  const buttonKey = parsedRecord.button
+    ? JSON.stringify([parsedRecord.project, parsedRecord.button])
+    : null
+
+  if (!state.deviceIds.has(deviceId) && state.deviceIds.size >= state.limits.maxUniqueDevices) {
+    throw new TrackLogTooLargeError()
+  }
+  for (const [map, key] of [
+    [state.events, eventKey],
+    [state.pages, pageKey],
+    [state.buttons, buttonKey],
+  ]) {
+    if (key !== null && !map.has(key) && map.size >= state.limits.maxDimensionKeys) {
+      throw new TrackLogTooLargeError()
+    }
+  }
+
   state.deviceIds.add(deviceId)
   addCount(state.projects, parsedRecord.project, { project: parsedRecord.project }, deviceId)
   addCount(
     state.events,
-    JSON.stringify([parsedRecord.project, parsedRecord.event]),
+    eventKey,
     { project: parsedRecord.project, event: parsedRecord.event },
     deviceId,
   )
@@ -230,7 +285,7 @@ const includeLine = (state, line) => {
   if (parsedRecord.page_name) {
     addCount(
       state.pages,
-      JSON.stringify([parsedRecord.project, parsedRecord.page_name]),
+      pageKey,
       { project: parsedRecord.project, page_name: parsedRecord.page_name },
       deviceId,
     )
@@ -238,7 +293,7 @@ const includeLine = (state, line) => {
   if (parsedRecord.button) {
     addCount(
       state.buttons,
-      JSON.stringify([parsedRecord.project, parsedRecord.button]),
+      buttonKey,
       { project: parsedRecord.project, button: parsedRecord.button },
       deviceId,
     )
@@ -266,11 +321,14 @@ const isValidRotationDate = (value) => {
   return value === parsed.toISOString().slice(0, 10).replaceAll('-', '')
 }
 
-const discoverCandidates = async (logDir) => {
+const discoverCandidates = async (logDir, deadline) => {
   let entries
   try {
+    deadline.check()
     entries = await fileSystem.readdir(logDir, { withFileTypes: true })
+    deadline.check()
   } catch (error) {
+    if (error instanceof TrackQueryTimeoutError) throw error
     throw new TrackLogUnavailableError(undefined, { cause: error })
   }
 
@@ -310,16 +368,18 @@ const isSnapshotRaceError = (error) => {
   return error instanceof SnapshotRaceError || ['ENOENT', 'ELOOP', 'EISDIR'].includes(error?.code)
 }
 
-const openSnapshotAttempt = async (logDir) => {
-  const candidates = await discoverCandidates(logDir)
+const openSnapshotAttempt = async (logDir, deadline) => {
+  const candidates = await discoverCandidates(logDir, deadline)
   const snapshot = []
 
   try {
     for (const candidate of candidates) {
+      deadline.check()
       const filePath = path.join(logDir, candidate.name)
       let before
       try {
         before = await fileSystem.lstat(filePath)
+        deadline.check()
       } catch (error) {
         if (isSnapshotRaceError(error)) throw new SnapshotRaceError(undefined, { cause: error })
         throw error
@@ -330,7 +390,9 @@ const openSnapshotAttempt = async (logDir) => {
       try {
         const noFollow = fs.constants.O_NOFOLLOW ?? 0
         handle = await fileSystem.open(filePath, fs.constants.O_RDONLY | noFollow)
+        deadline.check()
       } catch (error) {
+        await handle?.close().catch(() => {})
         if (isSnapshotRaceError(error)) throw new SnapshotRaceError(undefined, { cause: error })
         throw error
       }
@@ -338,6 +400,7 @@ const openSnapshotAttempt = async (logDir) => {
       let after
       try {
         after = await handle.stat()
+        deadline.check()
         if (!after.isFile() || before.dev !== after.dev || before.ino !== after.ino) {
           throw new SnapshotRaceError()
         }
@@ -354,12 +417,14 @@ const openSnapshotAttempt = async (logDir) => {
   }
 }
 
-const openSnapshot = async (logDir) => {
+const openSnapshot = async (logDir, deadline) => {
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      return await openSnapshotAttempt(logDir)
+      deadline.check()
+      return await openSnapshotAttempt(logDir, deadline)
     } catch (error) {
       if (isSnapshotRaceError(error) && attempt === 0) continue
+      if (error instanceof TrackQueryTimeoutError) throw error
       if (error instanceof TrackLogUnavailableError) throw error
       throw new TrackLogUnavailableError(undefined, { cause: error })
     }
@@ -367,7 +432,26 @@ const openSnapshot = async (logDir) => {
   throw new TrackLogUnavailableError()
 }
 
-const readSnapshotFile = async (snapshotFile, state, limits = {}) => {
+const maybeYield = async (state) => {
+  state.linesSinceYield += 1
+  if (state.linesSinceYield < state.limits.yieldEveryLines) return
+
+  state.linesSinceYield = 0
+  await yieldToEventLoop()
+  state.deadline.check()
+}
+
+const processLineBuffer = async (state, lineBuffer) => {
+  state.deadline.check()
+  const withoutCarriageReturn = lineBuffer.at(-1) === 0x0d
+    ? lineBuffer.subarray(0, lineBuffer.length - 1)
+    : lineBuffer
+  includeLine(state, withoutCarriageReturn.toString('utf8'))
+  await maybeYield(state)
+}
+
+const readSnapshotFile = async (snapshotFile, state) => {
+  state.deadline.check()
   state.diagnostics.files_read += 1
   if (snapshotFile.compressed) state.diagnostics.compressed_files_read += 1
   if (snapshotFile.size === 0 && !snapshotFile.compressed) return
@@ -377,7 +461,8 @@ const readSnapshotFile = async (snapshotFile, state, limits = {}) => {
     start: 0,
     end: snapshotFile.size - 1,
     autoClose: false,
-    highWaterMark: limits.readChunkBytes ?? 64 * 1024,
+    highWaterMark: state.limits.readChunkBytes,
+    signal: state.deadline.signal,
   })
   let stream = readStream
   if (snapshotFile.compressed) {
@@ -386,43 +471,72 @@ const readSnapshotFile = async (snapshotFile, state, limits = {}) => {
     stream = readStream.pipe(gunzip)
   }
 
-  const decoder = new StringDecoder('utf8')
-  let pending = ''
-  let linesSinceYield = 0
-  const yieldEveryLines = limits.yieldEveryLines ?? 500
+  let pending = Buffer.alloc(0)
 
   try {
     for await (const chunk of stream) {
-      pending += decoder.write(chunk)
-      let newlineIndex = pending.indexOf('\n')
-      while (newlineIndex !== -1) {
-        const line = pending.slice(0, newlineIndex).replace(/\r$/, '')
-        pending = pending.slice(newlineIndex + 1)
-        includeLine(state, line)
-        linesSinceYield += 1
-        if (linesSinceYield >= yieldEveryLines) {
-          linesSinceYield = 0
-          await yieldToEventLoop()
-        }
-        newlineIndex = pending.indexOf('\n')
+      state.deadline.check()
+      state.decodedBytes += chunk.length
+      if (state.decodedBytes > state.limits.maxDecodedBytes) {
+        throw new TrackLogTooLargeError()
       }
+
+      let chunkOffset = 0
+      let newlineIndex = chunk.indexOf(0x0a, chunkOffset)
+      while (newlineIndex !== -1) {
+        state.deadline.check()
+        const segment = chunk.subarray(chunkOffset, newlineIndex)
+        const lineBytes = pending.length + segment.length
+        if (lineBytes > state.limits.maxLineBytes) {
+          throw new TrackLogTooLargeError()
+        }
+
+        const lineBuffer = pending.length === 0
+          ? segment
+          : Buffer.concat([pending, segment], lineBytes)
+        pending = Buffer.alloc(0)
+        await processLineBuffer(state, lineBuffer)
+        chunkOffset = newlineIndex + 1
+        newlineIndex = chunk.indexOf(0x0a, chunkOffset)
+      }
+
+      const remainder = chunk.subarray(chunkOffset)
+      const pendingBytes = pending.length + remainder.length
+      if (pendingBytes > state.limits.maxLineBytes) {
+        throw new TrackLogTooLargeError()
+      }
+      pending = pending.length === 0
+        ? remainder
+        : Buffer.concat([pending, remainder], pendingBytes)
     }
-    pending += decoder.end()
+
+    state.deadline.check()
     if (pending.length > 0) {
-      const finalLine = pending.replace(/\r$/, '')
+      const finalBuffer = pending.at(-1) === 0x0d
+        ? pending.subarray(0, pending.length - 1)
+        : pending
+      const finalLine = finalBuffer.toString('utf8')
+      let isCompleteJson = true
       try {
         JSON.parse(finalLine)
-        includeLine(state, finalLine)
       } catch {
+        isCompleteJson = false
+      }
+
+      if (isCompleteJson) {
+        await processLineBuffer(state, pending)
+      } else {
         if (snapshotFile.current) {
           state.diagnostics.lines_read += 1
           state.diagnostics.partial_lines += 1
+          await maybeYield(state)
         } else {
-          includeLine(state, finalLine)
+          await processLineBuffer(state, pending)
         }
       }
     }
   } catch (error) {
+    state.deadline.check()
     if (
       error instanceof TrackLogUnavailableError
       || error instanceof TrackLogTooLargeError
@@ -459,15 +573,22 @@ const buildResponse = (state) => ({
 })
 
 export async function summarizeTrackEvents({ logDir, days, project, now, limits }) {
-  const range = buildRange(days, now)
-  const state = createState(range, project)
-  const snapshot = await openSnapshot(logDir)
+  const resolvedLimits = resolveLimits(limits)
+  const deadline = createDeadline(resolvedLimits.timeoutMs)
+  let snapshot = []
   try {
+    deadline.check()
+    const range = buildRange(days, now)
+    const state = createState(range, project, resolvedLimits, deadline)
+    snapshot = await openSnapshot(logDir, deadline)
     for (const snapshotFile of snapshot) {
-      await readSnapshotFile(snapshotFile, state, limits)
+      deadline.check()
+      await readSnapshotFile(snapshotFile, state)
     }
+    deadline.check()
     return buildResponse(state)
   } finally {
     await closeSnapshot(snapshot)
+    deadline.close()
   }
 }
