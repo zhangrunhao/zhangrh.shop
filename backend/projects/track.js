@@ -1,20 +1,23 @@
 import express from 'express'
 
 import {
-  summarizeTrackEvents,
+  queryTrackTrend,
   TrackLogTooLargeError,
   TrackLogUnavailableError,
   TrackQueryTimeoutError,
 } from './track-query.js'
 
-const SUMMARY_PATH = '/api/track/summary'
+const TREND_PATH = '/api/track/trend'
 const PROJECTS = new Set(['hub', 'cardgame', 'shotmarker'])
-const QUERY_PARAMETERS = new Set(['days', 'project'])
-const DAYS_PATTERN = /^(?:[1-9]|[1-8][0-9]|90)$/
+const QUERY_PARAMETERS = new Set(['project', 'event', 'days'])
+const DAYS_PATTERN = /^(?:1|7|30|90)$/
+const EVENT_PATTERN = /^[a-z][a-z0-9_]{0,63}$/
 
 const ERROR_MESSAGES = Object.freeze({
-  invalid_days: 'days must be an integer between 1 and 90',
+  missing_query_parameter: 'project, event, and days are required',
+  invalid_days: 'days must be 1, 7, 30, or 90',
   invalid_project: 'project must be hub, cardgame, or shotmarker',
+  invalid_event: 'event has an invalid format',
   duplicate_query_parameter: 'query parameters must not be repeated',
   unknown_query_parameter: 'unknown query parameter',
   track_log_unavailable: 'track log is unavailable',
@@ -38,14 +41,19 @@ const parseQuery = (originalUrl) => {
   if (keys.some((key) => searchParams.getAll(key).length > 1)) {
     return { error: 'duplicate_query_parameter' }
   }
+  if ([...QUERY_PARAMETERS].some((key) => !searchParams.has(key))) {
+    return { error: 'missing_query_parameter' }
+  }
 
-  const daysValue = searchParams.has('days') ? searchParams.get('days') : '30'
+  const daysValue = searchParams.get('days')
+  const project = searchParams.get('project')
+  const event = searchParams.get('event')
+
   if (!DAYS_PATTERN.test(daysValue)) return { error: 'invalid_days' }
+  if (!PROJECTS.has(project)) return { error: 'invalid_project' }
+  if (!EVENT_PATTERN.test(event)) return { error: 'invalid_event' }
 
-  const project = searchParams.has('project') ? searchParams.get('project') : null
-  if (project !== null && !PROJECTS.has(project)) return { error: 'invalid_project' }
-
-  return { days: Number(daysValue), project }
+  return { days: Number(daysValue), project, event }
 }
 
 const mapQueryError = (error) => {
@@ -63,13 +71,13 @@ const safeErrorType = (error) => {
 
 export function registerTrack(app, {
   logDir,
-  summarize = summarizeTrackEvents,
+  queryTrend = queryTrackTrend,
   now = () => new Date(),
 }) {
   const router = express.Router({ caseSensitive: true, strict: true })
   let activeQueries = 0
 
-  router.get(SUMMARY_PATH, async (req, res) => {
+  router.get(TREND_PATH, async (req, res) => {
     res.set('Cache-Control', 'no-store')
 
     const query = parseQuery(req.originalUrl)
@@ -82,14 +90,14 @@ export function registerTrack(app, {
 
     activeQueries += 1
     try {
-      const queryNow = now()
-      const summary = await summarize({
+      const trend = await queryTrend({
         logDir,
-        days: query.days,
         project: query.project,
-        now: queryNow,
+        event: query.event,
+        days: query.days,
+        now: now(),
       })
-      return res.json(summary)
+      return res.json(trend)
     } catch (error) {
       const code = mapQueryError(error)
       console.error('track_query_failed', {

@@ -11,45 +11,18 @@ import {
 } from '../projects/track-query.js'
 import { registerTrack } from '../projects/track.js'
 
-const FIXED_NOW = new Date('2026-08-15T12:30:00.000Z')
-
-const sampleSummary = {
-  generated_at: '2026-08-15T12:30:01.000Z',
-  range: {
-    days: 30,
-    from: '2026-07-17T00:00:00+08:00',
-    to: '2026-08-15T20:30:00.000+08:00',
-    timezone: 'Asia/Shanghai',
-  },
-  filter: { project: null },
-  totals: { events: 0, devices: 0, earliest_received_at: null, latest_received_at: null },
-  projects: [],
-  event_breakdown: [],
-  page_breakdown: [],
-  button_breakdown: [],
-  daily: [],
-  diagnostics: {
-    files_read: 0,
-    compressed_files_read: 0,
-    lines_read: 0,
-    included_records: 0,
-    empty_lines: 0,
-    invalid_json_lines: 0,
-    rejected_records: 0,
-    duplicate_records: 0,
-    out_of_range_records: 0,
-    project_filtered_records: 0,
-    ignored_dimensions: 0,
-    partial_lines: 0,
-  },
+const FIXED_NOW = new Date('2026-08-16T04:00:00.000Z')
+const sampleTrend = {
+  daily: [{ date: '2026-08-16', pv: 2, uv: 1 }],
 }
+const validPath = '/api/track/trend?project=hub&event=home_page_load&days=1'
 
 const startApp = async (t, options = {}) => {
   const app = express()
   app.get('/unrelated', (_req, res) => res.json({ ok: true }))
   registerTrack(app, {
     logDir: '/test/track',
-    summarize: async () => sampleSummary,
+    queryTrend: async () => sampleTrend,
     now: () => FIXED_NOW,
     ...options,
   })
@@ -73,78 +46,96 @@ test('server registers Track with the configured read-only log directory', async
   assert.match(source, /registerTrack\(app,/)
 })
 
-test('accepts only the exact lowercase summary route and valid query values', async (t) => {
+test('accepts only the exact trend route with all three valid query parameters', async (t) => {
   const calls = []
   const origin = await startApp(t, {
-    summarize: async (options) => {
+    queryTrend: async (options) => {
       calls.push(options)
-      return sampleSummary
+      return sampleTrend
     },
   })
 
-  const defaultResponse = await fetch(`${origin}/api/track/summary`)
-  assert.equal(defaultResponse.status, 200)
-  assert.equal(defaultResponse.headers.get('cache-control'), 'no-store')
-  assert.equal(defaultResponse.headers.get('content-type'), 'application/json; charset=utf-8')
-  assert.equal(defaultResponse.headers.has('www-authenticate'), false)
-  assert.equal(calls[0].days, 30)
-  assert.equal(calls[0].project, null)
-  assert.equal(calls[0].logDir, '/test/track')
-  assert.equal(calls[0].now, FIXED_NOW)
+  for (const [project, event, days] of [
+    ['hub', 'home_page_load', 1],
+    ['cardgame', 'cardgame_page_load', 7],
+    ['shotmarker', 'app_launch', 90],
+    ['hub', 'custom_event', 30],
+  ]) {
+    const response = await fetch(
+      `${origin}/api/track/trend?project=${project}&event=${event}&days=${days}`,
+    )
+    assert.equal(response.status, 200)
+    assert.equal(response.headers.get('cache-control'), 'no-store')
+    assert.deepEqual(await response.json(), sampleTrend)
+  }
 
-  assert.equal((await fetch(`${origin}/api/track/summary?days=1&project=hub`)).status, 200)
-  assert.equal((await fetch(`${origin}/api/track/summary?days=90&project=cardgame`)).status, 200)
-  assert.equal((await fetch(`${origin}/api/track/summary?project=shotmarker`)).status, 200)
-  assert.equal(calls.at(-1).project, 'shotmarker')
+  assert.deepEqual(calls[0], {
+    logDir: '/test/track',
+    project: 'hub',
+    event: 'home_page_load',
+    days: 1,
+    now: FIXED_NOW,
+  })
 
   for (const pathname of [
-    '/api/track/summary/',
-    '/api/Track/summary',
-    '/API/track/summary',
+    '/api/track/trend/',
+    '/api/Track/trend',
+    '/API/track/trend',
+    '/api/track/summary',
     '/api/track/other',
   ]) {
     assert.equal((await fetch(`${origin}${pathname}`)).status, 404, pathname)
   }
 })
 
-test('returns the stable invalid project error contract', async (t) => {
-  const origin = await startApp(t)
-  const response = await fetch(`${origin}/api/track/summary?project=unknown`)
-
-  assert.equal(response.status, 400)
-  assert.deepEqual(await response.json(), {
-    error: {
-      code: 'invalid_project',
-      message: 'project must be hub, cardgame, or shotmarker',
-    },
-  })
-})
-
-test('rejects malformed duplicate and unknown query parameters before scanning', async (t) => {
+test('requires project, event, and days without scanning', async (t) => {
   let calls = 0
   const origin = await startApp(t, {
-    summarize: async () => {
+    queryTrend: async () => {
       calls += 1
-      return sampleSummary
+      return sampleTrend
+    },
+  })
+
+  for (const query of [
+    '?event=home_page_load&days=1',
+    '?project=hub&days=1',
+    '?project=hub&event=home_page_load',
+    '',
+  ]) {
+    const response = await fetch(`${origin}/api/track/trend${query}`)
+    assert.equal(response.status, 400, query)
+    assert.equal((await response.json()).error.code, 'missing_query_parameter', query)
+  }
+  assert.equal(calls, 0)
+})
+
+test('rejects invalid, duplicate, and unknown query parameters before scanning', async (t) => {
+  let calls = 0
+  const origin = await startApp(t, {
+    queryTrend: async () => {
+      calls += 1
+      return sampleTrend
     },
   })
 
   const cases = [
-    ['?days=', 'invalid_days'],
-    ['?days=0', 'invalid_days'],
-    ['?days=91', 'invalid_days'],
-    ['?days=1.5', 'invalid_days'],
-    ['?days=1e1', 'invalid_days'],
-    ['?days=%201', 'invalid_days'],
-    ['?project=', 'invalid_project'],
-    ['?project=all', 'invalid_project'],
-    ['?days=1&days=2', 'duplicate_query_parameter'],
-    ['?project=hub&project=hub', 'duplicate_query_parameter'],
-    ['?unknown=1', 'unknown_query_parameter'],
+    ['?project=hub&event=home_page_load&days=', 'invalid_days'],
+    ['?project=hub&event=home_page_load&days=2', 'invalid_days'],
+    ['?project=hub&event=home_page_load&days=91', 'invalid_days'],
+    ['?project=unknown&event=home_page_load&days=1', 'invalid_project'],
+    ['?project=&event=home_page_load&days=1', 'invalid_project'],
+    ['?project=hub&event=&days=1', 'invalid_event'],
+    ['?project=hub&event=HomePageLoad&days=1', 'invalid_event'],
+    ['?project=hub&event=1bad&days=1', 'invalid_event'],
+    ['?project=hub&project=hub&event=home_page_load&days=1', 'duplicate_query_parameter'],
+    ['?project=hub&event=home_page_load&event=home_page_load&days=1', 'duplicate_query_parameter'],
+    ['?project=hub&event=home_page_load&days=1&days=1', 'duplicate_query_parameter'],
+    ['?project=hub&event=home_page_load&days=1&unknown=1', 'unknown_query_parameter'],
   ]
 
   for (const [query, code] of cases) {
-    const response = await fetch(`${origin}/api/track/summary${query}`)
+    const response = await fetch(`${origin}/api/track/trend${query}`)
     assert.equal(response.status, 400, query)
     assert.equal(response.headers.get('cache-control'), 'no-store')
     assert.equal((await response.json()).error.code, code, query)
@@ -159,24 +150,27 @@ test('allows one scan and rejects concurrent requests without leaking the counte
     releaseFirst = resolve
   })
   const origin = await startApp(t, {
-    summarize: async () => {
+    queryTrend: async () => {
       callCount += 1
       if (callCount === 1) await firstScan
-      return sampleSummary
+      return sampleTrend
     },
   })
 
-  const firstResponsePromise = fetch(`${origin}/api/track/summary`)
-  while (callCount === 0) await new Promise((resolve) => setImmediate(resolve))
+  const firstResponsePromise = fetch(`${origin}${validPath}`)
+  for (let attempt = 0; callCount === 0 && attempt < 100; attempt += 1) {
+    await new Promise((resolve) => setImmediate(resolve))
+  }
+  assert.equal(callCount, 1)
 
-  const busyResponse = await fetch(`${origin}/api/track/summary`)
+  const busyResponse = await fetch(`${origin}${validPath}`)
   assert.equal(busyResponse.status, 503)
   assert.equal(busyResponse.headers.get('retry-after'), '2')
   assert.equal((await busyResponse.json()).error.code, 'track_query_busy')
 
   releaseFirst()
   assert.equal((await firstResponsePromise).status, 200)
-  assert.equal((await fetch(`${origin}/api/track/summary`)).status, 200)
+  assert.equal((await fetch(`${origin}${validPath}`)).status, 200)
 })
 
 test('maps known query errors and isolates unexpected errors', async (t) => {
@@ -187,8 +181,8 @@ test('maps known query errors and isolates unexpected errors', async (t) => {
   ]
 
   for (const [error, code] of cases) {
-    const origin = await startApp(t, { summarize: async () => { throw error } })
-    const response = await fetch(`${origin}/api/track/summary`)
+    const origin = await startApp(t, { queryTrend: async () => { throw error } })
+    const response = await fetch(`${origin}${validPath}`)
     assert.equal(response.status, 503)
     assert.equal(response.headers.get('cache-control'), 'no-store')
     assert.equal((await response.json()).error.code, code)
@@ -205,11 +199,11 @@ test('returns a sanitized internal error without logging raw exception content',
   })
 
   const origin = await startApp(t, {
-    summarize: async () => {
+    queryTrend: async () => {
       throw new Error('/var/log/nginx/track Device000001 raw payload')
     },
   })
-  const response = await fetch(`${origin}/api/track/summary`)
+  const response = await fetch(`${origin}${validPath}`)
 
   assert.equal(response.status, 500)
   assert.equal(response.headers.get('cache-control'), 'no-store')
