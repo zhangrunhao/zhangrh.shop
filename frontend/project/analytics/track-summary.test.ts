@@ -10,7 +10,7 @@ import {
   type TrackSummary,
 } from "./track-summary";
 
-const payload = {
+const payload: TrackSummary & { diagnostics: { lines_read: number } } = {
   range: {
     days: 30,
     from: "2026-07-18T00:00:00+08:00",
