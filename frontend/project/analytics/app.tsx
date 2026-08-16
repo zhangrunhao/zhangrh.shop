@@ -1,21 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { SummaryView } from "./summary-view";
 import {
+  DEFAULT_TRACK_METRIC,
+  TRACK_FILTERS_STORAGE_KEY,
+  restoreTrackQuery,
+  selectTrackDays,
+  selectTrackEvent,
+  selectTrackProject,
+  serializeTrackFilters,
+} from "./track-filters";
+import {
+  PROJECT_EVENTS,
   TRACK_DAY_OPTIONS,
   TRACK_PROJECTS,
-  describeTrackSummaryError,
-  fetchTrackSummary,
-  type TrackDays,
+  TRACK_TREND_ERROR_MESSAGE,
+  describeTrackTrendError,
+  fetchTrackTrend,
+  isTrackDays,
+  isTrackEvent,
+  isTrackProject,
+  type TrackMetric,
   type TrackProject,
-  type TrackSummary,
-  type TrackSummaryQuery,
-} from "./track-summary";
-
-export const DEFAULT_TRACK_QUERY = {
-  project: "hub",
-  days: 30,
-} as const satisfies TrackSummaryQuery;
+  type TrackTrend,
+  type TrackTrendQuery,
+} from "./track-trend";
+import { TrendView } from "./trend-view";
 
 const PROJECT_LABELS: Record<TrackProject, string> = {
   hub: "Hub",
@@ -24,7 +33,7 @@ const PROJECT_LABELS: Record<TrackProject, string> = {
 };
 
 type ViewState = {
-  summary: TrackSummary | null;
+  trend: TrackTrend | null;
   loading: boolean;
   error: string | null;
   updatedAt: string | null;
@@ -37,17 +46,27 @@ const formatUpdatedAt = (date: Date) =>
     hour12: false,
   }).format(date);
 
+const readInitialTrackQuery = (): TrackTrendQuery => {
+  if (typeof window === "undefined") return restoreTrackQuery(null);
+
+  try {
+    return restoreTrackQuery(
+      window.localStorage.getItem(TRACK_FILTERS_STORAGE_KEY),
+    );
+  } catch {
+    return restoreTrackQuery(null);
+  }
+};
+
 export const ErrorNotice = ({
-  message,
   loading,
   onRetry,
 }: {
-  message: string;
   loading: boolean;
   onRetry: () => void;
 }) => (
   <section className="notice error-notice" role="alert">
-    <span>{message}</span>
+    <span>{TRACK_TREND_ERROR_MESSAGE}</span>
     <button type="button" disabled={loading} onClick={onRetry}>
       重试
     </button>
@@ -55,34 +74,49 @@ export const ErrorNotice = ({
 );
 
 export const App = () => {
-  const [query, setQuery] = useState<TrackSummaryQuery>(DEFAULT_TRACK_QUERY);
+  const [query, setQuery] = useState<TrackTrendQuery>(readInitialTrackQuery);
+  const [metric, setMetric] = useState<TrackMetric>(DEFAULT_TRACK_METRIC);
   const [reloadToken, setReloadToken] = useState(0);
   const [view, setView] = useState<ViewState>({
-    summary: null,
+    trend: null,
     loading: true,
     error: null,
     updatedAt: null,
   });
+  const latestRequest = useRef(0);
 
   useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        TRACK_FILTERS_STORAGE_KEY,
+        serializeTrackFilters(query),
+      );
+    } catch {
+      // Analytics remains usable when storage is unavailable.
+    }
+  }, [query]);
+
+  useEffect(() => {
+    const requestId = latestRequest.current + 1;
+    latestRequest.current = requestId;
     let active = true;
 
-    void fetchTrackSummary(query)
-      .then((summary) => {
-        if (!active) return;
+    void fetchTrackTrend(query)
+      .then((trend) => {
+        if (!active || latestRequest.current !== requestId) return;
         setView({
-          summary,
+          trend,
           loading: false,
           error: null,
           updatedAt: formatUpdatedAt(new Date()),
         });
       })
       .catch((error: unknown) => {
-        if (!active) return;
+        if (!active || latestRequest.current !== requestId) return;
         setView((current) => ({
           ...current,
           loading: false,
-          error: describeTrackSummaryError(error, query.project),
+          error: describeTrackTrendError(error),
         }));
       });
 
@@ -91,22 +125,28 @@ export const App = () => {
     };
   }, [query, reloadToken]);
 
-  const beginLoad = () => {
-    setView((current) => ({ ...current, loading: true, error: null }));
+  const beginFilterLoad = (nextQuery: TrackTrendQuery) => {
+    setView({ trend: null, loading: true, error: null, updatedAt: null });
+    setQuery(nextQuery);
   };
 
   const updateProject = (project: TrackProject) => {
-    beginLoad();
-    setQuery((current) => ({ ...current, project }));
+    if (project === query.project) return;
+    beginFilterLoad(selectTrackProject(query, project));
   };
 
-  const updateDays = (days: TrackDays) => {
-    beginLoad();
-    setQuery((current) => ({ ...current, days }));
+  const updateDays = (days: TrackTrendQuery["days"]) => {
+    if (days === query.days) return;
+    beginFilterLoad(selectTrackDays(query, days));
+  };
+
+  const updateEvent = (event: TrackTrendQuery["event"]) => {
+    if (event === query.event) return;
+    beginFilterLoad(selectTrackEvent(query, event));
   };
 
   const reload = () => {
-    beginLoad();
+    setView((current) => ({ ...current, loading: true, error: null }));
     setReloadToken((current) => current + 1);
   };
 
@@ -115,20 +155,20 @@ export const App = () => {
       <header className="page-header">
         <div>
           <p className="eyebrow">公开聚合数据</p>
-          <h1>Track 概览</h1>
-          <p className="intro">快速查看项目事件、近似设备和每日变化。</p>
+          <h1>单事件趋势</h1>
+          <p className="intro">查看一个业务事件在上海自然日内的每日 PV 或 UV。</p>
         </div>
 
-        <div className="filters" aria-label="数据筛选">
+        <div className="filters" aria-label="趋势筛选">
           <label>
             <span>项目</span>
             <select
               aria-label="项目"
-              disabled={view.loading}
               value={query.project}
-              onChange={(event) =>
-                updateProject(event.currentTarget.value as TrackProject)
-              }
+              onChange={(event) => {
+                const project = event.currentTarget.value;
+                if (isTrackProject(project)) updateProject(project);
+              }}
             >
               {TRACK_PROJECTS.map((project) => (
                 <option key={project} value={project}>
@@ -142,11 +182,11 @@ export const App = () => {
             <span>范围</span>
             <select
               aria-label="时间范围"
-              disabled={view.loading}
               value={query.days}
-              onChange={(event) =>
-                updateDays(Number(event.currentTarget.value) as TrackDays)
-              }
+              onChange={(event) => {
+                const days = Number(event.currentTarget.value);
+                if (isTrackDays(days)) updateDays(days);
+              }}
             >
               {TRACK_DAY_OPTIONS.map((days) => (
                 <option key={days} value={days}>
@@ -156,32 +196,73 @@ export const App = () => {
             </select>
           </label>
 
-          <button type="button" disabled={view.loading} onClick={reload}>
+          <label className="event-filter">
+            <span>事件</span>
+            <select
+              aria-label="事件"
+              value={query.event}
+              onChange={(event) => {
+                const nextEvent = event.currentTarget.value;
+                if (isTrackEvent(query.project, nextEvent)) {
+                  updateEvent(nextEvent);
+                }
+              }}
+            >
+              {PROJECT_EVENTS[query.project].events.map((event) => (
+                <option key={event} value={event}>
+                  {event}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <fieldset className="metric-toggle">
+            <legend>口径</legend>
+            {(["pv", "uv"] as const).map((value) => (
+              <button
+                type="button"
+                key={value}
+                aria-pressed={metric === value}
+                onClick={() => setMetric(value)}
+              >
+                {value.toUpperCase()}
+              </button>
+            ))}
+          </fieldset>
+
+          <button
+            className="refresh-button"
+            type="button"
+            disabled={view.loading}
+            onClick={reload}
+          >
             {view.loading ? "加载中…" : "刷新"}
           </button>
         </div>
       </header>
 
       {view.error ? (
-        <ErrorNotice
-          loading={view.loading}
-          message={view.error}
-          onRetry={reload}
-        />
+        <ErrorNotice loading={view.loading} onRetry={reload} />
       ) : null}
 
       {view.loading ? (
         <p className="loading-state" role="status">
-          {view.summary ? "正在更新数据…" : "正在加载汇总数据…"}
+          {view.trend ? "正在刷新趋势数据…" : "正在加载趋势数据…"}
         </p>
       ) : null}
 
-      {view.summary && view.updatedAt ? (
-        <SummaryView summary={view.summary} updatedAt={view.updatedAt} />
+      {view.trend && view.updatedAt ? (
+        <TrendView
+          trend={view.trend}
+          metric={metric}
+          event={query.event}
+          days={query.days}
+          updatedAt={view.updatedAt}
+        />
       ) : null}
 
       <footer className="page-footer">
-        仅展示公开聚合数据，不包含原始事件或设备标识。
+        仅展示逐日聚合 PV/UV，不包含原始事件记录或设备标识。
       </footer>
     </div>
   );
