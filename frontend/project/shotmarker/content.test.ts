@@ -39,8 +39,24 @@ test("privacy page contains the provided local-first privacy summary", () => {
 
   assert.equal(privacyPage.title, "ShotMarker Privacy Policy");
   assert.match(text, /does not require an account/);
+  assert.match(text, /does not show ads/);
   assert.match(text, /does not use third-party analytics SDKs/);
   assert.match(text, /does not upload your videos/);
+  assert.match(text, /does not upload your training records/);
+  assert.match(text, /stored mainly on your devices/);
+  assert.match(
+    text,
+    /Diagnostic logs are automatically rotated and removed according to the app's local retention policy/,
+  );
+  assert.match(
+    text,
+    /当前版本不需要账号，不展示广告，不使用第三方分析 SDK，也不会把你的视频或训练记录上传到开发者服务器/,
+  );
+  assert.match(
+    text,
+    /训练记录、剪辑设置、Watch 同步 outbox 和诊断日志主要保存在你的设备本地/,
+  );
+  assert.match(text, /诊断日志会根据 App 的本地保留策略自动滚动和删除/);
   assert.match(text, /WatchConnectivity/);
   assert.match(text, /HealthKit/);
 });
@@ -57,7 +73,6 @@ test("privacy page documents the first-party analytics contract", () => {
   assert.match(text, /highlight_save_succeeded/);
   assert.match(text, /empty parameter object/);
   assert.match(text, /does not have a fixed automatic expiration period/);
-  assert.match(text, /32 MiB/);
   assert.match(text, /does not immediately delete prior server events/);
   assert.match(text, /not used for advertising or cross-company tracking/);
   assert.match(
@@ -79,23 +94,51 @@ test("privacy page documents the first-party analytics contract", () => {
   assert.match(text, /used only for first-party product analytics/);
   assert.match(text, /not shared with third-party analytics providers/);
   assert.match(text, /single append-only events\.jsonl file/);
-  assert.match(text, /64 MiB/);
+  assert.match(
+    text,
+    /The storage design will be re-evaluated when the file reaches 32 MiB and adjusted before the Backend's 64 MiB total decoded query limit/,
+  );
   assert.match(
     text,
     /Uninstalling and reinstalling ShotMarker resets the local installation identifier/,
   );
   assert.match(text, /Public aggregate queries do not return raw installation identifiers/);
 
-  assert.match(text, /仅 ShotMarker iPhone App 的 Release 构建/);
-  assert.match(text, /客户端时间、服务器接收时间、project 值 shotmarker/);
+  assert.match(
+    text,
+    /仅 ShotMarker iPhone App 的 Release 构建会向开发者自己的 HTTPS 端点发送第一方产品分析事件/,
+  );
+  assert.match(
+    text,
+    /四个固定事件名为 app_launch、training_sync_succeeded、highlight_generate_succeeded 和 highlight_save_succeeded/,
+  );
+  assert.match(
+    text,
+    /客户端时间、服务器接收时间、project 值 shotmarker、空参数对象/,
+  );
   assert.match(text, /保存在 UserDefaults 中的随机 12 位安装标识符/);
   assert.match(text, /用于估算大致的独立安装数量/);
-  assert.match(text, /不包含广告标识符、设备型号或操作系统版本/);
-  assert.match(text, /数据仅用于第一方产品分析/);
-  assert.match(text, /不会共享给第三方分析服务商/);
-  assert.match(text, /单一追加写入 events\.jsonl 文件/);
-  assert.match(text, /Backend 的 64 MiB 总解码查询上限/);
-  assert.match(text, /卸载并重新安装 ShotMarker 会重置本地安装标识符/);
+  assert.match(
+    text,
+    /这些分析事件不包含训练记录、打点时间戳、视频、HealthKit 数据或诊断日志，也不包含广告标识符、设备型号或操作系统版本/,
+  );
+  assert.match(
+    text,
+    /数据仅用于第一方产品分析，不用于广告或跨公司跟踪，也不会共享给第三方分析服务商/,
+  );
+  assert.match(
+    text,
+    /第一方分析事件会保留在开发者服务器上的单一追加写入 events\.jsonl 文件中/,
+  );
+  assert.match(text, /该文件没有固定的自动过期周期/);
+  assert.match(
+    text,
+    /文件达到 32 MiB 时会重新评估存储方案，并在 Backend 的 64 MiB 总解码查询上限之前完成调整/,
+  );
+  assert.match(
+    text,
+    /卸载并重新安装 ShotMarker 会重置本地安装标识符，但不会立即删除此前的服务器事件/,
+  );
   assert.match(text, /公开聚合查询不会返回原始安装标识符/);
 });
 
