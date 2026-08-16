@@ -4,8 +4,8 @@ export const SUPPORT_PATH = "/shotmarker/support";
 export const PRIVACY_PATH = "/shotmarker/privacy";
 export const HOW_TO_PATH = "/shotmarker/how-to";
 export const ZHANGRH_SHOP_URL = "https://zhangrh.shop/hub/";
-export const EFFECTIVE_DATE = "May 17, 2026";
-export const LAST_UPDATED = "2026-05-17";
+export const EFFECTIVE_DATE = "August 16, 2026";
+export const LAST_UPDATED = "2026-08-16";
 export const DEVELOPER = "Rain / ShotMarker";
 
 export type HowToRelatedLink = {
@@ -138,12 +138,12 @@ export const privacyPage: ShotMarkerPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "This policy explains how the current version of ShotMarker processes training markers, selected videos, HealthKit workout permission, WatchConnectivity sync data, and diagnostic logs.",
+          text: "This policy explains how the current version of ShotMarker processes training markers, selected videos, HealthKit workout permission, WatchConnectivity sync data, first-party product analytics, and diagnostic logs.",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "本政策说明当前版本的 ShotMarker 如何处理训练打点、用户选择的视频、HealthKit 训练权限、WatchConnectivity 同步数据和诊断日志。",
+          text: "本政策说明当前版本的 ShotMarker 如何处理训练打点、用户选择的视频、HealthKit 训练权限、WatchConnectivity 同步数据、第一方产品分析数据和诊断日志。",
         },
       ],
     },
@@ -203,6 +203,34 @@ export const privacyPage: ShotMarkerPage = {
           className: "language-block",
           text: "ShotMarker 使用 Apple 的 WatchConnectivity 框架在你的 Apple Watch 和配对 iPhone 之间同步已完成的训练记录，用于在 iPhone App 中展示 Watch 记录的训练打点。",
         },
+        { kind: "heading", text: "First-Party Product Analytics" },
+        {
+          kind: "paragraph",
+          text: "Only Release builds of the ShotMarker iPhone app send first-party product analytics events to the developer's own HTTPS endpoint. The four fixed event names are app_launch, training_sync_succeeded, highlight_generate_succeeded, and highlight_save_succeeded.",
+        },
+        {
+          kind: "paragraph",
+          text: "Each event record contains the event name, client time, server receipt time, the project value shotmarker, an empty parameter object, and a random 12-character installation identifier stored in UserDefaults. The identifier is associated only with the current app installation and is used to estimate the approximate number of unique installations.",
+        },
+        {
+          kind: "paragraph",
+          text: "These analytics events do not contain training records, marker timestamps, videos, HealthKit data, or diagnostic logs. They also do not include an advertising identifier, device model, or operating system version. The data is used only for first-party product analytics; it is not used for advertising or cross-company tracking and is not shared with third-party analytics providers.",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "仅 ShotMarker iPhone App 的 Release 构建会向开发者自己的 HTTPS 端点发送第一方产品分析事件。四个固定事件名为 app_launch、training_sync_succeeded、highlight_generate_succeeded 和 highlight_save_succeeded。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "每条事件记录包含事件名、客户端时间、服务器接收时间、project 值 shotmarker、空参数对象，以及保存在 UserDefaults 中的随机 12 位安装标识符。该标识符只与当前 App 安装相关，用于估算大致的独立安装数量。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "这些分析事件不包含训练记录、打点时间戳、视频、HealthKit 数据或诊断日志，也不包含广告标识符、设备型号或操作系统版本。数据仅用于第一方产品分析，不用于广告或跨公司跟踪，也不会共享给第三方分析服务商。",
+        },
         { kind: "heading", text: "Diagnostic Logs" },
         {
           kind: "paragraph",
@@ -253,6 +281,24 @@ export const privacyPage: ShotMarkerPage = {
           kind: "paragraph",
           className: "language-block",
           text: "训练记录、剪辑设置、Watch 同步 outbox 和诊断日志主要保存在你的设备本地。你可以通过删除 iPhone 和 Apple Watch 上的 ShotMarker 来删除这些本地数据。诊断日志会根据 App 的本地保留策略自动滚动和删除。",
+        },
+        {
+          kind: "paragraph",
+          text: "First-party analytics events are retained on the developer's server in a single append-only events.jsonl file. This file does not have a fixed automatic expiration period. The storage design will be re-evaluated when the file reaches 32 MiB and adjusted before the Backend's 64 MiB total decoded query limit.",
+        },
+        {
+          kind: "paragraph",
+          text: "Uninstalling and reinstalling ShotMarker resets the local installation identifier, but does not immediately delete prior server events. Public aggregate queries do not return raw installation identifiers.",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "第一方分析事件会保留在开发者服务器上的单一追加写入 events.jsonl 文件中。该文件没有固定的自动过期周期。文件达到 32 MiB 时会重新评估存储方案，并在 Backend 的 64 MiB 总解码查询上限之前完成调整。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "卸载并重新安装 ShotMarker 会重置本地安装标识符，但不会立即删除此前的服务器事件。公开聚合查询不会返回原始安装标识符。",
         },
       ],
     },

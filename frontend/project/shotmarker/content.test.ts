@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   CONTACT_EMAIL,
+  EFFECTIVE_DATE,
   HOW_TO_PATH,
+  LAST_UPDATED,
   PRIVACY_PATH,
   SUPPORT_PATH,
   howToPage,
@@ -41,6 +43,27 @@ test("privacy page contains the provided local-first privacy summary", () => {
   assert.match(text, /does not upload your videos/);
   assert.match(text, /WatchConnectivity/);
   assert.match(text, /HealthKit/);
+});
+
+test("privacy page documents the first-party analytics contract", () => {
+  const text = pageText(privacyPage);
+
+  assert.equal(EFFECTIVE_DATE, "August 16, 2026");
+  assert.equal(LAST_UPDATED, "2026-08-16");
+  assert.match(text, /random 12-character installation identifier/);
+  assert.match(text, /app_launch/);
+  assert.match(text, /training_sync_succeeded/);
+  assert.match(text, /highlight_generate_succeeded/);
+  assert.match(text, /highlight_save_succeeded/);
+  assert.match(text, /empty parameter object/);
+  assert.match(text, /does not have a fixed automatic expiration period/);
+  assert.match(text, /32 MiB/);
+  assert.match(text, /does not immediately delete prior server events/);
+  assert.match(text, /not used for advertising or cross-company tracking/);
+  assert.match(
+    text,
+    /events do not contain training records, marker timestamps, videos, HealthKit data, or diagnostic logs/,
+  );
 });
 
 test("support page contains the provided FAQ and contact details", () => {
