@@ -1,5 +1,4 @@
 import { NAV_ITEMS } from "../shared/constants";
-import { trackHubClick } from "../shared/tracking";
 import type { Route } from "../shared/route";
 import { NavIcon } from "./icons";
 import { Link } from "./link";
@@ -27,7 +26,6 @@ export const AppHeader = ({ routeName }: { routeName: Route["name"] }) => (
             <Link
               key={item.to}
               to={item.to}
-              onClick={() => trackHubClick(item.button)}
               className={`relative inline-flex h-8 items-center gap-0.5 whitespace-nowrap rounded-lg px-1.5 text-xs font-medium transition-colors sm:gap-1 sm:px-3 sm:text-sm ${
                 active
                   ? "bg-emerald-50 text-[#009966]"

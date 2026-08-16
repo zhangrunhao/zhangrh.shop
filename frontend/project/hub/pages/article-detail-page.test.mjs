@@ -23,6 +23,17 @@ test("article detail page renders generated content by numeric id", () => {
   assert.doesNotMatch(detailPage, /slug/);
 });
 
+test("article detail tracks only after matching content is available", () => {
+  const detailPage = readHubFile("pages/article-detail-page.tsx");
+
+  assert.match(detailPage, /useEffect/);
+  assert.match(
+    detailPage,
+    /if \(!article\) \{\s*return;\s*\}\s*trackHubEvent\("article_detail_page_load"\)/s,
+  );
+  assert.match(detailPage, /if \(!article\) \{\s*return <NotFoundPage \/>;\s*\}/s);
+});
+
 test("article detail route requires exactly six digits", () => {
   const route = readHubFile("shared/route.ts");
 

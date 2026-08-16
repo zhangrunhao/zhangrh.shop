@@ -3,43 +3,31 @@ import type { Route } from "./route";
 
 export const HUB_PROJECT = "hub";
 
-export type HubPageName =
-  | "home"
-  | "products"
-  | "articles"
-  | "article_detail"
-  | "about"
-  | "not_found";
+export const HUB_EVENTS = [
+  "home_page_load",
+  "products_page_load",
+  "articles_page_load",
+  "article_detail_page_load",
+  "about_page_load",
+] as const;
 
-export type HubButton =
-  | "nav_product"
-  | "nav_articles"
-  | "nav_about"
-  | "main_view_products"
-  | "main_view_articles";
+export type HubEvent = (typeof HUB_EVENTS)[number];
 
-export const resolvePageName = (route: Route): HubPageName => {
-  if (route.name === "article-detail") {
-    return "article_detail";
+export const resolveHubPageEvent = (route: Route): HubEvent | null => {
+  if (route.name === "home") {
+    return "home_page_load";
   }
-  if (route.name === "not-found") {
-    return "not_found";
+  if (route.name === "products") {
+    return "products_page_load";
   }
-  return route.name;
+  if (route.name === "articles") {
+    return "articles_page_load";
+  }
+  if (route.name === "about") {
+    return "about_page_load";
+  }
+  return null;
 };
 
-export const trackHubLoadPage = (pageName: HubPageName) => {
-  track({
-    event: "load_page",
-    project: HUB_PROJECT,
-    params: { page_name: pageName },
-  });
-};
-
-export const trackHubClick = (button: HubButton) => {
-  track({
-    event: "click",
-    project: HUB_PROJECT,
-    params: { button },
-  });
-};
+export const trackHubEvent = (event: HubEvent) =>
+  track({ event, project: HUB_PROJECT });

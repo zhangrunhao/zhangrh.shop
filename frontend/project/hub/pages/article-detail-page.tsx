@@ -1,11 +1,20 @@
+import { useEffect } from "react";
 import { ArrowIcon, CalendarIcon } from "../components/icons";
 import { Link } from "../components/link";
 import { ARTICLES } from "../shared/articles";
 import { formatDateYmd } from "../shared/format";
+import { trackHubEvent } from "../shared/tracking";
 import { NotFoundPage } from "./not-found-page";
 
 export const ArticleDetailPage = ({ articleId }: { articleId: string }) => {
   const article = ARTICLES.find((article) => article.id === articleId);
+
+  useEffect(() => {
+    if (!article) {
+      return;
+    }
+    trackHubEvent("article_detail_page_load");
+  }, [article]);
 
   if (!article) {
     return <NotFoundPage />;

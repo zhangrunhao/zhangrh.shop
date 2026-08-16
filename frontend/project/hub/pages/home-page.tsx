@@ -1,7 +1,6 @@
 import { FEATURED_WORKS, HOME } from "../shared/data";
 import { ARTICLES } from "../shared/articles";
 import { formatDateYmd } from "../shared/format";
-import { trackHubClick } from "../shared/tracking";
 import type { Article } from "../types";
 import {
   ArrowIcon,
@@ -42,7 +41,6 @@ export const HomePage = ({ articles = ARTICLES }: HomePageProps) => {
           <div className="mt-8 flex flex-wrap gap-3">
             <a
               href="#featured-works"
-              onClick={() => trackHubClick("main_view_products")}
               className="inline-flex h-12 items-center gap-2 rounded-lg bg-[#009966] px-5 text-base font-medium tracking-normal text-white shadow-sm transition-colors hover:bg-[#00885c]"
             >
               <CubeIcon />
@@ -50,7 +48,6 @@ export const HomePage = ({ articles = ARTICLES }: HomePageProps) => {
             </a>
             <a
               href="#featured-articles"
-              onClick={() => trackHubClick("main_view_articles")}
               className="inline-flex h-12 items-center gap-2 rounded-lg border border-[#d4d4d4] bg-white px-5 text-base font-medium tracking-normal text-[#404040] transition-colors hover:border-[#009966] hover:text-[#009966]"
             >
               阅读文章

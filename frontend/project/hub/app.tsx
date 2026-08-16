@@ -8,7 +8,7 @@ import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ProductsPage } from "./pages/products-page";
 import { ARTICLES } from "./shared/articles";
-import { resolvePageName, trackHubLoadPage } from "./shared/tracking";
+import { resolveHubPageEvent, trackHubEvent } from "./shared/tracking";
 import { resolveRoute, usePathname } from "./shared/route";
 
 export const App = () => {
@@ -33,7 +33,10 @@ export const App = () => {
   }, [route]);
 
   useEffect(() => {
-    trackHubLoadPage(resolvePageName(route));
+    const event = resolveHubPageEvent(route);
+    if (event) {
+      trackHubEvent(event);
+    }
   }, [route]);
 
   return (

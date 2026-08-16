@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { track } from '../../common/track'
 import { CardgameIcon } from './components/icons'
 import type { CardgameIconName } from './components/icons'
 import { SurveyModal } from './components/survey-modal'
 import { resolveGameOverView } from './shared/game-view'
+import { trackCardgameEvent } from './shared/tracking'
 import {
   entryModeForRoute,
   getCardgameNavigationMode,
@@ -136,14 +136,6 @@ const generateRecommendedNickname = () => {
   return `${randomPick(NICKNAME_PREFIX)}${randomPick(NICKNAME_SUFFIX)}${serial}`
 }
 
-const trackCardgameClick = (button: string) => {
-  track({
-    event: 'click',
-    project: 'cardgame',
-    params: { button },
-  })
-}
-
 const App = () => {
   const pathname = useCardgamePathname()
   const route = useMemo(() => resolveCardgameRoute(pathname), [pathname])
@@ -175,6 +167,7 @@ const App = () => {
   const [rematchState, setRematchState] = useState<CardgameRematchState>('idle')
 
   const pendingMessageRef = useRef<string | null>(null)
+  const pageLoadTrackedRef = useRef(false)
   const wsRef = useRef<WebSocket | null>(null)
   const dragIndexRef = useRef<{ source: 'hand' | 'selected'; index: number } | null>(null)
   const startedRef = useRef(false)
@@ -183,6 +176,14 @@ const App = () => {
   const gameOverRef = useRef<GameOver | null>(null)
   const sessionActiveRef = useRef(false)
   const modalOpenRef = useRef(false)
+
+  useEffect(() => {
+    if (pageLoadTrackedRef.current) {
+      return
+    }
+    pageLoadTrackedRef.current = true
+    trackCardgameEvent('cardgame_page_load')
+  }, [])
 
   const me = useMemo(() => roomState?.players.find((player) => player.playerId === playerId) ?? null, [
     roomState,
@@ -582,16 +583,16 @@ const App = () => {
 
   const handleEntryAction = () => {
     if (entryMode === 'create') {
-      trackCardgameClick('create_room')
+      trackCardgameEvent('create_room_click')
       handleCreateRoom()
       return
     }
     if (entryMode === 'join') {
-      trackCardgameClick('join_room')
+      trackCardgameEvent('join_room_click')
       handleJoinRoom()
       return
     }
-    trackCardgameClick('ai_battle')
+    trackCardgameEvent('ai_battle_click')
     handleStartBotMatch()
   }
 
@@ -604,7 +605,7 @@ const App = () => {
     if (picks.length !== required) {
       return
     }
-    trackCardgameClick('play_cards')
+    trackCardgameEvent('play_cards_click')
     sendMessage({
       type: 'play_cards',
       payload: {
@@ -627,7 +628,7 @@ const App = () => {
     if (rematchTransition.action !== 'begin') {
       return
     }
-    trackCardgameClick('play_again')
+    trackCardgameEvent('play_again_click')
     rematchStateRef.current = rematchTransition.state
     setRematchState(rematchTransition.state)
     setErrorMessage(null)
@@ -1383,7 +1384,7 @@ const App = () => {
                   <button
                     className="primary-button"
                     onClick={() => {
-                      trackCardgameClick('round_confirm')
+                      trackCardgameEvent('round_confirm_click')
                       if (roomState && playerId && !gameOver) {
                         sendMessage({
                           type: 'round_confirm',
