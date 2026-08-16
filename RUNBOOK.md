@@ -61,11 +61,11 @@ curl --fail-with-body \
   'https://zhangrh.shop/api/track/summary?days=30'
 ```
 
-按项目查询最近 90 天并保存 JSON：
+按项目查询最近 30 天的 ShotMarker 汇总并保存 JSON：
 
 ```bash
 curl --fail-with-body \
-  'https://zhangrh.shop/api/track/summary?days=90&project=hub' \
+  'https://zhangrh.shop/api/track/summary?days=30&project=shotmarker' \
   --output track-summary.json
 ```
 

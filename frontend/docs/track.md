@@ -1,16 +1,16 @@
 # 前端埋点说明
 
-`frontend/common/track.ts` 是 Hub 和 Cardgame 共用的发送入口。调用 `track()` 会生成以下字段：
+`frontend/common/track.ts` 是 Hub 和 Cardgame 共用的网页发送入口；ShotMarker iPhone App 使用同一埋点协议和 HTTPS GET 接口。各客户端会生成以下字段：
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `time` | number | `Date.now()` 产生的毫秒时间戳 |
-| `project` | string | 当前调用方为 `hub` 或 `cardgame` |
-| `device_id` | string | 12 位字母数字标识，优先复用 localStorage 或 `.zhangrh.shop` Cookie |
+| `project` | string | 当前调用方为 `hub`、`cardgame` 或 `shotmarker` |
+| `device_id` | string | 12 位字母数字标识；网页优先复用 localStorage 或 `.zhangrh.shop` Cookie，ShotMarker 使用保存在 UserDefaults 中的安装随机值 |
 | `event` | string | 事件名称 |
 | `params` | object | 事件参数 |
 
-## 发送方式
+## 网页发送方式
 
 浏览器创建 `Image`，把字段编码为当前域名下的 GET 请求：
 
@@ -60,6 +60,21 @@ Cardgame 的以下操作发送 `event: "click"`，参数格式均为 `{ "button"
 
 事件在相应按钮处理逻辑中触发；它表示用户执行了该操作，不保证后续 WebSocket 请求成功。
 
+## ShotMarker iPhone
+
+ShotMarker 仅在 iPhone App 的 Release 构建中使用临时 `URLSession`，向同一 HTTPS GET 接口发送埋点。Debug 构建、测试、iPad、Apple Watch 和其他非 iPhone 环境不发送。该会话不使用持久 Cookie 或磁盘缓存。
+
+所有 ShotMarker 事件都发送 `project=shotmarker` 和 `params={}`：
+
+| event | 成功语义 |
+| --- | --- |
+| `app_launch` | iPhone App 进程启动 |
+| `training_sync_succeeded` | Watch 训练记录成功导入 iPhone，且事件在向 Watch 发送 ACK 前触发 |
+| `highlight_generate_succeeded` | 集锦 runner 最终进入 `completed` 状态，且输出文件已位于正式路径 |
+| `highlight_save_succeeded` | 集锦成功写入系统相册，且保存成功状态已持久化 |
+
+发送失败即丢弃；客户端不缓存、不批量发送，也不重试。事件不上传训练记录、打点时间戳、视频、HealthKit 数据、诊断日志或其他业务/诊断字段。
+
 ## 持久化与查询边界
 
 生产 Nginx 对 `/track` 返回 `204`，并把每个请求按 schema v1 独立写入宿主机持久目录中的 `events.jsonl`。写入失败不会改变前端响应；读取端负责拒绝伪造或格式错误的记录。
@@ -67,10 +82,10 @@ Cardgame 的以下操作发送 `event: "click"`，参数格式均为 `{ "button"
 Backend 通过只读挂载流式聚合日志，并公开提供：
 
 ```text
-GET /api/track/summary?days=<1-90>&project=<hub|cardgame>
+GET /api/track/summary?days=<1-90>&project=<hub|cardgame|shotmarker>
 ```
 
-`days` 默认 30，`project` 可省略。响应只包含事件、浏览器设备数、项目、事件、页面、按钮和每日汇总，不返回原始 `device_id`、params、IP、User-Agent、Referer、Cookie 或文件路径。
+`days` 默认 30，`project` 可省略。响应只包含事件、近似浏览器/安装数、项目、事件、页面、按钮和每日汇总，不返回原始 `device_id`、params、IP、User-Agent、Referer、Cookie 或文件路径。
 
 该接口第一阶段无需鉴权，结果属于公开、低风险的产品观察数据。客户端事件和设备标识均可伪造，不能用于计费、风控、审计或强一致业务指标。
 
