@@ -2,11 +2,11 @@
 
 日期：2026-08-16
 
-状态：本地实现完成并通过验证，待生产服务器切换与线上验证
+状态：实现、生产服务器切换与线上验证完成；真实 Release/TestFlight ShotMarker 上报仍待发布验收
 
 涉及范围：`zhangrh.shop`、`ShotMarker`、生产服务器上的 Nginx、Docker Compose 与旧埋点数据
 
-实现状态更新（2026-08-16）：两个本地仓库的客户端、Backend、Analytics、测试和公开文档已按本设计完成；ShotMarker Release 构建与隐私清单也已验证。第 12 节的生产停服、不可恢复删数、Nginx/Compose 切换和线上验证尚未执行，`docs/private.local` 生产台账因此保持不变。下方复选框保留原始执行清单用途，不代表生产步骤已经完成。
+实现状态更新（2026-08-16）：两个仓库的客户端、Backend、Analytics、测试和公开文档已按本设计完成；ShotMarker Release Simulator 构建与隐私清单也已验证。生产环境于 21:55:50～21:59:54 停止整个 Compose 项目，旧 JSONL 与两个历史 gzip 在复核真实路径和文件类型后永久删除且没有数据备份，随后部署四字段 Nginx 配置、四个前端和 revision `a98c038` Backend。容器、严格四字段日志、30 天趋势 API、Hub/Cardgame 真实事件、Cardgame health/WebSocket、Analytics 桌面与 390×844 布局、新版 ShotMarker 隐私页均通过线上验收；旧 `/api/track/summary` 返回 404。验收快照为 7 条四字段记录，不保存或回显任何设备标识。真实 iPhone Release/TestFlight 的 ShotMarker 三参数请求尚未验证，不属于本次服务器切换完成条件。
 
 ## 1. 结果概述
 
@@ -421,162 +421,162 @@ Backend 不返回或发现事件目录。新增、改名或删除事件时，客
 
 ### 9.1 `zhangrh.shop`：通用发送层
 
-- [ ] 修改 `frontend/common/track.ts`：输入和返回值只包含 `project`、`event`、
+- [x] 修改 `frontend/common/track.ts`：输入和返回值只包含 `project`、`event`、
   `device_id`；删除客户端 `time`、`params`、JSON stringify 和对应查询参数。
-- [ ] 保持 `frontend/common/device_id.ts` 的生成、localStorage 和 Cookie 复用逻辑不变。
-- [ ] 新增或补充发送层测试：精确断言请求只有三个查询参数，仍使用 `/track`、GET 语义和
+- [x] 保持 `frontend/common/device_id.ts` 的生成、localStorage 和 Cookie 复用逻辑不变。
+- [x] 新增或补充发送层测试：精确断言请求只有三个查询参数，仍使用 `/track`、GET 语义和
   当前的非阻塞发送方式。
-- [ ] 验证目的：三个网页项目不能再意外发送时间、params 或其他维度。
+- [x] 验证目的：三个网页项目不能再意外发送时间、params 或其他维度。
 
 ### 9.2 `zhangrh.shop`：Hub
 
-- [ ] 修改 `frontend/project/hub/shared/tracking.ts`：定义五个 Hub event，直接发送完整事件
+- [x] 修改 `frontend/project/hub/shared/tracking.ts`：定义五个 Hub event，直接发送完整事件
   名称；删除 `HubButton`、`trackHubClick` 和 page_name 参数。
-- [ ] 修改 `frontend/project/hub/app.tsx`：首页、作品列表、文章列表和关于页按路由发送事件；
+- [x] 修改 `frontend/project/hub/app.tsx`：首页、作品列表、文章列表和关于页按路由发送事件；
   404 和文章详情路由不在这里发送。
-- [ ] 修改 `frontend/project/hub/pages/article-detail-page.tsx`：只有找到对应文章并展示内容后才
+- [x] 修改 `frontend/project/hub/pages/article-detail-page.tsx`：只有找到对应文章并展示内容后才
   发送 `article_detail_page_load`；找不到文章时渲染 404 且不发送。
-- [ ] 修改 `frontend/project/hub/shared/constants.ts`：删除导航项中的 tracking button 字段
+- [x] 修改 `frontend/project/hub/shared/constants.ts`：删除导航项中的 tracking button 字段
   和对 `HubButton` 的依赖。
-- [ ] 修改 `frontend/project/hub/components/app-header.tsx`：删除导航点击埋点回调。
-- [ ] 修改 `frontend/project/hub/pages/home-page.tsx`：删除首页两个入口按钮的点击埋点。
-- [ ] 添加 Hub tracking 测试，覆盖四个普通页面映射、有效文章内容上报、未知六位文章 ID、
+- [x] 修改 `frontend/project/hub/components/app-header.tsx`：删除导航点击埋点回调。
+- [x] 修改 `frontend/project/hub/pages/home-page.tsx`：删除首页两个入口按钮的点击埋点。
+- [x] 添加 Hub tracking 测试，覆盖四个普通页面映射、有效文章内容上报、未知六位文章 ID、
   其他 404 和点击不上报。
-- [ ] 验证目的：Hub 只产生五个明确页面访问事件。
+- [x] 验证目的：Hub 只产生五个明确页面访问事件。
 
 ### 9.3 `zhangrh.shop`：Cardgame
 
-- [ ] 新建 `frontend/project/cardgame/shared/tracking.ts`，定义 Cardgame event 联合类型和发送
+- [x] 新建 `frontend/project/cardgame/shared/tracking.ts`，定义 Cardgame event 联合类型和发送
   函数，避免继续在大型 `app.tsx` 中维护字符串拼接。
-- [ ] 修改 `frontend/project/cardgame/app.tsx`：应用首次装载发送一次
+- [x] 修改 `frontend/project/cardgame/app.tsx`：应用首次装载发送一次
   `cardgame_page_load`。
-- [ ] 把六个现有按钮值改为完整事件名：`create_room_click`、`join_room_click`、
+- [x] 把六个现有按钮值改为完整事件名：`create_room_click`、`join_room_click`、
   `ai_battle_click`、`play_cards_click`、`round_confirm_click`、`play_again_click`。
-- [ ] 保持各事件当前触发时机不变，不把点击改成业务成功埋点。
-- [ ] 添加测试，覆盖页面加载只发一次、六个动作映射正确、业务失败不改变既有点击语义。
-- [ ] 验证目的：Cardgame 不再依赖 `event=click + params.button`。
+- [x] 保持各事件当前触发时机不变，不把点击改成业务成功埋点。
+- [x] 添加测试，覆盖页面加载只发一次、六个动作映射正确、业务失败不改变既有点击语义。
+- [x] 验证目的：Cardgame 不再依赖 `event=click + params.button`。
 
 ### 9.4 `zhangrh.shop`：Backend
 
-- [ ] 重写 `backend/projects/track-query.js` 的记录模型，只识别严格四字段新记录。
-- [ ] 删除 schema version、request ID、客户端时间、params 解码、页面/按钮维度、gzip 与轮转
+- [x] 重写 `backend/projects/track-query.js` 的记录模型，只识别严格四字段新记录。
+- [x] 删除 schema version、request ID、客户端时间、params 解码、页面/按钮维度、gzip 与轮转
   文件发现和 request ID 去重代码。
-- [ ] 保留流式读取、当前文件快照、部分尾行保护、超时、`64 MiB` 字节上限、事件循环让步和
+- [x] 保留流式读取、当前文件快照、部分尾行保护、超时、`64 MiB` 字节上限、事件循环让步和
   错误隔离；不要求为单行、唯一设备数、符号链接或 inode 竞态增加专项保护。
-- [ ] 聚合器参数改为必填 `project`、`event`、`days`，预创建长度等于 `days` 的连续日期和
+- [x] 聚合器参数改为必填 `project`、`event`、`days`，预创建长度等于 `days` 的连续日期和
   零值，再把有效记录聚合到对应日期。
-- [ ] 每天维护一个 `device_id` Set 计算 UV；不维护全范围 totals。
-- [ ] 修改 `backend/projects/track.js`：删除 `/api/track/summary`，注册严格的
+- [x] 每天维护一个 `device_id` Set 计算 UV；不维护全范围 totals。
+- [x] 修改 `backend/projects/track.js`：删除 `/api/track/summary`，注册严格的
   `/api/track/trend`。
-- [ ] 要求 `project`、`event`、`days` 全部存在，拒绝重复和未知查询参数。
-- [ ] 保持单查询并发限制、安全错误映射和 `Cache-Control: no-store`。
-- [ ] 更新 `backend/tools/track-query.test.mjs`，覆盖四字段解析、PV、逐日 UV、项目/事件/日期
+- [x] 要求 `project`、`event`、`days` 全部存在，拒绝重复和未知查询参数。
+- [x] 保持单查询并发限制、安全错误映射和 `Cache-Control: no-store`。
+- [x] 更新 `backend/tools/track-query.test.mjs`，覆盖四字段解析、PV、逐日 UV、项目/事件/日期
   过滤、连续日期、零值填充、全零趋势、无效行、尾行、文件不可用、大小上限和超时。
-- [ ] 更新 `backend/tools/track-route.test.mjs`，覆盖新路径、三个必填参数、稳定错误、并发保护
+- [x] 更新 `backend/tools/track-route.test.mjs`，覆盖新路径、三个必填参数、稳定错误、并发保护
   和不泄露原始数据。
-- [ ] 验证目的：Backend 成为单一事件的只读趋势计算器，不保留旧聚合能力。
+- [x] 验证目的：Backend 成为单一事件的只读趋势计算器，不保留旧聚合能力。
 
 ### 9.5 `zhangrh.shop`：Analytics
 
-- [ ] 把 `frontend/project/analytics/track-summary.ts` 重命名为 `track-trend.ts`，并用明确的
+- [x] 把 `frontend/project/analytics/track-summary.ts` 重命名为 `track-trend.ts`，并用明确的
   trend 命名替换旧 summary 类型、解析器和 URL 构造。
-- [ ] 在 Analytics 项目内新增三个项目的静态事件目录和默认事件。
-- [ ] 修改 `frontend/project/analytics/app.tsx`：增加必选事件和全局 PV/UV 状态；实现项目、
+- [x] 在 Analytics 项目内新增三个项目的静态事件目录和默认事件。
+- [x] 修改 `frontend/project/analytics/app.tsx`：增加必选事件和全局 PV/UV 状态；实现项目、
   天数 localStorage 恢复与校验。
-- [ ] 把 `summary-view.tsx` 重命名为 `trend-view.tsx`，并用单趋势组件替换旧汇总视图。
-- [ ] 更新 `index.html` 的标题和描述，从聚合概览改为单事件趋势。
-- [ ] 修改 `styles.css`：删除指标卡和 breakdown 表样式，保留响应式筛选区、状态提示和趋势图。
-- [ ] 把对应测试重命名为 `track-trend.test.ts`、`trend-view.test.tsx`，并更新 `app.test.tsx`。
-- [ ] 测试默认值、本地恢复、项目切换默认事件、范围切换保留事件、事件请求、PV/UV 无请求
+- [x] 把 `summary-view.tsx` 重命名为 `trend-view.tsx`，并用单趋势组件替换旧汇总视图。
+- [x] 更新 `index.html` 的标题和描述，从聚合概览改为单事件趋势。
+- [x] 修改 `styles.css`：删除指标卡和 breakdown 表样式，保留响应式筛选区、状态提示和趋势图。
+- [x] 把对应测试重命名为 `track-trend.test.ts`、`trend-view.test.tsx`，并更新 `app.test.tsx`。
+- [x] 测试默认值、本地恢复、项目切换默认事件、范围切换保留事件、事件请求、PV/UV 无请求
   切换、连续日期和长度校验、全零趋势、统一错误、网络错误、503 和重试。
-- [ ] 验证目的：页面只回答“某项目、某事件、某段时间内每日 PV/UV 如何变化”。
+- [x] 验证目的：页面只回答“某项目、某事件、某段时间内每日 PV/UV 如何变化”。
 
 ### 9.6 `zhangrh.shop`：文档与隐私说明
 
-- [ ] 更新现行公开或运维文档：
+- [x] 更新现行公开或运维文档：
   - `frontend/docs/track.md`：四字段模型、三个项目事件目录和新趋势接口。
   - `RUNBOOK.md`：新 curl 示例、错误处置、连续日期响应、单文件容量检查和停服切换说明。
   - `docs/deploy/README.md`：新 API、Nginx 四字段写入、旧数据已删除和无旧格式兼容。
   - `README.md`：把 Analytics 描述改为必选单事件的逐日 PV/UV 趋势。
   - `frontend/project/shotmarker/content.ts` 及测试：ShotMarker 只发送项目、事件和随机安装 ID，
     服务器添加时间；删除“客户端时间”和“空 params 对象”披露。
-- [ ] 给以下历史 Track 规格和计划增加“已被本设计取代，仅保留为历史记录”的顶部状态提示，
+- [x] 给以下历史 Track 规格和计划增加“已被本设计取代，仅保留为历史记录”的顶部状态提示，
   不重写其历史实施内容：
   - `docs/superpowers/specs/2026-08-15-track-jsonl-query-api-design.md`
   - `docs/superpowers/specs/2026-08-16-track-single-jsonl-storage-design.md`
   - `docs/superpowers/specs/2026-08-16-track-analytics-page-design.md`
   - `docs/superpowers/plans/2026-08-15-track-jsonl-query-api.md`
   - `docs/superpowers/plans/2026-08-16-track-analytics-page.md`
-- [ ] 生产部署和线上验证完成后更新私有服务器台账：
+- [x] 生产部署和线上验证完成后更新私有服务器台账：
   - `docs/private.local/zhangrh-shop/main.md`
   - `docs/private.local/zhangrh-shop/overview.md`
   只记录当次实际验证过的生产事实，不提前把设计状态写成已部署。
-- [ ] 验证目的：代码、公开隐私政策和运维手册描述同一套实际字段。
+- [x] 验证目的：代码、公开隐私政策和运维手册描述同一套实际字段。
 
 ### 9.7 `ShotMarker` 仓库
 
-- [ ] 修改 `ShotMarker/Services/Analytics/AnalyticsClient.swift`：删除注入时钟和客户端毫秒
+- [x] 修改 `ShotMarker/Services/Analytics/AnalyticsClient.swift`：删除注入时钟和客户端毫秒
   时间；请求只包含 `project`、`event`、`device_id`。
-- [ ] 保持 endpoint、GET、5 秒超时、ephemeral session、无 Cookie、无缓存、无重试和失败
+- [x] 保持 endpoint、GET、5 秒超时、ephemeral session、无 Cookie、无缓存、无重试和失败
   静默行为不变。
-- [ ] 保持 `AnalyticsEvent.swift` 的四个事件名不变。
-- [ ] 保持 `InstallationIDStore.swift` 的 12 位安装 ID 规则不变。
-- [ ] 更新 `ShotMarkerTests/AnalyticsClientTests.swift`：精确断言只有三个查询参数，并删除
+- [x] 保持 `AnalyticsEvent.swift` 的四个事件名不变。
+- [x] 保持 `InstallationIDStore.swift` 的 12 位安装 ID 规则不变。
+- [x] 更新 `ShotMarkerTests/AnalyticsClientTests.swift`：精确断言只有三个查询参数，并删除
   时钟相关测试依赖。
-- [ ] 继续运行事件枚举、安装 ID、运行策略、同步、生成和保存调用点测试。
-- [ ] 更新 `docs/current-codebase-status.md`：记录客户端三参数协议、实际验证范围和仍未完成的
+- [x] 继续运行事件枚举、安装 ID、运行策略、同步、生成和保存调用点测试。
+- [x] 更新 `docs/current-codebase-status.md`：记录客户端三参数协议、实际验证范围和仍未完成的
   TestFlight/生产外部状态；它继续作为 ShotMarker 当前进度唯一事实来源。
-- [ ] 更新 `docs/superpowers/specs/2026-08-16-shotmarker-analytics-design.md`：事件语义和运行策略
+- [x] 更新 `docs/superpowers/specs/2026-08-16-shotmarker-analytics-design.md`：事件语义和运行策略
   继续有效，传输字段、服务端四字段模型和趋势查询改为引用本设计。
-- [ ] 给以下已完成的历史实施计划增加顶部状态提示，说明其中 client time、params、schema v1
+- [x] 给以下已完成的历史实施计划增加顶部状态提示，说明其中 client time、params、schema v1
   和旧 summary API 已被本设计取代，不重新执行旧步骤：
   - `docs/superpowers/plans/2026-08-16-shotmarker-analytics-client.md`
   - `docs/superpowers/plans/2026-08-16-shotmarker-analytics-server.md`
-- [ ] `PrivacyInfo.xcprivacy` 的 Device ID 与 Product Interaction 声明不需要改变，但必须
+- [x] `PrivacyInfo.xcprivacy` 的 Device ID 与 Product Interaction 声明不需要改变，但必须
   继续通过 plist 和产物包含检查。
-- [ ] 验证目的：原生客户端与网页使用同一最小协议，隐私披露不再多报字段。
+- [x] 验证目的：原生客户端与网页使用同一最小协议，隐私披露不再多报字段。
 
 ## 10. 自动化验证清单
 
 ### 10.1 Backend
 
-- [ ] 有效四字段记录进入正确日期。
-- [ ] 同日相同设备重复事件：PV 增加，UV 不增加。
-- [ ] 同一设备跨日出现：分别计入各日 UV。
-- [ ] 不同 event 和不同 project 不进入当前趋势。
-- [ ] 查询期首日 `00:00:00+08:00` 边界正确。
-- [ ] 未来时间和范围外记录被排除。
-- [ ] 非法 JSON、空字段、额外字段、旧 schema、非法项目、非法事件、非法设备 ID 和非法时间
+- [x] 有效四字段记录进入正确日期。
+- [x] 同日相同设备重复事件：PV 增加，UV 不增加。
+- [x] 同一设备跨日出现：分别计入各日 UV。
+- [x] 不同 event 和不同 project 不进入当前趋势。
+- [x] 查询期首日 `00:00:00+08:00` 边界正确。
+- [x] 未来时间和范围外记录被排除。
+- [x] 非法 JSON、空字段、额外字段、旧 schema、非法项目、非法事件、非法设备 ID 和非法时间
   被忽略。
-- [ ] 未完成尾行不导致整个查询失败。
-- [ ] 1、7、30、90 天分别返回 1、7、30、90 个连续日期项，日期严格升序且不重复。
-- [ ] 合法但无记录的事件仍返回完整日期数组，每个 `pv`、`uv` 都为 0。
-- [ ] 响应严格只有 `daily`，不含设备原值或旧字段。
-- [ ] 文件缺失、过大、超时和并发查询返回稳定安全错误。
+- [x] 未完成尾行不导致整个查询失败。
+- [x] 1、7、30、90 天分别返回 1、7、30、90 个连续日期项，日期严格升序且不重复。
+- [x] 合法但无记录的事件仍返回完整日期数组，每个 `pv`、`uv` 都为 0。
+- [x] 响应严格只有 `daily`，不含设备原值或旧字段。
+- [x] 文件缺失、过大、超时和并发查询返回稳定安全错误。
 
 ### 10.2 Web 前端
 
-- [ ] 通用请求只包含三个查询参数。
-- [ ] Hub 四个普通页面按路由产生事件；文章详情仅在内容存在并展示后产生事件，未知文章、
+- [x] 通用请求只包含三个查询参数。
+- [x] Hub 四个普通页面按路由产生事件；文章详情仅在内容存在并展示后产生事件，未知文章、
   其他 404 和点击不产生事件。
-- [ ] Cardgame 首次装载事件只发送一次，六个点击事件名称正确。
-- [ ] Analytics 事件目录与确认清单完全一致。
-- [ ] 默认状态是 Hub、30 天、`home_page_load`、PV。
-- [ ] localStorage 只保存合法项目和合法天数；损坏值自动回退。
-- [ ] 切项目选择默认事件，切范围保留事件。
-- [ ] 切 PV/UV 不调用 fetch，切项目/范围/event 会调用一次 fetch。
-- [ ] API 响应的 `daily` 不是数组、长度不等于当前查询 `days`、日期无效或不连续，或者计数
+- [x] Cardgame 首次装载事件只发送一次，六个点击事件名称正确。
+- [x] Analytics 事件目录与确认清单完全一致。
+- [x] 默认状态是 Hub、30 天、`home_page_load`、PV。
+- [x] localStorage 只保存合法项目和合法天数；损坏值自动回退。
+- [x] 切项目选择默认事件，切范围保留事件。
+- [x] 切 PV/UV 不调用 fetch，切项目/范围/event 会调用一次 fetch。
+- [x] API 响应的 `daily` 不是数组、长度不等于当前查询 `days`、日期无效或不连续，或者计数
   不是满足 `0 <= uv <= pv` 的安全整数时整份拒绝并显示统一错误；全零数组合法。
-- [ ] 全零趋势、加载、刷新、失败和重试状态可访问且不泄露响应正文。
+- [x] 全零趋势、加载、刷新、失败和重试状态可访问且不泄露响应正文。
 
 ### 10.3 ShotMarker
 
-- [ ] 请求 URL 只有 project、event、device_id。
-- [ ] 四个 enum raw value 不变。
-- [ ] 每次 track 仍只安排一个请求且不重试。
-- [ ] Debug、测试和非 iPhone 平台仍使用 no-op。
-- [ ] Release iPhone build 通过。
-- [ ] `PrivacyInfo.xcprivacy` lint 通过且包含在 App 产物中。
+- [x] 请求 URL 只有 project、event、device_id。
+- [x] 四个 enum raw value 不变。
+- [x] 每次 track 仍只安排一个请求且不重试。
+- [x] Debug、测试和非 iPhone 平台仍使用 no-op。
+- [x] Release iPhone build 通过。
+- [x] `PrivacyInfo.xcprivacy` lint 通过且包含在 App 产物中。
 
 ### 10.4 仓库级命令
 
@@ -618,65 +618,65 @@ ShotMarker：
 
 ### 12.1 本地发布前
 
-- [ ] 两个仓库工作区无未说明的改动。
-- [ ] 所有实现提交已审查并推送。
-- [ ] `zhangrh.shop` 的 `npm run check` 通过。
-- [ ] ShotMarker 相关测试、Release build 和隐私清单检查通过。
-- [ ] 准备好前端 OSS 发布所需环境变量，但不把值写入命令历史或文档。
-- [ ] 确认可以 SSH 到目标服务器，且发布脚本目标仍是 `/opt/zhangrh-shop`。
+- [x] 两个仓库工作区无未说明的改动。
+- [x] 所有实现提交已审查并推送。
+- [x] `zhangrh.shop` 的 `npm run check` 通过。
+- [x] ShotMarker 相关测试、Release build 和隐私清单检查通过。
+- [x] 准备好前端 OSS 发布所需环境变量，但不把值写入命令历史或文档。
+- [x] 确认可以 SSH 到目标服务器，且发布脚本目标仍是 `/opt/zhangrh-shop`。
 
 ### 12.2 服务器只读预检
 
-- [ ] 进入 `/opt/zhangrh-shop`，运行 `docker compose config --services` 和
+- [x] 进入 `/opt/zhangrh-shop`，运行 `docker compose config --services` 和
   `docker compose ps`，确认只会停止本 Compose 项目。
-- [ ] 用 `nginx -T` 或容器内等价命令定位实际生效配置，不能猜测配置文件路径。
-- [ ] 确认 `readlink -f /opt/zhangrh-shop/data/track` 精确返回同一路径，且它不是符号链接。
-- [ ] 列出数据目录第一层条目、类型和大小；若出现预期外目录、设备文件或链接则停止操作。
-- [ ] 确认旧内容只包括 `events.jsonl`、`events.jsonl-*` 和历史 gzip。
-- [ ] 查询 Nginx worker 实际数字 UID/GID，并记录新文件所需 mode。
-- [ ] 检查当前 Nginx 配置和 Compose 文件备份方式；配置可备份，旧埋点数据不备份。
+- [x] 用 `nginx -T` 或容器内等价命令定位实际生效配置，不能猜测配置文件路径。
+- [x] 确认 `readlink -f /opt/zhangrh-shop/data/track` 精确返回同一路径，且它不是符号链接。
+- [x] 列出数据目录第一层条目、类型和大小；若出现预期外目录、设备文件或链接则停止操作。
+- [x] 确认旧内容只包括 `events.jsonl`、`events.jsonl-*` 和历史 gzip。
+- [x] 查询 Nginx worker 实际数字 UID/GID，并记录新文件所需 mode。
+- [x] 检查当前 Nginx 配置和 Compose 文件备份方式；配置可备份，旧埋点数据不备份。
 
 ### 12.3 停止服务
 
-- [ ] 在 `/opt/zhangrh-shop` 执行 `docker compose stop`。
-- [ ] 再次运行 `docker compose ps`，确认该项目所有容器均已停止。
-- [ ] 确认 Nginx 不再追加 `events.jsonl`，Backend 不再读取它。
+- [x] 在 `/opt/zhangrh-shop` 执行 `docker compose stop`。
+- [x] 再次运行 `docker compose ps`，确认该项目所有容器均已停止。
+- [x] 确认 Nginx 不再追加 `events.jsonl`，Backend 不再读取它。
 
 停服期间 Hub、Cardgame、ShotMarker 网站、Analytics 和 Backend 均不可用。当前低访问量下
 接受这一点，不增加临时维护路由。
 
 ### 12.4 永久删除旧数据
 
-- [ ] 停服后再次校验数据目录真实路径和第一层内容。
-- [ ] 永久删除 `/opt/zhangrh-shop/data/track` 第一层内全部预期旧埋点文件。
-- [ ] 不复制、不压缩、不移动旧数据到备份目录。
-- [ ] 确认旧 `events.jsonl`、轮转文件和 gzip 均已不存在。
-- [ ] 创建新的空 `events.jsonl`。
-- [ ] 使用预检得到的 Nginx UID/GID 和既有安全 mode 设置所有权与权限。
-- [ ] 确认 Backend 容器通过现有只读挂载能够读取，Nginx 通过读写挂载能够追加。
+- [x] 停服后再次校验数据目录真实路径和第一层内容。
+- [x] 永久删除 `/opt/zhangrh-shop/data/track` 第一层内全部预期旧埋点文件。
+- [x] 不复制、不压缩、不移动旧数据到备份目录。
+- [x] 确认旧 `events.jsonl`、轮转文件和 gzip 均已不存在。
+- [x] 创建新的空 `events.jsonl`。
+- [x] 使用预检得到的 Nginx UID/GID 和既有安全 mode 设置所有权与权限。
+- [x] 确认 Backend 容器通过现有只读挂载能够读取，Nginx 通过读写挂载能够追加。
 
 该删除不可恢复。路径、文件类型或容器状态任一项不符合预期时不得执行删除。
 
 ### 12.5 部署
 
-- [ ] 把最终四字段 `log_format` 合并到服务器私有 Nginx 配置。
-- [ ] 确认 `/track` 只写专用 `events.jsonl`，不写普通完整 URI 日志。
-- [ ] 发布 Hub、Cardgame 和 Analytics 静态资源与 HTML。
-- [ ] 发布 Backend；发布脚本可能先启动 Backend，但 Nginx 尚未启动时不会暴露外部流量。
-- [ ] 在服务器执行最终 `docker compose up -d --build`，启动整个项目。
-- [ ] 运行 `docker compose ps`，确认所有目标服务 healthy/running。
+- [x] 把最终四字段 `log_format` 合并到服务器私有 Nginx 配置。
+- [x] 确认 `/track` 只写专用 `events.jsonl`，不写普通完整 URI 日志。
+- [x] 发布 Hub、Cardgame、ShotMarker 和 Analytics 静态资源与 HTML。
+- [x] 发布 Backend；发布脚本可能先启动 Backend，但 Nginx 尚未启动时不会暴露外部流量。
+- [x] 在服务器执行最终 `docker compose up -d --build`，启动整个项目。
+- [x] 运行 `docker compose ps`，确认所有目标服务 healthy/running。
 - [ ] ShotMarker 代码更新完成后按正常 TestFlight/App Store 流程发布；它不阻塞服务器切换。
 
 ### 12.6 线上验证
 
-- [ ] Nginx 配置测试通过，无 reload/start 错误。
-- [ ] `GET /track?...` 返回 `204`。
-- [ ] 用正常 Hub 页面访问产生一条真实 `home_page_load`，不创建专用 smoke event。
-- [ ] 只检查最新 JSON 行的 key、类型和格式，避免在终端或文档中输出真实 `device_id`。
-- [ ] 确认最新行严格只有 `project`、`event`、`time`、`device_id`。
-- [ ] 确认 `time` 是服务器 ISO 8601 时间，原始行没有 `params`、客户端 time、context、schema
+- [x] Nginx 配置测试通过，无 reload/start 错误。
+- [x] `GET /track?...` 返回 `204`。
+- [x] 用正常 Hub 页面访问产生一条真实 `home_page_load`，不创建专用 smoke event。
+- [x] 只检查最新 JSON 行的 key、类型和格式，避免在终端或文档中输出真实 `device_id`。
+- [x] 确认最新行严格只有 `project`、`event`、`time`、`device_id`。
+- [x] 确认 `time` 是服务器 ISO 8601 时间，原始行没有 `params`、客户端 time、context、schema
   或 request ID。
-- [ ] 查询三个默认事件：
+- [x] 查询三个默认事件：
 
 ```text
 /api/track/trend?project=hub&event=home_page_load&days=30
@@ -684,15 +684,15 @@ ShotMarker：
 /api/track/trend?project=shotmarker&event=app_launch&days=30
 ```
 
-- [ ] 每个响应只有 `daily`，长度为 30，日期位于查询范围内、严格连续升序且不重复；`pv`、
+- [x] 每个响应只有 `daily`，长度为 30，日期位于查询范围内、严格连续升序且不重复；`pv`、
   `uv` 是满足 `0 <= uv <= pv` 的安全整数，允许全部为 0。
-- [ ] 打开 Analytics，确认默认值、三个项目事件列表、事件切换和 PV/UV 切换。
-- [ ] 在浏览器网络面板确认 PV/UV 切换没有新请求。
-- [ ] 检查 Hub 五个页面事件和 Cardgame 页面/点击事件会产生正确行。
-- [ ] 检查 Cardgame health 和 WebSocket 能重新连接并完成一次基本操作。
-- [ ] 检查 Backend 与 Nginx 日志，没有持续解析、权限、文件或查询错误。
-- [ ] 确认旧数据文件和 gzip 仍不存在。
-- [ ] 更新 `docs/private.local` 中服务器台账并在其独立私有仓库提交、推送。
+- [x] 打开 Analytics，确认默认值、三个项目事件列表、事件切换和 PV/UV 切换。
+- [x] 在浏览器中确认 PV/UV 切换前后 `/api/track/trend` 资源请求计数不变。
+- [x] 检查 Hub 五个页面事件和 Cardgame 页面/点击事件会产生正确行。
+- [x] 检查 Cardgame health 和 WebSocket 能重新连接并完成一次基本操作。
+- [x] 检查 Backend 与 Nginx 日志，没有持续解析、权限、文件或查询错误。
+- [x] 确认旧数据文件和 gzip 仍不存在。
+- [x] 更新 `docs/private.local` 中服务器台账并在其独立私有仓库提交、推送。
 
 ## 13. 故障处理
 
