@@ -94,6 +94,8 @@ test('accepts only the exact lowercase summary route and valid query values', as
 
   assert.equal((await fetch(`${origin}/api/track/summary?days=1&project=hub`)).status, 200)
   assert.equal((await fetch(`${origin}/api/track/summary?days=90&project=cardgame`)).status, 200)
+  assert.equal((await fetch(`${origin}/api/track/summary?project=shotmarker`)).status, 200)
+  assert.equal(calls.at(-1).project, 'shotmarker')
 
   for (const pathname of [
     '/api/track/summary/',
@@ -103,6 +105,19 @@ test('accepts only the exact lowercase summary route and valid query values', as
   ]) {
     assert.equal((await fetch(`${origin}${pathname}`)).status, 404, pathname)
   }
+})
+
+test('returns the stable invalid project error contract', async (t) => {
+  const origin = await startApp(t)
+  const response = await fetch(`${origin}/api/track/summary?project=unknown`)
+
+  assert.equal(response.status, 400)
+  assert.deepEqual(await response.json(), {
+    error: {
+      code: 'invalid_project',
+      message: 'project must be hub, cardgame, or shotmarker',
+    },
+  })
 })
 
 test('rejects malformed duplicate and unknown query parameters before scanning', async (t) => {

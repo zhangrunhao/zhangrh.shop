@@ -13,7 +13,7 @@ const REQUEST_ID_PATTERN = /^[0-9a-f]{32}$/
 const CLIENT_TIME_PATTERN = /^\d{10,16}$/
 const DEVICE_ID_PATTERN = /^[A-Za-z0-9]{12}$/
 const EVENT_PATTERN = /^[A-Za-z][A-Za-z0-9_.:-]{0,63}$/
-const PROJECTS = new Set(['hub', 'cardgame'])
+const PROJECTS = new Set(['hub', 'cardgame', 'shotmarker'])
 
 const DEFAULT_LIMITS = Object.freeze({
   timeoutMs: 20_000,

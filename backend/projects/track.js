@@ -8,13 +8,13 @@ import {
 } from './track-query.js'
 
 const SUMMARY_PATH = '/api/track/summary'
-const PROJECTS = new Set(['hub', 'cardgame'])
+const PROJECTS = new Set(['hub', 'cardgame', 'shotmarker'])
 const QUERY_PARAMETERS = new Set(['days', 'project'])
 const DAYS_PATTERN = /^(?:[1-9]|[1-8][0-9]|90)$/
 
 const ERROR_MESSAGES = Object.freeze({
   invalid_days: 'days must be an integer between 1 and 90',
-  invalid_project: 'project must be hub or cardgame',
+  invalid_project: 'project must be hub, cardgame, or shotmarker',
   duplicate_query_parameter: 'query parameters must not be repeated',
   unknown_query_parameter: 'unknown query parameter',
   track_log_unavailable: 'track log is unavailable',

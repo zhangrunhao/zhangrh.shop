@@ -107,6 +107,57 @@ test('summarizes valid plain JSONL records across projects', async (t) => {
   assert.doesNotMatch(JSON.stringify(result), /Device00000/)
 })
 
+test('summarizes ShotMarker schema v1 events without exposing installation identifiers', async (t) => {
+  const logDir = await createLogDir(t)
+  await writeCurrent(
+    logDir,
+    jsonl(
+      record({
+        request_id: requestId(4),
+        project: 'shotmarker',
+        device_id: 'Shot00000001',
+        event: 'app_launch',
+        params_encoded: encodeParams({}),
+      }),
+      record({
+        request_id: requestId(5),
+        project: 'shotmarker',
+        device_id: 'Shot00000002',
+        event: 'app_launch',
+        params_encoded: encodeParams({}),
+      }),
+      record({
+        request_id: requestId(6),
+        project: 'shotmarker',
+        device_id: 'Shot00000001',
+        event: 'training_sync_succeeded',
+        params_encoded: encodeParams({}),
+      }),
+    ),
+  )
+
+  const result = await summarizeTrackEvents({
+    logDir,
+    days: 1,
+    project: 'shotmarker',
+    now: FIXED_NOW,
+  })
+
+  assert.deepEqual(result.filter, { project: 'shotmarker' })
+  assert.equal(result.totals.events, 3)
+  assert.equal(result.totals.devices, 2)
+  assert.deepEqual(result.projects, [
+    { project: 'shotmarker', events: 3, devices: 2 },
+  ])
+  assert.deepEqual(result.event_breakdown, [
+    { project: 'shotmarker', event: 'app_launch', events: 2, devices: 2 },
+    { project: 'shotmarker', event: 'training_sync_succeeded', events: 1, devices: 1 },
+  ])
+  assert.deepEqual(result.page_breakdown, [])
+  assert.deepEqual(result.button_breakdown, [])
+  assert.doesNotMatch(JSON.stringify(result), /Shot0000000[12]/)
+})
+
 test('returns ninety zero-filled Shanghai days for an empty readable directory', async (t) => {
   const logDir = await createLogDir(t)
 
