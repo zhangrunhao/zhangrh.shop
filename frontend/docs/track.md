@@ -62,7 +62,7 @@ Cardgame 的以下操作发送 `event: "click"`，参数格式均为 `{ "button"
 
 ## ShotMarker iPhone
 
-ShotMarker 仅在 iPhone App 的 Release 构建中使用临时 `URLSession`，向同一 HTTPS GET 接口发送埋点。Debug 构建、测试、iPad、Apple Watch 和其他非 iPhone 环境不发送。该会话不使用持久 Cookie 或磁盘缓存。
+ShotMarker 仅在 iPhone App 的 Release 构建中使用临时 `URLSession`，向同一 HTTPS GET 接口发送埋点。Debug 构建、测试、iPad、Apple Watch 和其他非 iPhone 环境不发送。ShotMarker 原生客户端不设置或接受 Cookie，并禁用 URL 响应缓存。
 
 所有 ShotMarker 事件都发送 `project=shotmarker` 和 `params={}`：
 

@@ -64,6 +64,39 @@ test("privacy page documents the first-party analytics contract", () => {
     text,
     /events do not contain training records, marker timestamps, videos, HealthKit data, or diagnostic logs/,
   );
+  assert.match(
+    text,
+    /Only Release builds of the ShotMarker iPhone app send first-party product analytics events/,
+  );
+  assert.match(text, /client time, server receipt time/);
+  assert.match(text, /the project value shotmarker/);
+  assert.match(text, /stored in UserDefaults/);
+  assert.match(text, /approximate number of unique installations/);
+  assert.match(
+    text,
+    /do not include an advertising identifier, device model, or operating system version/,
+  );
+  assert.match(text, /used only for first-party product analytics/);
+  assert.match(text, /not shared with third-party analytics providers/);
+  assert.match(text, /single append-only events\.jsonl file/);
+  assert.match(text, /64 MiB/);
+  assert.match(
+    text,
+    /Uninstalling and reinstalling ShotMarker resets the local installation identifier/,
+  );
+  assert.match(text, /Public aggregate queries do not return raw installation identifiers/);
+
+  assert.match(text, /仅 ShotMarker iPhone App 的 Release 构建/);
+  assert.match(text, /客户端时间、服务器接收时间、project 值 shotmarker/);
+  assert.match(text, /保存在 UserDefaults 中的随机 12 位安装标识符/);
+  assert.match(text, /用于估算大致的独立安装数量/);
+  assert.match(text, /不包含广告标识符、设备型号或操作系统版本/);
+  assert.match(text, /数据仅用于第一方产品分析/);
+  assert.match(text, /不会共享给第三方分析服务商/);
+  assert.match(text, /单一追加写入 events\.jsonl 文件/);
+  assert.match(text, /Backend 的 64 MiB 总解码查询上限/);
+  assert.match(text, /卸载并重新安装 ShotMarker 会重置本地安装标识符/);
+  assert.match(text, /公开聚合查询不会返回原始安装标识符/);
 });
 
 test("support page contains the provided FAQ and contact details", () => {
