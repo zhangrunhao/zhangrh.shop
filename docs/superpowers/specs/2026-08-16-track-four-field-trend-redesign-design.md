@@ -2,7 +2,7 @@
 
 日期：2026-08-16
 
-状态：已确认，等待用户书面规格复核
+状态：已确认，进入实现
 
 涉及范围：`zhangrh.shop`、`ShotMarker`、生产服务器上的 Nginx、Docker Compose 与旧埋点数据
 
@@ -10,8 +10,9 @@
 
 现有埋点链路整体替换为一套四字段模型：Hub、Cardgame 和 ShotMarker 客户端只上报
 `project`、`event`、`device_id`；Nginx 生成服务器 `time` 并直接追加到单一
-`events.jsonl`。Backend 不参与写入，只在查询时读取、校验、过滤并计算某一个必选事件的
-逐日 PV/UV。Analytics 手工维护三个项目可展示的事件及默认事件。
+`events.jsonl`。Backend 不参与写入，只在查询时读取、校验、过滤并计算某一个必选事件在
+查询范围内每个上海自然日的 PV/UV；无记录日期返回零值。Analytics 手工维护三个项目可
+展示的事件及默认事件。
 
 旧 JSONL、轮转文件和 gzip 在生产服务器停服后永久删除，不迁移、不备份数据内容，也不
 保留旧 schema、旧查询响应或旧报表页面的兼容分支。
@@ -35,6 +36,21 @@
 14. 存储继续使用单一 `events.jsonl`，不引入数据库或新的自动轮转策略。
 15. 服务器操作直接停止整个 `zhangrh-shop` Compose 项目，不设计局部维护窗口。
 16. 旧埋点数据永久删除且不可恢复；发生问题时修复新链路，不恢复旧 schema。
+17. `daily` 是按日期升序的连续数组，长度严格等于 `days`；无记录日期返回
+    `{date, pv: 0, uv: 0}`。
+18. 所选范围内完全没有该事件时仍返回完整日期数组，每一天的 PV/UV 都为 0；Analytics 将其
+    显示为空趋势状态。
+19. 当前只有项目所有者使用 Analytics；本版接受筛选请求遇到 `track_query_busy` 后手工重试，
+    不实现查询排队、旧请求服务端取消、账号登录或 Session 校验；后续单独设计并增加 Auth
+    登录策略。
+20. `/track` 本版保持公网可写、Nginx 不鉴权且不校验业务参数；明确接受外部请求写入无效行、
+    加速文件增长并提前触发容量上限的风险，先完成当前链路，后续单独增加 Nginx 鉴权策略。
+21. 文件超过 Backend 读取上限后允许趋势服务保持不可读，由人工设计并上线下一套机制；本版
+    不增加自动切换、自动扩容或额外容量防线。
+22. 当前没有仍发送旧 Hub/Cardgame 事件名的客户端或需要保留的旧事件；不增加旧事件过渡、
+    白名单兼容或迁移逻辑。
+23. 这是个人新项目，当前没有实际访问量，本次以快速整体替换为优先，不为旧数据、旧协议、
+    旧 API 或旧页面增加兼容和回滚分支。
 
 ## 3. 取代范围
 
@@ -161,6 +177,13 @@ Nginx 不根据 method、项目、事件或设备标识决定是否落盘。缺�
 - 不增加自动删除或固定保留期。
 - 当前文件达到 `32 MiB` 时重新评估存储。
 - Backend 保持 `64 MiB` 最大解码量和 20 秒查询超时保护。
+- 文件超过 `64 MiB` 后 `/api/track/trend` 返回 `503 track_log_too_large`；允许报表保持不可读，
+  直到人工完成并上线新的存储或查询机制。
+- 本版明确不以当前鉴权或容量保护抵御公网主动灌流；先完成四字段链路，Nginx 鉴权策略作为
+  后续独立工作。
+- 本版资源保护的验收范围只有流式读取、当前文件快照、未完成尾行、`64 MiB`、20 秒和单查询
+  限制。现有实现中的单行长度、唯一设备数、符号链接或 inode 竞态检查可以自然复用，但不
+  作为本次重构的必保能力，也不新增专项错误码或测试。
 
 ## 6. 事件目录
 
@@ -173,10 +196,11 @@ Hub 只观察五个核心页面访问，不记录按钮点击或 404：
 | `home_page_load` | Hub 首页路由被展示；默认事件 |
 | `products_page_load` | 作品列表页被展示 |
 | `articles_page_load` | 文章列表页被展示 |
-| `article_detail_page_load` | 任意文章详情页被展示 |
+| `article_detail_page_load` | 有效文章详情内容成功加载并展示 |
 | `about_page_load` | 关于页被展示 |
 
-删除原来的 `load_page + page_name` 组合、全部 `click + button` 组合和 `not_found` 统计。
+删除原来的 `load_page + page_name` 组合、全部 `click + button` 组合和 `not_found` 统计。路径
+即使匹配六位文章 ID，只要找不到对应文章内容，仍按 404 处理且不发送详情事件。
 
 ### 6.2 Cardgame
 
@@ -204,6 +228,9 @@ Hub 只观察五个核心页面访问，不记录按钮点击或 404：
 
 事件枚举和业务触发点不变，只简化请求参数。
 
+当前没有仍发送 `load_page`、`click` 等旧 Hub/Cardgame 事件名的客户端，也不保留旧事件数据；
+本设计不增加旧事件名的过渡处理。
+
 已经安装的旧版 ShotMarker 会暂时继续发送额外的客户端 `time` 和 `params={}`，但最终
 Nginx `log_format` 只读取 `project`、`event`、`device_id` 并自行生成 `time`，因此这些
 额外查询参数不会进入新 JSONL。Backend 仍只面对严格四字段新记录，不需要旧 schema
@@ -214,7 +241,7 @@ Nginx `log_format` 只读取 `project`、`event`、`device_id` 并自行生成 `
 ### 7.1 请求
 
 ```text
-GET /api/track/trend?project=hub&event=home_page_load&days=30
+GET /api/track/trend?project=hub&event=home_page_load&days=7
 ```
 
 三个参数全部必填：
@@ -227,17 +254,19 @@ GET /api/track/trend?project=hub&event=home_page_load&days=30
 
 ### 7.2 计算
 
-Backend 以当前服务器时刻为查询终点，按 `Asia/Shanghai` 自然日生成连续日期列表。它对
-`events.jsonl` 建立只读快照并流式读取：
+Backend 以当前服务器时刻为查询终点，按 `Asia/Shanghai` 自然日计算查询起止边界，先生成
+长度等于 `days` 的连续日期列表，再对 `events.jsonl` 建立只读快照并流式读取：
 
 1. 空行、非法 JSON、非对象和非严格四字段记录直接忽略。
 2. 校验 `project`、`event`、`time`、`device_id`。
 3. 按服务器 `time` 排除范围外记录。
 4. 精确匹配查询的项目和事件。
-5. 每个自然日的有效记录数为 PV。
-6. 每个自然日的 `device_id` 集合大小为 UV。
+5. 每个自然日预置 `pv=0`、`uv=0`；有效记录使当日 PV 增加。
+6. 每个自然日按 `device_id` 去重计算 UV。
 7. 当前文件末尾未完成的行本次忽略，下次查询重新读取。
-8. 没有记录的日期补零。
+8. 没有记录的日期保留零值。
+9. `daily` 按日期严格升序输出，日期连续且不重复，长度严格等于请求的 `days`；整个范围没有
+   所选事件时返回全部日期的零值项。
 
 UV 是逐日去重值；不同日期的同一设备会分别计入各日 UV。本方案不提供整个范围的总 UV，
 也不计算跨日 cohort、留存或漏斗。
@@ -249,11 +278,21 @@ UV 是逐日去重值；不同日期的同一设备会分别计入各日 UV。�
 ```json
 {
   "daily": [
-    { "date": "2026-07-18", "pv": 0, "uv": 0 },
+    { "date": "2026-08-10", "pv": 4, "uv": 3 },
+    { "date": "2026-08-11", "pv": 0, "uv": 0 },
+    { "date": "2026-08-12", "pv": 1, "uv": 1 },
+    { "date": "2026-08-13", "pv": 0, "uv": 0 },
+    { "date": "2026-08-14", "pv": 0, "uv": 0 },
+    { "date": "2026-08-15", "pv": 2, "uv": 2 },
     { "date": "2026-08-16", "pv": 12, "uv": 7 }
   ]
 }
 ```
+
+`daily` 是连续数组：包含所选范围内每一个上海自然日，长度严格等于请求的 `days`，日期严格
+升序、连续且不重复；每个返回项的 `pv`、`uv` 都是非负安全整数，并满足 `0 <= uv <= pv`。
+范围内完全没有该事件时，数组仍保持完整，只是所有日期的 `pv`、`uv` 都为 0。API 不增加
+totals，Analytics 根据完整数组全部为零渲染空趋势状态。
 
 不返回以下字段：
 
@@ -284,6 +323,8 @@ UV 是逐日去重值；不同日期的同一设备会分别计入各日 UV。�
 | 未预期错误 | 500 | `internal_error` |
 
 错误响应不包含文件路径、原始行、设备标识或异常堆栈。接口继续设置 `Cache-Control: no-store`。
+同一请求同时违反多项查询规则时，不承诺错误码判定优先级；返回任一适用的 `400` 稳定错误码
+即可。Analytics 对所有请求错误显示统一的安全错误和重试入口，不依赖错误优先级。
 
 ## 8. Analytics 页面
 
@@ -348,10 +389,15 @@ Backend 不返回或发现事件目录。新增、改名或删除事件时，客
 - 切换范围时保留当前事件并请求数据。
 - 切换事件时请求数据。
 - 切换 PV/UV 只更换图表读取字段，不发新请求。
-- 同一时间只保留一个有效请求；新筛选可以取消或忽略旧响应。
-- 初次加载显示加载状态；刷新时可保留旧图，直到新响应成功。
+- 同一时间只接受最新筛选请求的结果；筛选变化后忽略旧响应，不主动取消服务端查询。当前仅
+  项目所有者使用，本版接受新请求偶尔收到 `track_query_busy` 并进入普通错误/重试流程，不
+  实现服务端取消传播或 latest-only 查询排队；账号登录、Session 校验和排队 loading 留给
+  后续独立设计。
+- 初次加载或切换项目、范围、事件时清空旧图并显示加载状态；同一筛选条件下手动刷新时可
+  保留旧图，直到新响应成功。
 - 请求失败显示安全错误和重试入口，不渲染部分或未经校验的数据。
-- 所有日期为零时显示空趋势状态，不视为错误。
+- `daily` 全部日期的 PV/UV 都为 0 时显示空趋势状态，不视为错误。
+- 图表直接使用 Backend 返回的完整连续日期数组，不在客户端推导、补零或插入日期。
 
 页面删除总事件卡、总设备卡、事件排行、页面表、按钮表和“全部事件”选项。
 
@@ -362,7 +408,7 @@ Backend 不返回或发现事件目录。新增、改名或删除事件时，客
 | 范围 | 要做的修改 | 目的 | 主要验证 |
 | --- | --- | --- | --- |
 | 通用网页发送层 | 删除客户端 time/params，只发三个查询参数 | 建立唯一最小协议 | 请求参数精确测试 |
-| Hub | 收敛为五个页面事件，删除点击与 404 埋点 | 只观察核心页面访问 | 路由到事件映射测试 |
+| Hub | 收敛为五个页面事件，删除点击与 404 埋点 | 只观察核心页面访问 | 四个路由映射与有效文章内容测试 |
 | Cardgame | 增加页面加载事件，六个动作改为完整 event | 消除 click + button 组合 | 首次加载与动作测试 |
 | ShotMarker | 删除客户端 time/params，保留四个事件 | 与网页使用同一协议 | URLQueryItem 精确测试和 Release build |
 | Nginx | 生成服务器 time，直接写四字段 JSONL | 保持写入链路最简单 | `nginx -t`、最新行 key/类型检查 |
@@ -384,18 +430,22 @@ Backend 不返回或发现事件目录。新增、改名或删除事件时，客
 
 - [ ] 修改 `frontend/project/hub/shared/tracking.ts`：定义五个 Hub event，直接发送完整事件
   名称；删除 `HubButton`、`trackHubClick` 和 page_name 参数。
-- [ ] 修改 `frontend/project/hub/app.tsx`：路由只映射到五个核心页面事件；404 不发送。
+- [ ] 修改 `frontend/project/hub/app.tsx`：首页、作品列表、文章列表和关于页按路由发送事件；
+  404 和文章详情路由不在这里发送。
+- [ ] 修改 `frontend/project/hub/pages/article-detail-page.tsx`：只有找到对应文章并展示内容后才
+  发送 `article_detail_page_load`；找不到文章时渲染 404 且不发送。
 - [ ] 修改 `frontend/project/hub/shared/constants.ts`：删除导航项中的 tracking button 字段
   和对 `HubButton` 的依赖。
 - [ ] 修改 `frontend/project/hub/components/app-header.tsx`：删除导航点击埋点回调。
 - [ ] 修改 `frontend/project/hub/pages/home-page.tsx`：删除首页两个入口按钮的点击埋点。
-- [ ] 添加 Hub tracking 测试，覆盖五个路由映射、默认首页事件和 404 不上报。
+- [ ] 添加 Hub tracking 测试，覆盖四个普通页面映射、有效文章内容上报、未知六位文章 ID、
+  其他 404 和点击不上报。
 - [ ] 验证目的：Hub 只产生五个明确页面访问事件。
 
 ### 9.3 `zhangrh.shop`：Cardgame
 
-- [ ] 在 `frontend/project/cardgame` 内定义 Cardgame event 联合类型和发送函数；可放入新的
-  `shared/tracking.ts`，避免继续在大型 `app.tsx` 中维护字符串拼接。
+- [ ] 新建 `frontend/project/cardgame/shared/tracking.ts`，定义 Cardgame event 联合类型和发送
+  函数，避免继续在大型 `app.tsx` 中维护字符串拼接。
 - [ ] 修改 `frontend/project/cardgame/app.tsx`：应用首次装载发送一次
   `cardgame_page_load`。
 - [ ] 把六个现有按钮值改为完整事件名：`create_room_click`、`join_room_click`、
@@ -409,43 +459,56 @@ Backend 不返回或发现事件目录。新增、改名或删除事件时，客
 - [ ] 重写 `backend/projects/track-query.js` 的记录模型，只识别严格四字段新记录。
 - [ ] 删除 schema version、request ID、客户端时间、params 解码、页面/按钮维度、gzip 与轮转
   文件发现和 request ID 去重代码。
-- [ ] 保留流式读取、文件快照、部分尾行保护、超时、字节上限、事件循环让步和错误隔离。
-- [ ] 聚合器参数改为必填 `project`、`event`、`days`，只生成连续 `daily`。
+- [ ] 保留流式读取、当前文件快照、部分尾行保护、超时、`64 MiB` 字节上限、事件循环让步和
+  错误隔离；不要求为单行、唯一设备数、符号链接或 inode 竞态增加专项保护。
+- [ ] 聚合器参数改为必填 `project`、`event`、`days`，预创建长度等于 `days` 的连续日期和
+  零值，再把有效记录聚合到对应日期。
 - [ ] 每天维护一个 `device_id` Set 计算 UV；不维护全范围 totals。
 - [ ] 修改 `backend/projects/track.js`：删除 `/api/track/summary`，注册严格的
   `/api/track/trend`。
 - [ ] 要求 `project`、`event`、`days` 全部存在，拒绝重复和未知查询参数。
 - [ ] 保持单查询并发限制、安全错误映射和 `Cache-Control: no-store`。
 - [ ] 更新 `backend/tools/track-query.test.mjs`，覆盖四字段解析、PV、逐日 UV、项目/事件/日期
-  过滤、零填充、无效行、尾行、文件不可用、大小上限和超时。
+  过滤、连续日期、零值填充、全零趋势、无效行、尾行、文件不可用、大小上限和超时。
 - [ ] 更新 `backend/tools/track-route.test.mjs`，覆盖新路径、三个必填参数、稳定错误、并发保护
   和不泄露原始数据。
 - [ ] 验证目的：Backend 成为单一事件的只读趋势计算器，不保留旧聚合能力。
 
 ### 9.5 `zhangrh.shop`：Analytics
 
-- [ ] 用明确的 trend 命名替换 `frontend/project/analytics/track-summary.ts` 中的旧 summary
-  类型、解析器和 URL 构造；文件可重命名为 `track-trend.ts`。
+- [ ] 把 `frontend/project/analytics/track-summary.ts` 重命名为 `track-trend.ts`，并用明确的
+  trend 命名替换旧 summary 类型、解析器和 URL 构造。
 - [ ] 在 Analytics 项目内新增三个项目的静态事件目录和默认事件。
 - [ ] 修改 `frontend/project/analytics/app.tsx`：增加必选事件和全局 PV/UV 状态；实现项目、
   天数 localStorage 恢复与校验。
-- [ ] 用单趋势组件替换 `summary-view.tsx`；文件可重命名为 `trend-view.tsx`。
+- [ ] 把 `summary-view.tsx` 重命名为 `trend-view.tsx`，并用单趋势组件替换旧汇总视图。
+- [ ] 更新 `index.html` 的标题和描述，从聚合概览改为单事件趋势。
 - [ ] 修改 `styles.css`：删除指标卡和 breakdown 表样式，保留响应式筛选区、状态提示和趋势图。
-- [ ] 更新 `track-summary.test.ts`、`summary-view.test.tsx`、`app.test.tsx`，或按新命名重建
-  对应测试。
+- [ ] 把对应测试重命名为 `track-trend.test.ts`、`trend-view.test.tsx`，并更新 `app.test.tsx`。
 - [ ] 测试默认值、本地恢复、项目切换默认事件、范围切换保留事件、事件请求、PV/UV 无请求
-  切换、连续日期校验、零数据、网络错误、503 和重试。
+  切换、连续日期和长度校验、全零趋势、统一错误、网络错误、503 和重试。
 - [ ] 验证目的：页面只回答“某项目、某事件、某段时间内每日 PV/UV 如何变化”。
 
 ### 9.6 `zhangrh.shop`：文档与隐私说明
 
-- [ ] 更新 `frontend/docs/track.md`：四字段模型、三个项目事件目录和新趋势接口。
-- [ ] 更新 `RUNBOOK.md`：新 curl 示例、错误处置、单文件容量检查和停服切换说明。
-- [ ] 更新 `docs/deploy/README.md`：新 API、Nginx 四字段写入、旧数据已删除和无旧格式兼容。
-- [ ] 更新 `README.md` 中 Analytics 描述，移除旧 summary/breakdown 表述。
-- [ ] 更新 `frontend/project/shotmarker/content.ts` 及测试：ShotMarker 只发送项目、事件和随机
-  安装 ID，服务器添加时间；删除“客户端时间”和“空 params 对象”披露。
-- [ ] 给旧 Track 设计文档增加“已被本设计取代”的状态提示，避免后续按旧 schema 操作。
+- [ ] 更新现行公开或运维文档：
+  - `frontend/docs/track.md`：四字段模型、三个项目事件目录和新趋势接口。
+  - `RUNBOOK.md`：新 curl 示例、错误处置、连续日期响应、单文件容量检查和停服切换说明。
+  - `docs/deploy/README.md`：新 API、Nginx 四字段写入、旧数据已删除和无旧格式兼容。
+  - `README.md`：把 Analytics 描述改为必选单事件的逐日 PV/UV 趋势。
+  - `frontend/project/shotmarker/content.ts` 及测试：ShotMarker 只发送项目、事件和随机安装 ID，
+    服务器添加时间；删除“客户端时间”和“空 params 对象”披露。
+- [ ] 给以下历史 Track 规格和计划增加“已被本设计取代，仅保留为历史记录”的顶部状态提示，
+  不重写其历史实施内容：
+  - `docs/superpowers/specs/2026-08-15-track-jsonl-query-api-design.md`
+  - `docs/superpowers/specs/2026-08-16-track-single-jsonl-storage-design.md`
+  - `docs/superpowers/specs/2026-08-16-track-analytics-page-design.md`
+  - `docs/superpowers/plans/2026-08-15-track-jsonl-query-api.md`
+  - `docs/superpowers/plans/2026-08-16-track-analytics-page.md`
+- [ ] 生产部署和线上验证完成后更新私有服务器台账：
+  - `docs/private.local/zhangrh-shop/main.md`
+  - `docs/private.local/zhangrh-shop/overview.md`
+  只记录当次实际验证过的生产事实，不提前把设计状态写成已部署。
 - [ ] 验证目的：代码、公开隐私政策和运维手册描述同一套实际字段。
 
 ### 9.7 `ShotMarker` 仓库
@@ -459,7 +522,14 @@ Backend 不返回或发现事件目录。新增、改名或删除事件时，客
 - [ ] 更新 `ShotMarkerTests/AnalyticsClientTests.swift`：精确断言只有三个查询参数，并删除
   时钟相关测试依赖。
 - [ ] 继续运行事件枚举、安装 ID、运行策略、同步、生成和保存调用点测试。
-- [ ] 更新 ShotMarker 埋点设计、当前状态或其他仍描述 client time/params 的文档。
+- [ ] 更新 `docs/current-codebase-status.md`：记录客户端三参数协议、实际验证范围和仍未完成的
+  TestFlight/生产外部状态；它继续作为 ShotMarker 当前进度唯一事实来源。
+- [ ] 更新 `docs/superpowers/specs/2026-08-16-shotmarker-analytics-design.md`：事件语义和运行策略
+  继续有效，传输字段、服务端四字段模型和趋势查询改为引用本设计。
+- [ ] 给以下已完成的历史实施计划增加顶部状态提示，说明其中 client time、params、schema v1
+  和旧 summary API 已被本设计取代，不重新执行旧步骤：
+  - `docs/superpowers/plans/2026-08-16-shotmarker-analytics-client.md`
+  - `docs/superpowers/plans/2026-08-16-shotmarker-analytics-server.md`
 - [ ] `PrivacyInfo.xcprivacy` 的 Device ID 与 Product Interaction 声明不需要改变，但必须
   继续通过 plist 和产物包含检查。
 - [ ] 验证目的：原生客户端与网页使用同一最小协议，隐私披露不再多报字段。
@@ -477,22 +547,25 @@ Backend 不返回或发现事件目录。新增、改名或删除事件时，客
 - [ ] 非法 JSON、空字段、额外字段、旧 schema、非法项目、非法事件、非法设备 ID 和非法时间
   被忽略。
 - [ ] 未完成尾行不导致整个查询失败。
-- [ ] 1、7、30、90 天均返回相同数量的连续日期项。
+- [ ] 1、7、30、90 天分别返回 1、7、30、90 个连续日期项，日期严格升序且不重复。
+- [ ] 合法但无记录的事件仍返回完整日期数组，每个 `pv`、`uv` 都为 0。
 - [ ] 响应严格只有 `daily`，不含设备原值或旧字段。
 - [ ] 文件缺失、过大、超时和并发查询返回稳定安全错误。
 
 ### 10.2 Web 前端
 
 - [ ] 通用请求只包含三个查询参数。
-- [ ] Hub 只产生五个页面事件，404 和点击不产生事件。
+- [ ] Hub 四个普通页面按路由产生事件；文章详情仅在内容存在并展示后产生事件，未知文章、
+  其他 404 和点击不产生事件。
 - [ ] Cardgame 首次装载事件只发送一次，六个点击事件名称正确。
 - [ ] Analytics 事件目录与确认清单完全一致。
 - [ ] 默认状态是 Hub、30 天、`home_page_load`、PV。
 - [ ] localStorage 只保存合法项目和合法天数；损坏值自动回退。
 - [ ] 切项目选择默认事件，切范围保留事件。
 - [ ] 切 PV/UV 不调用 fetch，切项目/范围/event 会调用一次 fetch。
-- [ ] API 响应不是连续 daily 或含非法计数时整份拒绝。
-- [ ] 空数据、加载、刷新、失败和重试状态可访问且不泄露响应正文。
+- [ ] API 响应的 `daily` 不是数组、长度不等于当前查询 `days`、日期无效或不连续，或者计数
+  不是满足 `0 <= uv <= pv` 的安全整数时整份拒绝并显示统一错误；全零数组合法。
+- [ ] 全零趋势、加载、刷新、失败和重试状态可访问且不泄露响应正文。
 
 ### 10.3 ShotMarker
 
@@ -609,7 +682,8 @@ ShotMarker：
 /api/track/trend?project=shotmarker&event=app_launch&days=30
 ```
 
-- [ ] 每个响应只有 `daily`，长度为 30，日期连续，计数是非负整数。
+- [ ] 每个响应只有 `daily`，长度为 30，日期位于查询范围内、严格连续升序且不重复；`pv`、
+  `uv` 是满足 `0 <= uv <= pv` 的安全整数，允许全部为 0。
 - [ ] 打开 Analytics，确认默认值、三个项目事件列表、事件切换和 PV/UV 切换。
 - [ ] 在浏览器网络面板确认 PV/UV 切换没有新请求。
 - [ ] 检查 Hub 五个页面事件和 Cardgame 页面/点击事件会产生正确行。
@@ -618,18 +692,19 @@ ShotMarker：
 - [ ] 确认旧数据文件和 gzip 仍不存在。
 - [ ] 更新 `docs/private.local` 中服务器台账并在其独立私有仓库提交、推送。
 
-## 13. 故障与回滚
+## 13. 故障处理
 
 - 删除前发现异常：不删除，保持或恢复原服务后重新检查。
 - 删除后 Nginx 无法写入：保持项目停止，修复目录所有权、mode 或挂载后再启动。
 - 删除后 Backend 无法读取：保持或重新停止项目，修复只读挂载和目录穿越权限。
-- 新 API 或前端异常：回滚对应代码或修复前进，但不恢复旧 reader、旧 API 或旧页面。
-- Nginx 配置异常：恢复配置备份；旧数据仍不可恢复。
+- 新 API 或前端异常：直接修复新代码并重新部署；不回滚旧 reader、旧 API 或旧页面。
+- Nginx 配置异常：保持项目停止，直接修复新的四字段配置后再启动；旧配置备份只用于参考
+  证书、站点和代理内容，不恢复旧 Track `log_format`。
 - 容量或查询保护触发：停止重复查询，检查文件大小和 I/O，再重新设计存储；不临时移除
   64 MiB/20 秒保护。
 
-服务器上的代码和配置可以回滚，旧埋点数据不能回滚。删除后的唯一恢复目标是让四字段新
-链路正常运行。
+服务器上的代码和配置可以替换为已验证的四字段新版本，旧埋点数据不能恢复，也不回滚到
+旧 Track 实现。删除后的唯一恢复目标是让四字段新链路正常运行。
 
 ## 14. 验收标准
 
@@ -637,10 +712,11 @@ ShotMarker：
 - Nginx 生成 `time` 并把每个请求写成四字段 JSONL 行。
 - Backend 不含旧 schema、params、context、gzip 或 request ID 兼容代码。
 - `/api/track/summary` 不再提供；新 `/api/track/trend` 三个参数全部必填。
-- 趋势响应严格只有连续的 `daily[{date,pv,uv}]`。
+- 趋势响应严格只有按日期连续升序、无重复且长度等于 `days` 的
+  `daily[{date,pv,uv}]`；没有所选事件时每天返回零值。
 - Analytics 没有全部事件、totals、breakdown 或动态事件发现。
 - Analytics 为每个项目使用已确认事件目录和默认事件。
-- Hub 只产生五个核心页面事件。
+- Hub 只产生五个核心页面事件，其中文章详情事件只在有效文章内容展示后产生。
 - Cardgame 产生一个页面加载事件和六个现有动作事件。
 - ShotMarker 保持四个事件语义，只移除客户端 time 和 params。
 - 项目和天数能够合法持久化，PV/UV 切换不发请求。
@@ -654,7 +730,10 @@ ShotMarker：
 - 不提供“全部事件”或跨事件 totals。
 - 不自动发现并展示 JSONL 中的新事件。
 - 不提供跨日总 UV、漏斗、留存、cohort、会话或实时刷新。
+- 不由 Analytics 客户端推导或补齐日期；Backend 负责返回长度等于 `days` 的连续零填充数组。
 - 不引入 SQLite、PostgreSQL、ClickHouse 或第三方分析 SDK。
-- 不增加账号、鉴权、角色或私有管理后台。
+- 不在本版增加账号、鉴权、角色或私有管理后台；Auth 登录和 Nginx 鉴权分别留给后续设计。
+- 不在本版增加 Session 校验、查询排队、latest-only loading 或服务端取消传播。
 - 不增加旧数据迁移、旧 API 兼容、旧 schema 解析或历史补录。
 - 不在本次工作中设计自动轮转、自动删除或固定保留期。
+- 不为超过 `64 MiB` 后的报表不可用增加自动切换或降级；达到阈值后人工上线新机制。
