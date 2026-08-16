@@ -11,7 +11,7 @@
     "build": "node tools/vite-project.mjs build",
     "lint": "eslint .",
     "pretest": "node project/hub/scripts/prepare-articles.mjs development",
-    "test": "tsx --test --test-concurrency=1",
+    "test": "tsx --tsconfig tsconfig.app.json --test --test-concurrency=1",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "build:all": "npm run build hub && npm run build cardgame && npm run build shotmarker",
     "preview": "node tools/vite-project.mjs preview",
