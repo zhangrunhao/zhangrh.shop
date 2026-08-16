@@ -1,6 +1,6 @@
 # zhangrh.shop 运行手册
 
-当前仓库维护 `hub`、`cardgame`、`shotmarker` 三个前端项目和一个 `backend` 服务。所有命令均以仓库根目录为起点。
+当前仓库维护 `hub`、`cardgame`、`shotmarker`、`analytics` 四个前端项目和一个 `backend` 服务。所有命令均以仓库根目录为起点。
 
 ## 环境准备
 
@@ -26,6 +26,7 @@ npm --prefix backend run dev
 npm --prefix frontend run dev -- hub
 npm --prefix frontend run dev -- cardgame
 npm --prefix frontend run dev -- shotmarker
+npm --prefix frontend run dev -- analytics
 ```
 
 Cardgame 的 Vite 开发服务器会把 `/api` 和 WebSocket 请求代理到 `http://localhost:3001`，因此联调时需要同时启动后端和 Cardgame 前端。
@@ -97,6 +98,7 @@ npm run publish
 npm --prefix frontend run publish -- hub
 npm --prefix frontend run publish -- cardgame
 npm --prefix frontend run publish -- shotmarker
+npm --prefix frontend run publish -- analytics
 npm --prefix backend run publish
 ```
 

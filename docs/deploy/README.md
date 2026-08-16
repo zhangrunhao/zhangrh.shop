@@ -9,6 +9,7 @@
 ├── https://zhangrh.shop/hub/        -> Hub HTML
 ├── https://zhangrh.shop/cardgame/   -> Cardgame HTML
 ├── https://zhangrh.shop/shotmarker/ -> ShotMarker HTML
+├── https://zhangrh.shop/analytics/  -> Track 聚合数据 HTML
 ├── https://zhangrh.shop/track        -> Nginx 返回 204 并写入 JSONL
 ├── https://zhangrh.shop/api/track/summary
 │                                      -> Node/Express 只读流式聚合 JSONL
@@ -33,7 +34,8 @@
 ├── site/
 │   ├── hub/
 │   ├── cardgame/
-│   └── shotmarker/
+│   ├── shotmarker/
+│   └── analytics/
 └── backend/
     ├── .dockerignore
     ├── Dockerfile
@@ -78,6 +80,7 @@ npm run publish
 npm --prefix frontend run publish -- hub
 npm --prefix frontend run publish -- cardgame
 npm --prefix frontend run publish -- shotmarker
+npm --prefix frontend run publish -- analytics
 npm --prefix backend run publish
 ```
 
@@ -106,11 +109,12 @@ docker compose up -d --build backend
 curl -I https://zhangrh.shop/hub/
 curl -I https://zhangrh.shop/cardgame/
 curl -I https://zhangrh.shop/shotmarker/
+curl -I https://zhangrh.shop/analytics/
 curl https://zhangrh.shop/api/cardgame/health
 curl --fail-with-body 'https://zhangrh.shop/api/track/summary?days=1'
 ```
 
-前三个请求应返回可访问的 HTML 响应；Cardgame 健康检查应返回包含 `ok: true` 和 `project: "cardgame"` 的 JSON；Track 查询应返回包含 `range`、`totals`、breakdown、`daily` 和 `diagnostics` 的 JSON。若前端 HTML 可访问但页面资源加载失败，再检查浏览器网络面板中 `static.zhangrh.shop` 的资源请求。
+前四个请求应返回可访问的 HTML 响应；Cardgame 健康检查应返回包含 `ok: true` 和 `project: "cardgame"` 的 JSON；Track 查询应返回包含 `range`、`totals`、breakdown、`daily` 和 `diagnostics` 的 JSON。若前端 HTML 可访问但页面资源加载失败，再检查浏览器网络面板中 `static.zhangrh.shop` 的资源请求。
 
 ## 私有台账维护
 
