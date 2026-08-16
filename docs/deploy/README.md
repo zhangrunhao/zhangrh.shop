@@ -43,7 +43,9 @@
     └── projects/
 ```
 
-Compose 的项目根目录是 `/opt/zhangrh-shop`。`data/track` 是逻辑上的宿主机持久目录，由 Nginx 写入并以只读方式挂载给 Backend。目标环境的 Compose、Nginx、logrotate 和该数据目录都由服务器私有维护，不提交到当前仓库；其具体配置内容不在本文档中推断。
+Compose 的项目根目录是 `/opt/zhangrh-shop`。`data/track` 是逻辑上的宿主机持久目录，由 Nginx 写入并以只读方式挂载给 Backend。目标环境的 Compose、Nginx 和该数据目录都由服务器私有维护，不提交到当前仓库；其具体配置内容不在本文档中推断。
+
+当前 Track 存储刻意保持简单：Nginx 持续追加单一的 `events.jsonl`，不配置 Track 专用 logrotate，也不自动删除历史数据。部署早期产生的 `.gz` 文件保留不动，Backend 仍兼容读取，但正常运行不会再自动生成新的轮转文件。当前文件达到 `32 MiB` 时应重新评估存储方案，不要等到 Backend 的 `64 MiB` 总解码上限才处理。
 
 ## OSS 配置
 
@@ -89,12 +91,12 @@ docker compose up -d --build backend
 首次启用埋点查询时，必须先在服务器完成以下私有基础设施，再发布 Backend：
 
 1. 建立并校验 Track 宿主机持久目录及 Nginx 写权限。
-2. 配置 `/track` 的 schema v1 JSONL 写入和 logrotate。
+2. 配置 `/track` 的 schema v1 JSONL 写入；当前只写单一 `events.jsonl`，不安装 Track 专用 logrotate。
 3. 在 Compose 中把同一目录只读挂载到 Backend，并设置对应的 `TRACK_LOG_DIR`。
 4. 为精确路径 `/api/track/summary` 配置公网只读代理和专用限流。
-5. 验证 Nginx、logrotate 和 Compose 配置后，再运行 Backend 发布命令。
+5. 验证 Nginx、Compose、当前文件写入和 Backend 只读查询后，再运行 Backend 发布命令。
 
-仓库发布脚本只同步 Backend 受控运行文件并重建 `backend` 服务；它不会修改服务器 Compose、Nginx、`/etc/logrotate.d` 或 Track 数据目录。
+仓库发布脚本只同步 Backend 受控运行文件并重建 `backend` 服务；它不会修改服务器 Compose、Nginx、Track 数据目录或服务器上的日志保留策略。
 
 ## 线上只读验证
 

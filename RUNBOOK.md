@@ -74,9 +74,15 @@ curl --fail-with-body \
 - `400`：调用参数错误，修正 `days`/`project`，或删除未知、重复参数。
 - `429`：Nginx 公网限流，等待后重试。
 - `503 track_query_busy`：已有扫描，至少等待 `Retry-After` 指定的秒数。
-- `503 track_log_unavailable`：只检查 Track 挂载、目录权限、gzip 和轮转竞争；不要把重启整个站点作为第一动作。
-- `503 track_log_too_large`：JSONL 已超过第一阶段设计规模，停止重复查询并重新设计存储。
+- `503 track_log_unavailable`：检查 Track 只读挂载、目录穿越权限和当前 `events.jsonl`；若目录中保留了历史 gzip，再检查其完整性。不要把重启整个站点作为第一动作。
+- `503 track_log_too_large`：输入文件的总解码量已达到 Backend 的 `64 MiB` 上限，停止重复查询并重新设计存储。
 - `503 track_query_timeout`：扫描超过 20 秒，检查文件规模、损坏 gzip 和主机 I/O。
+
+生产环境当前不使用 Track 专用 logrotate。Nginx 持续追加单一的 `events.jsonl`，不自动轮转或删除；已有历史 gzip 保留并继续可读。运维时只需偶尔检查当前文件大小，达到 `32 MiB` 即启动存储方案评估，为 `64 MiB` 查询上限留出余量：
+
+```bash
+stat -c '%s bytes %n' /opt/zhangrh-shop/data/track/events.jsonl
+```
 
 ## 发布
 

@@ -62,7 +62,7 @@ Cardgame 的以下操作发送 `event: "click"`，参数格式均为 `{ "button"
 
 ## 持久化与查询边界
 
-生产 Nginx 对 `/track` 返回 `204`，并把每个请求按 schema v1 独立写入宿主机持久目录中的 JSONL。写入失败不会改变前端响应；读取端负责拒绝伪造或格式错误的记录。
+生产 Nginx 对 `/track` 返回 `204`，并把每个请求按 schema v1 独立写入宿主机持久目录中的 `events.jsonl`。写入失败不会改变前端响应；读取端负责拒绝伪造或格式错误的记录。
 
 Backend 通过只读挂载流式聚合日志，并公开提供：
 
@@ -73,3 +73,5 @@ GET /api/track/summary?days=<1-90>&project=<hub|cardgame>
 `days` 默认 30，`project` 可省略。响应只包含事件、浏览器设备数、项目、事件、页面、按钮和每日汇总，不返回原始 `device_id`、params、IP、User-Agent、Referer、Cookie 或文件路径。
 
 该接口第一阶段无需鉴权，结果属于公开、低风险的产品观察数据。客户端事件和设备标识均可伪造，不能用于计费、风控、审计或强一致业务指标。
+
+当前存储方案有意保持为单一追加文件，不使用 Track 专用 logrotate，也不自动清理数据。部署早期留下的轮转 gzip 不删除，Backend 仍兼容读取；正常运行不会继续生成新的 gzip。`events.jsonl` 达到 `32 MiB` 时再评估轮转、归档或数据库方案，并在 Backend 的 `64 MiB` 总解码上限前完成调整。

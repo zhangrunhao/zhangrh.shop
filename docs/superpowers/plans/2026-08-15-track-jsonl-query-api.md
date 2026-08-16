@@ -1,5 +1,7 @@
 # Track JSONL 查询 API 实施计划
 
+> **历史计划：** 该计划已经执行。涉及 Track 专用 logrotate、自动轮转和约三个月保留的步骤，自 2026-08-16 起由[单一 JSONL 存储设计](../specs/2026-08-16-track-single-jsonl-storage-design.md)取代；Backend 对历史 gzip 的兼容读取保持不变。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在不修改现有前端埋点协议的前提下，为 Backend 增加安全、只读、流式的 Track JSONL 聚合器与公开查询路由，并补齐自动化测试和公开文档。
