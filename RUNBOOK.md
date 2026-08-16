@@ -72,7 +72,6 @@ curl --fail-with-body \
 该接口是公开只读汇总；原始客户端事件和设备标识可伪造，不能把结果用于计费、风控或审计。稳定错误的处置方式如下：
 
 - `400`：调用参数错误，修正 `days`/`project`，或删除未知、重复参数。
-- `429`：Nginx 公网限流，等待后重试。
 - `503 track_query_busy`：已有扫描，至少等待 `Retry-After` 指定的秒数。
 - `503 track_log_unavailable`：检查 Track 只读挂载、目录穿越权限和当前 `events.jsonl`；若目录中保留了历史 gzip，再检查其完整性。不要把重启整个站点作为第一动作。
 - `503 track_log_too_large`：输入文件的总解码量已达到 Backend 的 `64 MiB` 上限，停止重复查询并重新设计存储。

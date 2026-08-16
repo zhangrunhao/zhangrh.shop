@@ -93,7 +93,7 @@ docker compose up -d --build backend
 1. 建立并校验 Track 宿主机持久目录及 Nginx 写权限。
 2. 配置 `/track` 的 schema v1 JSONL 写入；当前只写单一 `events.jsonl`，不安装 Track 专用 logrotate。
 3. 在 Compose 中把同一目录只读挂载到 Backend，并设置对应的 `TRACK_LOG_DIR`。
-4. 为精确路径 `/api/track/summary` 配置公网只读代理和专用限流。
+4. 确认现有通用 `/api/` 代理覆盖 `/api/track/summary`；Track 查询不增加 Nginx 专用 location 或限流。
 5. 验证 Nginx、Compose、当前文件写入和 Backend 只读查询后，再运行 Backend 发布命令。
 
 仓库发布脚本只同步 Backend 受控运行文件并重建 `backend` 服务；它不会修改服务器 Compose、Nginx、Track 数据目录或服务器上的日志保留策略。
