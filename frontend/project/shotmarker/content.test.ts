@@ -71,7 +71,6 @@ test("privacy page documents the first-party analytics contract", () => {
     text,
     /The four fixed event names are app_launch, training_sync_succeeded, highlight_generate_succeeded, and highlight_save_succeeded/,
   );
-  assert.match(text, /empty parameter object/);
   assert.match(text, /does not have a fixed automatic expiration period/);
   assert.match(text, /does not immediately delete prior server events/);
   assert.match(text, /not used for advertising or cross-company tracking/);
@@ -85,14 +84,18 @@ test("privacy page documents the first-party analytics contract", () => {
   );
   assert.match(
     text,
-    /The iPhone app sends the event name, client time, the project value shotmarker, an empty parameter object, and a random 12-character installation identifier stored in UserDefaults/,
+    /The iPhone app sends only the project value shotmarker, the event name, and a random 12-character installation identifier stored in UserDefaults/,
   );
   assert.match(
     text,
-    /When the server persists the event as schema v1, it adds schema_version 1, the server receipt time, and a server-generated 32-character hexadecimal request_id/,
+    /When the server writes the event, it adds its ISO 8601 receipt time/,
   );
-  assert.match(text, /The request_id is used only to deduplicate records during aggregation/);
-  assert.match(text, /approximate number of unique installations/);
+  assert.match(text, /The stored record contains only project, event, time, and device_id/);
+  assert.match(text, /used to estimate daily unique installations/);
+  assert.doesNotMatch(
+    text,
+    /client time|empty parameter object|schema_version|request_id/,
+  );
   assert.match(
     text,
     /do not include an advertising identifier, device model, or operating system version/,
@@ -102,7 +105,7 @@ test("privacy page documents the first-party analytics contract", () => {
   assert.match(text, /single append-only events\.jsonl file/);
   assert.match(
     text,
-    /The storage design will be re-evaluated when the file reaches 32 MiB and adjusted before the Backend's 64 MiB total decoded query limit/,
+    /if it exceeds the Backend's 64 MiB current-file read limit, aggregate trends remain unavailable until a new storage mechanism is deployed/,
   );
   assert.match(
     text,
@@ -120,14 +123,14 @@ test("privacy page documents the first-party analytics contract", () => {
   );
   assert.match(
     text,
-    /iPhone App 发送事件名、客户端时间、project 值 shotmarker、空参数对象，以及保存在 UserDefaults 中的随机 12 位安装标识符/,
+    /iPhone App 只发送 project 值 shotmarker、事件名，以及保存在 UserDefaults 中的随机 12 位安装标识符/,
   );
   assert.match(
     text,
-    /服务器按 schema v1 持久化事件时，会附加 schema_version 1、服务器接收时间和由服务器生成的 32 位十六进制 request_id/,
+    /服务器写入事件时添加 ISO 8601 接收时间；保存的记录只包含 project、event、time 和 device_id/,
   );
-  assert.match(text, /request_id 仅用于聚合时对记录去重/);
-  assert.match(text, /用于估算大致的独立安装数量/);
+  assert.match(text, /用于估算每日独立安装数量/);
+  assert.doesNotMatch(text, /客户端时间|空参数对象|schema v1|32 位十六进制/);
   assert.match(
     text,
     /这些分析事件不包含训练记录、打点时间戳、视频、HealthKit 数据或诊断日志，也不包含广告标识符、设备型号或操作系统版本/,
@@ -143,7 +146,7 @@ test("privacy page documents the first-party analytics contract", () => {
   assert.match(text, /该文件没有固定的自动过期周期/);
   assert.match(
     text,
-    /文件达到 32 MiB 时会重新评估存储方案，并在 Backend 的 64 MiB 总解码查询上限之前完成调整/,
+    /若超过 Backend 的 64 MiB 当前文件读取上限，聚合趋势会保持不可用，直到新的存储机制部署完成/,
   );
   assert.match(
     text,

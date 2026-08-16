@@ -2,6 +2,8 @@
 
 本文档只记录仓库脚本能够证实的部署约定，不记录云实例、网络地址或资源台账。
 
+> 四字段 Track 代码已经在仓库中实现；生产服务器是否已完成停服、删旧数据和配置切换，必须以当次线上验证及 `docs/private.local` 台账为准。不得仅凭本地提交把生产状态记为已部署。
+
 ## 逻辑架构
 
 ```text
@@ -9,10 +11,10 @@
 ├── https://zhangrh.shop/hub/        -> Hub HTML
 ├── https://zhangrh.shop/cardgame/   -> Cardgame HTML
 ├── https://zhangrh.shop/shotmarker/ -> ShotMarker HTML
-├── https://zhangrh.shop/analytics/  -> Track 聚合数据 HTML
-├── https://zhangrh.shop/track        -> Nginx 返回 204 并写入 JSONL
-├── https://zhangrh.shop/api/track/summary
-│                                      -> Node/Express 只读流式聚合 JSONL
+├── https://zhangrh.shop/analytics/  -> 单事件逐日 PV/UV 趋势 HTML
+├── https://zhangrh.shop/track       -> Nginx 返回 204 并写入四字段 JSONL
+├── https://zhangrh.shop/api/track/trend
+│                                      -> Node/Express 只读计算单事件趋势
 ├── https://zhangrh.shop/api/cardgame/health
 │                                      -> Node/Express
 └── wss://zhangrh.shop/api/cardgame/ws -> WebSocket
@@ -47,7 +49,27 @@
 
 Compose 的项目根目录是 `/opt/zhangrh-shop`。`data/track` 是逻辑上的宿主机持久目录，由 Nginx 写入并以只读方式挂载给 Backend。目标环境的 Compose、Nginx 和该数据目录都由服务器私有维护，不提交到当前仓库；其具体配置内容不在本文档中推断。
 
-当前 Track 存储刻意保持简单：Nginx 持续追加单一的 `events.jsonl`，不配置 Track 专用 logrotate，也不自动删除历史数据。部署早期产生的 `.gz` 文件保留不动，Backend 仍兼容读取，但正常运行不会再自动生成新的轮转文件。当前文件达到 `32 MiB` 时应重新评估存储方案，不要等到 Backend 的 `64 MiB` 总解码上限才处理。
+四字段 Track 存储刻意保持简单：Nginx 只持续追加单一的 `events.jsonl`，不配置 Track 专用 logrotate，也不自动压缩或删除。Backend 只读取当前文件，不发现轮转文件或 gzip，也不兼容旧 schema。生产切换时旧 JSONL、轮转文件和 gzip 必须在全站停服、路径和文件类型复核后永久删除；旧数据内容不迁移、不备份。当前文件达到 `32 MiB` 时应重新评估存储方案；超过 Backend 的 `64 MiB` 读取上限后允许趋势保持不可用，直到新机制上线。
+
+## Track Nginx 契约
+
+服务器私有配置应把以下形状合并进现有 Nginx 配置，不能用它覆盖证书、站点、普通访问日志或 `/api/` 代理：
+
+```nginx
+log_format track_json escape=json
+    '{"project":"$arg_project",'
+    '"event":"$arg_event",'
+    '"time":"$time_iso8601",'
+    '"device_id":"$arg_device_id"}';
+
+location = /track {
+    access_log /var/log/nginx/track/events.jsonl track_json;
+    add_header Cache-Control "no-store" always;
+    return 204;
+}
+```
+
+该 location 不校验方法或业务参数，收到请求就按查询参数和 Nginx 服务器时间写一行。定义专用 `access_log` 后，`/track` 不应再把完整查询字符串复制到普通访问日志。Backend 在查询阶段排除空值、非法值和非严格四字段行。
 
 ## OSS 配置
 
@@ -91,15 +113,16 @@ cd /opt/zhangrh-shop
 docker compose up -d --build backend
 ```
 
-首次启用埋点查询时，必须先在服务器完成以下私有基础设施，再发布 Backend：
+首次切换到四字段链路时，必须先在服务器完成以下私有基础设施和停服操作，再整体启动 Compose：
 
-1. 建立并校验 Track 宿主机持久目录及 Nginx 写权限。
-2. 配置 `/track` 的 schema v1 JSONL 写入；当前只写单一 `events.jsonl`，不安装 Track 专用 logrotate。
-3. 在 Compose 中把同一目录只读挂载到 Backend，并设置对应的 `TRACK_LOG_DIR`。
-4. 确认现有通用 `/api/` 代理覆盖 `/api/track/summary`；Track 查询不增加 Nginx 专用 location 或限流。
-5. 验证 Nginx、Compose、当前文件写入和 Backend 只读查询后，再运行 Backend 发布命令。
+1. 只读确认 Compose 服务范围、实际生效的 Nginx 配置、Track 目录真实路径和第一层文件类型，并查询 Nginx worker 的数字 UID/GID。
+2. 停止整个 `zhangrh-shop` Compose 项目并确认所有容器均已停止；仅在预检结果完全符合预期时永久删除旧埋点文件，然后创建新的空 `events.jsonl` 并恢复正确所有权和 mode。
+3. 在现有私有 Nginx 配置中合并 `/track` 精确 location 和四字段 JSONL 格式。客户端只提供 `project`、`event`、`device_id`，Nginx 用 `$time_iso8601` 生成 `time`；不要覆盖证书、站点、普通访问日志或 `/api/` 代理。
+4. 在 Compose 中让 Nginx 读写挂载 Track 目录，让 Backend 只读挂载同一目录，并设置对应的 `TRACK_LOG_DIR`。
+5. 确认通用 `/api/` 代理覆盖 `/api/track/trend`，运行 Nginx 配置测试，再执行 `docker compose up -d --build` 整体启动。
+6. 验证容器、写入、查询、Analytics、Cardgame health 和 WebSocket 后，才把生产切换记为完成。
 
-仓库发布脚本只同步 Backend 受控运行文件并重建 `backend` 服务；它不会修改服务器 Compose、Nginx、Track 数据目录或服务器上的日志保留策略。
+仓库发布脚本只同步 Backend 受控运行文件并重建 `backend` 服务；它不会修改服务器 Compose、Nginx、Track 数据目录或服务器上的日志保留策略，也不会执行首次四字段停服切换和旧数据删除。
 
 ## 线上只读验证
 
@@ -111,10 +134,13 @@ curl -I https://zhangrh.shop/cardgame/
 curl -I https://zhangrh.shop/shotmarker/
 curl -I https://zhangrh.shop/analytics/
 curl https://zhangrh.shop/api/cardgame/health
-curl --fail-with-body 'https://zhangrh.shop/api/track/summary?days=1'
+curl --fail-with-body \
+  'https://zhangrh.shop/api/track/trend?project=hub&event=home_page_load&days=1'
 ```
 
-前四个请求应返回可访问的 HTML 响应；Cardgame 健康检查应返回包含 `ok: true` 和 `project: "cardgame"` 的 JSON；Track 查询应返回包含 `range`、`totals`、breakdown、`daily` 和 `diagnostics` 的 JSON。若前端 HTML 可访问但页面资源加载失败，再检查浏览器网络面板中 `static.zhangrh.shop` 的资源请求。
+前四个请求应返回可访问的 HTML 响应；Cardgame 健康检查应返回包含 `ok: true` 和 `project: "cardgame"` 的 JSON；Track 查询应严格只返回一个长度为 1 的 `daily` 数组，其中日期有效且 `pv`、`uv` 满足 `0 <= uv <= pv`。若前端 HTML 可访问但页面资源加载失败，再检查浏览器网络面板中 `static.zhangrh.shop` 的资源请求。
+
+首次切换还需要一次有意写入的验证：正常访问 Hub 首页产生真实 `home_page_load`，确认 `/track` 返回 `204`，并只检查最新 JSON 行的 key、类型和格式。不要在终端记录、截图或文档中输出真实 `device_id`。最新行必须严格只有 `project`、`event`、`time`、`device_id`，其中 `time` 是 Nginx 生成的 ISO 8601 服务器时间；旧数据文件和 gzip 必须仍不存在。
 
 ## 私有台账维护
 

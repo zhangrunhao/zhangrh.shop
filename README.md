@@ -7,7 +7,7 @@
 - [Hub](https://zhangrh.shop/hub/)：个人主页、作品与文章入口。
 - [Cardgame](https://zhangrh.shop/cardgame/)：抽 5 选 3 的回合制卡牌 Demo。
 - [ShotMarker](https://zhangrh.shop/shotmarker/)：ShotMarker 产品介绍与帮助页面。
-- [Analytics](https://zhangrh.shop/analytics/)：公开的 Track 聚合数据概览。
+- [Analytics](https://zhangrh.shop/analytics/)：按项目、事件和时间范围查看每日 PV/UV 趋势。
 
 ## 组件职责
 
@@ -16,9 +16,9 @@
 | `frontend/project/hub` | 主站、作品与文章展示 |
 | `frontend/project/cardgame` | Cardgame 浏览器界面与 WebSocket 客户端 |
 | `frontend/project/shotmarker` | ShotMarker 产品页面 |
-| `frontend/project/analytics` | Track 聚合数据概览 |
+| `frontend/project/analytics` | 必选单事件的逐日 PV/UV 趋势 |
 | `frontend/common` | 前端项目共用的设备标识与埋点代码 |
-| `backend` | Cardgame 健康检查、房间状态和 WebSocket 对局服务 |
+| `backend` | Cardgame HTTP/WebSocket 服务与 Track 只读趋势查询 |
 | `automation/publish` | 根目录的交互式启动与发布脚本；相关测试由根 `npm test` 和 `npm run check` 调用 |
 
 ## 本地准备

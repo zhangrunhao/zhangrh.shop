@@ -29,7 +29,7 @@ npm --prefix frontend run dev -- shotmarker
 npm --prefix frontend run dev -- analytics
 ```
 
-Cardgame 的 Vite 开发服务器会把 `/api` 和 WebSocket 请求代理到 `http://localhost:3001`，因此联调时需要同时启动后端和 Cardgame 前端。
+前端 Vite 开发服务器会把 `/api` 请求代理到 `http://localhost:3001`，Cardgame 的 WebSocket 也使用该代理。因此联调 Cardgame 或 Analytics 时需要同时启动后端和对应前端。
 
 ## 本地验证
 
@@ -53,36 +53,54 @@ npm --prefix backend test
 - 发布前端前设置 `OSS_ACCESS_KEY_ID` 和 `OSS_ACCESS_KEY_SECRET`。
 - 前端发布脚本首先执行 `git pull`；运行前确认当前分支和工作区允许拉取远端更新。
 
-## 埋点查询
+## 埋点趋势查询
 
-默认查询最近 30 个上海自然日：
-
-```bash
-curl --fail-with-body \
-  'https://zhangrh.shop/api/track/summary?days=30'
-```
-
-按项目查询最近 30 天的 ShotMarker 汇总并保存 JSON：
+趋势接口的 `project`、`event`、`days` 全部必填。查询 Hub 默认事件最近 30 个上海自然日：
 
 ```bash
 curl --fail-with-body \
-  'https://zhangrh.shop/api/track/summary?days=30&project=shotmarker' \
-  --output track-summary.json
+  'https://zhangrh.shop/api/track/trend?project=hub&event=home_page_load&days=30'
 ```
 
-该接口是公开只读汇总；原始客户端事件和设备标识可伪造，不能把结果用于计费、风控或审计。稳定错误的处置方式如下：
+查询 ShotMarker 默认事件并保存 JSON：
 
-- `400`：调用参数错误，修正 `days`/`project`，或删除未知、重复参数。
-- `503 track_query_busy`：已有扫描，至少等待 `Retry-After` 指定的秒数。
-- `503 track_log_unavailable`：检查 Track 只读挂载、目录穿越权限和当前 `events.jsonl`；若目录中保留了历史 gzip，再检查其完整性。不要把重启整个站点作为第一动作。
-- `503 track_log_too_large`：输入文件的总解码量已达到 Backend 的 `64 MiB` 上限，停止重复查询并重新设计存储。
-- `503 track_query_timeout`：扫描超过 20 秒，检查文件规模、损坏 gzip 和主机 I/O。
+```bash
+curl --fail-with-body \
+  'https://zhangrh.shop/api/track/trend?project=shotmarker&event=app_launch&days=30' \
+  --output track-trend.json
+```
 
-生产环境当前不使用 Track 专用 logrotate。Nginx 持续追加单一的 `events.jsonl`，不自动轮转或删除；已有历史 gzip 保留并继续可读。运维时只需偶尔检查当前文件大小，达到 `32 MiB` 即启动存储方案评估，为 `64 MiB` 查询上限留出余量：
+成功响应严格只有 `daily`。数组长度必须等于 `days`，日期按上海自然日连续升序且不重复，`pv`、`uv` 是满足 `0 <= uv <= pv` 的安全整数；没有记录的日期和完全没有该事件的范围也返回零值项。
+
+该接口是公开只读聚合；客户端事件和设备标识可以伪造，不能把结果用于计费、风控或审计。稳定错误的处置方式如下：
+
+- `400`：修正缺失、非法、未知或重复的 `project`、`event`、`days` 参数；`days` 只允许 `1`、`7`、`30`、`90`。
+- `503 track_query_busy`：已有扫描，至少等待 `Retry-After` 指定的秒数再手工重试。
+- `503 track_log_unavailable`：检查 Backend 的 Track 只读挂载、目录穿越权限和当前 `events.jsonl`。Backend 不读取轮转文件或 gzip。
+- `503 track_log_too_large`：当前文件已超过 Backend 的 `64 MiB` 读取上限；停止重复查询并设计、验证、上线下一套存储机制，不临时移除上限。
+- `503 track_query_timeout`：扫描超过 20 秒；停止重复查询并检查当前文件规模和主机 I/O。
+- `500 internal_error`：检查 Backend 日志中的服务端异常；公开响应不会包含文件路径、原始行或堆栈。
+
+四字段版本只使用当前 `events.jsonl`，不自动轮转、压缩或删除。达到 `32 MiB` 时启动存储方案评估，为 `64 MiB` 查询上限留出余量：
 
 ```bash
 stat -c '%s bytes %n' /opt/zhangrh-shop/data/track/events.jsonl
 ```
+
+## 四字段生产切换
+
+本地代码完成或单独发布 Backend 都不代表生产服务器已经切换。生产切换涉及全站停服和不可恢复的旧埋点删除，必须获得明确授权，并按[四字段设计的生产执行清单](./docs/superpowers/specs/2026-08-16-track-four-field-trend-redesign-design.md#12-生产服务器执行清单)逐项完成。
+
+切换时必须遵守以下边界：
+
+1. 先只读确认 Compose 服务、实际生效的 Nginx 配置、Track 目录真实路径、第一层文件类型和 Nginx worker 数字 UID/GID。
+2. 停止整个 `zhangrh-shop` Compose 项目并确认所有容器均已停止，再确认 Nginx 不再追加文件。
+3. 仅在路径、文件类型和停服状态全部符合预期时永久删除旧 `events.jsonl`、轮转文件和 gzip；数据内容不备份、不可恢复。
+4. 创建新的空 `events.jsonl`，按预检结果恢复正确所有权和 mode；Nginx 使用读写挂载，Backend 使用只读挂载。
+5. 把只含 `project`、`event`、Nginx 服务器 `time`、`device_id` 的 Track `log_format` 合并进现有私有配置，不覆盖证书、站点、普通访问日志或 `/api/` 代理。
+6. 完成 `nginx -t`、整体启动、容器状态、真实页面事件、新接口、Analytics、Cardgame health/WebSocket 和文件 key 检查后，才更新私有生产台账。
+
+路径、文件类型、挂载或容器状态任一项异常都必须停止切换。删数后只修复四字段新链路，不恢复旧 schema、旧查询接口或旧数据。
 
 ## 发布
 

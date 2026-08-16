@@ -1,5 +1,7 @@
 # Track Analytics 页面设计
 
+> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](./2026-08-16-track-four-field-trend-redesign-design.md)取代，仅保留历史记录。旧 totals、breakdown、双折线和 summary API 不再代表当前实现。
+
 ## 目标
 
 在 `frontend/project/analytics` 新建一个独立的 Vite + React 前端项目，并发布到 `/analytics/`。页面直接请求公开的 Track 汇总接口，把当前需要手动阅读的 JSON 转换成简单、清楚、适合桌面和手机查看的统计页面。

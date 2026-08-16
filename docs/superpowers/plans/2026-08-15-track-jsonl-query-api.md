@@ -1,5 +1,7 @@
 # Track JSONL 查询 API 实施计划
 
+> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](../specs/2026-08-16-track-four-field-trend-redesign-design.md)取代，仅保留历史记录。不得重新执行旧 schema、轮转/gzip 读取或 summary API 步骤。
+
 > **历史计划：** 该计划已经执行。涉及 Track 专用 logrotate、自动轮转和约三个月保留的步骤，自 2026-08-16 起由[单一 JSONL 存储设计](../specs/2026-08-16-track-single-jsonl-storage-design.md)取代；Backend 对历史 gzip 的兼容读取保持不变。
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

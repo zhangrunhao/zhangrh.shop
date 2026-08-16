@@ -1,5 +1,7 @@
 # Nginx 埋点持久化与公开查询接口实现 Spec
 
+> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](./2026-08-16-track-four-field-trend-redesign-design.md)取代，仅保留历史记录。旧 schema、轮转/gzip 读取、可选事件汇总 API 和响应字段不再代表当前实现。
+
 > **状态更新（2026-08-16）：** 本文中的 Track 专用 logrotate、约 98 天保留和自动轮转设计已被[单一 JSONL 存储设计](./2026-08-16-track-single-jsonl-storage-design.md)取代。生产环境当前只持续追加 `events.jsonl`，不自动轮转或删除；历史 gzip 保留，Backend 兼容读取。本文其余 API、校验与聚合设计仍作为已实现功能的历史依据。
 
 ## 背景
