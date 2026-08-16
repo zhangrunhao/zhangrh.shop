@@ -67,10 +67,10 @@ test("privacy page documents the first-party analytics contract", () => {
   assert.equal(EFFECTIVE_DATE, "August 16, 2026");
   assert.equal(LAST_UPDATED, "2026-08-16");
   assert.match(text, /random 12-character installation identifier/);
-  assert.match(text, /app_launch/);
-  assert.match(text, /training_sync_succeeded/);
-  assert.match(text, /highlight_generate_succeeded/);
-  assert.match(text, /highlight_save_succeeded/);
+  assert.match(
+    text,
+    /The four fixed event names are app_launch, training_sync_succeeded, highlight_generate_succeeded, and highlight_save_succeeded/,
+  );
   assert.match(text, /empty parameter object/);
   assert.match(text, /does not have a fixed automatic expiration period/);
   assert.match(text, /does not immediately delete prior server events/);
