@@ -210,7 +210,7 @@ export const privacyPage: ShotMarkerPage = {
         },
         {
           kind: "paragraph",
-          text: "Each event record contains the event name, client time, server receipt time, the project value shotmarker, an empty parameter object, and a random 12-character installation identifier stored in UserDefaults. The identifier is associated only with the current app installation and is used to estimate the approximate number of unique installations.",
+          text: "The iPhone app sends the event name, client time, the project value shotmarker, an empty parameter object, and a random 12-character installation identifier stored in UserDefaults. When the server persists the event as schema v1, it adds schema_version 1, the server receipt time, and a server-generated 32-character hexadecimal request_id. The request_id is used only to deduplicate records during aggregation. The installation identifier is associated only with the current app installation and is used to estimate the approximate number of unique installations.",
         },
         {
           kind: "paragraph",
@@ -224,7 +224,7 @@ export const privacyPage: ShotMarkerPage = {
         {
           kind: "paragraph",
           className: "language-block",
-          text: "每条事件记录包含事件名、客户端时间、服务器接收时间、project 值 shotmarker、空参数对象，以及保存在 UserDefaults 中的随机 12 位安装标识符。该标识符只与当前 App 安装相关，用于估算大致的独立安装数量。",
+          text: "iPhone App 发送事件名、客户端时间、project 值 shotmarker、空参数对象，以及保存在 UserDefaults 中的随机 12 位安装标识符。服务器按 schema v1 持久化事件时，会附加 schema_version 1、服务器接收时间和由服务器生成的 32 位十六进制 request_id。request_id 仅用于聚合时对记录去重。该标识符只与当前 App 安装相关，用于估算大致的独立安装数量。",
         },
         {
           kind: "paragraph",

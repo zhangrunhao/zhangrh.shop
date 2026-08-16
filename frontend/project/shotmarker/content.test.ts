@@ -83,9 +83,15 @@ test("privacy page documents the first-party analytics contract", () => {
     text,
     /Only Release builds of the ShotMarker iPhone app send first-party product analytics events/,
   );
-  assert.match(text, /client time, server receipt time/);
-  assert.match(text, /the project value shotmarker/);
-  assert.match(text, /stored in UserDefaults/);
+  assert.match(
+    text,
+    /The iPhone app sends the event name, client time, the project value shotmarker, an empty parameter object, and a random 12-character installation identifier stored in UserDefaults/,
+  );
+  assert.match(
+    text,
+    /When the server persists the event as schema v1, it adds schema_version 1, the server receipt time, and a server-generated 32-character hexadecimal request_id/,
+  );
+  assert.match(text, /The request_id is used only to deduplicate records during aggregation/);
   assert.match(text, /approximate number of unique installations/);
   assert.match(
     text,
@@ -114,9 +120,13 @@ test("privacy page documents the first-party analytics contract", () => {
   );
   assert.match(
     text,
-    /客户端时间、服务器接收时间、project 值 shotmarker、空参数对象/,
+    /iPhone App 发送事件名、客户端时间、project 值 shotmarker、空参数对象，以及保存在 UserDefaults 中的随机 12 位安装标识符/,
   );
-  assert.match(text, /保存在 UserDefaults 中的随机 12 位安装标识符/);
+  assert.match(
+    text,
+    /服务器按 schema v1 持久化事件时，会附加 schema_version 1、服务器接收时间和由服务器生成的 32 位十六进制 request_id/,
+  );
+  assert.match(text, /request_id 仅用于聚合时对记录去重/);
   assert.match(text, /用于估算大致的独立安装数量/);
   assert.match(
     text,

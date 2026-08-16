@@ -4,7 +4,7 @@
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `time` | number | `Date.now()` 产生的毫秒时间戳 |
+| `time` | number | 客户端生成的 Unix epoch 毫秒时间戳；网页使用 `Date.now()` |
 | `project` | string | 当前调用方为 `hub`、`cardgame` 或 `shotmarker` |
 | `device_id` | string | 12 位字母数字标识；网页优先复用 localStorage 或 `.zhangrh.shop` Cookie，ShotMarker 使用保存在 UserDefaults 中的安装随机值 |
 | `event` | string | 事件名称 |
@@ -85,7 +85,7 @@ Backend 通过只读挂载流式聚合日志，并公开提供：
 GET /api/track/summary?days=<1-90>&project=<hub|cardgame|shotmarker>
 ```
 
-`days` 默认 30，`project` 可省略。响应只包含事件、近似浏览器/安装数、项目、事件、页面、按钮和每日汇总，不返回原始 `device_id`、params、IP、User-Agent、Referer、Cookie 或文件路径。
+`days` 默认 30，`project` 可省略。响应仅返回聚合结果、查询元数据与诊断计数，真实顶层字段为 `generated_at`、`range`、`filter`、`totals`、`projects`、`event_breakdown`、`page_breakdown`、`button_breakdown`、`daily` 和 `diagnostics`；其中设备数是近似浏览器/安装数。响应不返回原始标识符（包括 `device_id` 和 `request_id`）、params、IP、User-Agent、Referer、Cookie 或文件路径。
 
 该接口第一阶段无需鉴权，结果属于公开、低风险的产品观察数据。客户端事件和设备标识均可伪造，不能用于计费、风控、审计或强一致业务指标。
 
