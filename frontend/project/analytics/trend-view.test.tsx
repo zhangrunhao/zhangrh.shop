@@ -32,7 +32,7 @@ test("TrendView renders a readable thirty-day metric chart", () => {
   );
 
   assert.match(html, /每日 PV/);
-  assert.match(html, /aria-label="home_page_load 每日 PV 趋势[^\"]*左右方向键/);
+  assert.match(html, /aria-label="home_page_load 每日 PV 趋势[^"]*左右方向键/);
   assert.equal(html.match(/class="chart-grid"/g)?.length, 4);
   assert.match(html, /class="chart-y-label"[^>]*>0<\/text>/);
   assert.match(html, /class="chart-y-label"[^>]*>3<\/text>/);
