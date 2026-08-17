@@ -5,6 +5,10 @@ import {
   buildChartGeometry,
   buildIntegerTicks,
   formatChartNumber,
+  positionChartTooltip,
+  resolveChartNavigation,
+  selectValueLabels,
+  type ChartLabelBox,
 } from "./trend-chart";
 
 test("buildIntegerTicks keeps small counts exact and rounds larger counts", () => {
@@ -65,4 +69,51 @@ test("buildChartGeometry keeps one-day charts centered", () => {
   assert.equal(geometry.hitAreas[0].x, geometry.left);
   assert.equal(geometry.hitAreas[0].width, geometry.plotWidth);
   assert.deepEqual(geometry.xLabelIndexes, [0]);
+});
+
+const boxesOverlap = (first: ChartLabelBox, second: ChartLabelBox) =>
+  first.left < second.right &&
+  first.right > second.left &&
+  first.top < second.bottom &&
+  first.bottom > second.top;
+
+test("selectValueLabels keeps the latest value and global maximum without overlap", () => {
+  const values = Array.from({ length: 90 }, () => 1);
+  values[20] = 50;
+  const geometry = buildChartGeometry(values);
+  const labels = selectValueLabels(geometry);
+
+  assert.ok(labels.some((label) => label.index === 89));
+  assert.ok(labels.some((label) => label.index === 20));
+  assert.ok(labels.every((label) => label.value > 0));
+
+  for (const [index, label] of labels.entries()) {
+    for (const other of labels.slice(index + 1)) {
+      assert.equal(boxesOverlap(label.box, other.box), false);
+    }
+  }
+});
+
+test("positionChartTooltip stays inside the chart", () => {
+  const geometry = buildChartGeometry([3, 0, 1]);
+
+  for (const point of [geometry.points[0], geometry.points.at(-1)!]) {
+    const tooltip = positionChartTooltip(point, geometry);
+    assert.ok(tooltip.x >= 4);
+    assert.ok(tooltip.y >= 4);
+    assert.ok(tooltip.x + tooltip.width <= geometry.width - 4);
+    assert.ok(
+      tooltip.y + tooltip.height <= geometry.top + geometry.plotHeight,
+    );
+  }
+});
+
+test("resolveChartNavigation supports arrows, boundaries, and escape", () => {
+  assert.equal(resolveChartNavigation("ArrowLeft", 2, 5), 1);
+  assert.equal(resolveChartNavigation("ArrowLeft", 0, 5), 0);
+  assert.equal(resolveChartNavigation("ArrowRight", 4, 5), 4);
+  assert.equal(resolveChartNavigation("Home", 3, 5), 0);
+  assert.equal(resolveChartNavigation("End", 1, 5), 4);
+  assert.equal(resolveChartNavigation("Escape", 2, 5), null);
+  assert.equal(resolveChartNavigation("Enter", 2, 5), undefined);
 });
