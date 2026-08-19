@@ -1,6 +1,6 @@
 # Backend
 
-Backend 是 Node.js 24、Express 5 和 `ws` 组成的单进程服务，提供 Cardgame HTTP/WebSocket 与 Track 只读查询。本文于 2026-08-19 根据代码和测试复核。
+本文只记录可由本仓库代码和测试核对的实现事实。Backend 是 Node.js 24、Express 5 和 `ws` 组成的单进程服务，提供 Cardgame HTTP/WebSocket 与 Track 只读查询，并于 2026-08-19 完成复核。
 
 ## 运行时
 

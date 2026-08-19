@@ -1,8 +1,8 @@
 # 部署与生产边界
 
-仓库脚本发布四个前端和一个 Backend。本文是公开部署拓扑、目标目录和发布副作用的当前事实来源；实际服务器、网络、证书和生产配置由私有台账维护。
+本文同时记录公开部署契约和仓库发布实现。脚本于 2026-08-19 复核；实际服务器、网络、证书和生产配置由私有台账维护，且本次未重新验证。
 
-## 公开拓扑
+## 公开拓扑（有效决定）
 
 | 路径 | 组件 |
 | --- | --- |
@@ -14,35 +14,36 @@
 | `/api/track/trend` | Backend Track 查询 |
 | `/api/cardgame/*` | Backend Cardgame HTTP/WebSocket |
 
-前端 HTML 通过 SSH/rsync 发布；JS、CSS、图片等 `static` 构建产物发布到 `https://static.zhangrh.shop/zhangrh-shop/<project>/static/`。
+JS、CSS、图片等 `static` 构建产物的公开地址为 `https://static.zhangrh.shop/zhangrh-shop/<project>/static/`。
 
-## 目录契约
+## 目录契约（有效决定）
 
 | 目录 | 用途 |
 | --- | --- |
 | `/opt/zhangrh-shop/site/<project>/` | 前端 HTML |
 | `/opt/zhangrh-shop/backend/` | Backend 运行文件 |
-| `/opt/zhangrh-shop/data/track/` | 私有维护的 Track 持久目录 |
 | `/opt/zhangrh-shop/` | Compose 项目根目录 |
 
-Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查询契约见 [Track 当前文档](./track.md)。具体宿主机权限、Compose、Nginx 和证书配置不在公开仓库维护。
+Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查询契约见 [Track 当前文档](./track.md)。Track 宿主机持久目录、具体宿主机权限、Compose、Nginx 和证书配置不在公开仓库维护。
 
-## 发布契约
+## 当前发布实现
+
+仓库脚本发布四个前端和一个 Backend：
 
 - 根 `npm run publish` 通过 [Automation](./automation.md) 选择目标。
-- 前端发布先拉取 Git、构建目标项目、上传 OSS 静态资源、改写 HTML 资源地址，再 rsync HTML。
+- 前端发布先拉取 Git、构建目标项目、上传 OSS 静态资源、改写 HTML 资源地址，再通过 SSH/rsync 发布 HTML。
 - Backend 发布只同步受控运行文件，并从部署根目录重建 `backend` 服务；详细边界见 [Backend](./backend.md)。
 - 前端发布需要本地 SSH、rsync、`OSS_ACCESS_KEY_ID` 和 `OSS_ACCESS_KEY_SECRET`。
 - Backend 重建可能中断请求，并清空 Cardgame 内存状态。
 - 发布脚本不执行整栈停服，不修改生产 Compose、Nginx、证书、Track 数据或日志策略，不删除生产数据。
 
-## 验证边界
+## 变更与验证边界（有效决定）
 
 - 公开入口、Cardgame health 和 Track 查询可以使用 GET/HEAD 做只读验证。
 - Track 写入验证会产生真实事件，只有在对应 Change 明确授权时执行。
 - 生产配置或存储迁移必须在私有仓库建立 Change，完成预检、授权、实施和验证。
 
-## 外部状态
+## 外部状态（带日期事实）
 
 - 私有台账记录的 Track 四字段生产切换与验收日期为 2026-08-16。
 - 截至 2026-08-19，未重新验证线上入口、生产配置、App Store 或 TestFlight。
