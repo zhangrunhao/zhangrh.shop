@@ -1,10 +1,10 @@
 # Track 埋点与趋势
 
-本文是 Track 客户端协议、事件目录、存储模型和查询接口的当前事实来源。代码与测试于 2026-08-19 复核；截至该日未重新验证生产状态。
+本文同时记录 Track 的有效公开契约和当前实现事实。本仓库代码、测试及 ShotMarker 公开代码于 2026-08-19 复核；截至该日未重新验证生产状态或真实 Release/TestFlight 上报。
 
-## 客户端协议
+## 数据契约（有效决定）
 
-网页向同源 `/track`、ShotMarker iPhone Release 向 `https://zhangrh.shop/track` 发送 HTTPS GET 请求，只包含：
+客户端请求只包含：
 
 | 字段 | 规则 |
 | --- | --- |
@@ -12,11 +12,23 @@
 | `event` | 小写 snake_case 事件名 |
 | `device_id` | 12 位字母数字随机标识 |
 
-浏览器通过 `Image` 非阻塞发送，失败不影响产品流程且不重试。网页在 localStorage 与 `.zhangrh.shop` Cookie 间复用设备标识。ShotMarker 将安装随机值保存在 UserDefaults；仅 iPhone Release 使用无 Cookie、无缓存的临时会话发送，Debug、测试和其他平台不发送。真实 Release/TestFlight 上报仍未验证。
+服务端生成 ISO 8601 `time`，持久记录严格只有 `project`、`event`、`time`、`device_id`。客户端不发送时间、通用参数对象、context、schema version、request ID、训练记录、打点时间戳、视频、HealthKit 数据或诊断日志。
 
-客户端不发送时间、通用参数对象、context、schema version 或 request ID。
+Track 是公开、可伪造的低风险产品观察数据，不得用于计费、风控、审计或强一致业务指标。
 
-## 事件目录
+## 客户端实现事实
+
+### Hub 与 Cardgame
+
+网页向同源 `/track` 发送 GET 请求。浏览器通过 `Image` 非阻塞发送，代码不重试，失败不影响产品流程。网页在 localStorage 与 `.zhangrh.shop` Cookie 间复用设备标识。
+
+### ShotMarker iPhone
+
+ShotMarker 由独立公开仓库维护。其当前代码只在 iPhone Release 使用临时 URLSession 向 `https://zhangrh.shop/track` 发送相同三个字段；Debug、测试和其他平台使用 no-op。安装标识保存在 UserDefaults，不使用 Cookie 或持久缓存，代码不重试。
+
+这里仅保留集成所需摘要；事件触发、请求和隐私边界的权威来源是 [ShotMarker 产品埋点](https://github.com/zhangrunhao/ShotMarker/blob/main/docs/current/analytics.md)。真实 Release/TestFlight 上报仍未验证。
+
+## 事件目录（有效决定）
 
 ### Hub
 
@@ -46,28 +58,26 @@
 
 ### ShotMarker iPhone
 
+下表是 Analytics 选择器使用的必要摘要，完整语义以 ShotMarker 的当前文档为准。
+
 | event | 触发语义 |
 | --- | --- |
 | `app_launch` | App 进程启动；默认事件 |
 | `training_sync_succeeded` | Watch 训练记录成功导入 iPhone |
-| `highlight_generate_succeeded` | 集锦生成完成并进入正式路径 |
+| `highlight_generate_succeeded` | 集锦生成完成并进入稳定任务路径 |
 | `highlight_save_succeeded` | 集锦保存到系统相册且状态已持久化 |
 
-事件不包含训练记录、打点时间戳、视频、HealthKit 数据或诊断日志。
+## 服务端写入契约（有效决定）
 
-## 服务端记录
-
-Nginx 接收 `/track`、生成服务器 `time`、向单一 `events.jsonl` 追加记录并返回 `204`。每行严格包含：
+Nginx 接收 `/track`、生成服务器 `time`、向单一 `events.jsonl` 追加记录并返回 `204`。每行格式为：
 
 ```json
 {"project":"hub","event":"home_page_load","time":"2026-08-16T12:00:00+08:00","device_id":"AbCd1234Ef56"}
 ```
 
-Nginx 不校验业务参数。Backend 查询时校验字段集合、项目、事件、ISO 8601 时间和设备标识；无效行留在文件中但不参与报表。Track 文件不保存 IP、User-Agent、Referer 或 Cookie。
+写入记录不得包含 IP、User-Agent、Referer 或 Cookie。Nginx 不承担业务参数校验；Backend 读取时负责校验。查询设计只覆盖单一当前文件，文件达到 `32 MiB` 时必须重新评估存储方案。
 
-当前只读取 `events.jsonl`，不读取轮转文件、gzip 或旧 schema。文件不自动轮转、压缩、删除或过期；达到 `32 MiB` 时重新评估存储方案。
-
-## 趋势接口
+## 查询契约（有效决定）
 
 ```text
 GET /api/track/trend?project=hub&event=home_page_load&days=30
@@ -91,13 +101,15 @@ Backend 同时只执行一个 Track 查询，单次读取上限为 `64 MiB`，�
 
 `track_query_busy` 带 `Retry-After: 2`。公开响应不返回文件路径、原始记录、设备标识或堆栈。
 
-## Analytics
+## 查询实现事实
 
-Analytics 手工维护本文件的事件目录，默认状态为 `Hub / 30 天 / home_page_load / PV`。浏览器只保存项目和天数；切换项目时恢复该项目默认事件，切换 PV/UV 只重绘现有数据。
+Backend 当前实现符合上述查询契约，只读取 `events.jsonl`，不读取轮转文件、gzip 或旧 schema。读取时校验字段集合、项目、事件、ISO 8601 时间和设备标识；无效行留在文件中但不参与报表。代码和测试于 2026-08-19 复核。
 
-Track 是公开、可伪造的低风险产品观察数据，不得用于计费、风控、审计或强一致业务指标。
+## Analytics 实现事实
 
-## 生产边界
+Analytics 手工维护本文件列出的事件目录，默认状态为 `Hub / 30 天 / home_page_load / PV`。浏览器只保存项目和天数；切换项目时恢复该项目默认事件，切换 PV/UV 只重绘现有数据。
+
+## 生产状态（带日期事实）
 
 - 私有台账记录的最近四字段切换与验收日期为 2026-08-16。
 - 2026-08-19 未验证线上入口、Nginx、Track 文件或真实客户端上报。
@@ -105,7 +117,8 @@ Track 是公开、可伪造的低风险产品观察数据，不得用于计费�
 
 ## 证据
 
-- `frontend/common/track.ts`
-- `frontend/project/{hub,cardgame,shotmarker,analytics}`
+- `frontend/common/{device_id,track}.ts`
+- `frontend/project/{hub,cardgame,analytics}`
 - `backend/projects/{track,track-query}.js`
 - `backend/tools/track-*.test.mjs`
+- [ShotMarker 产品埋点](https://github.com/zhangrunhao/ShotMarker/blob/main/docs/current/analytics.md)
