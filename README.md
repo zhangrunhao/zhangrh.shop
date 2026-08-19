@@ -54,7 +54,9 @@ npm run publish
 
 - [项目文档总入口](./docs/README.md)
 - [本地运行与发布手册](./RUNBOOK.md)
-- [部署结构与只读验证](./docs/deploy/README.md)
-- [前端埋点说明](./frontend/docs/track.md)
+- [部署与生产边界](./docs/current/deployment.md)
+- [Track 埋点与趋势](./docs/current/track.md)
+- [Automation](./docs/current/automation.md)
+- [Backend](./docs/current/backend.md)
 - [Hub 文章目录规则](./frontend/project/hub/content/articles/README.md)
 - [Cardgame 规则与开发说明](./frontend/project/cardgame/README.md)

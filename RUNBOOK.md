@@ -55,6 +55,8 @@ npm --prefix backend test
 
 ## 埋点趋势查询
 
+协议、事件目录、存储模型和接口限制以 [Track 当前文档](./docs/current/track.md)为准。
+
 趋势接口的 `project`、`event`、`days` 全部必填。查询 Hub 默认事件最近 30 个上海自然日：
 
 ```bash
@@ -70,30 +72,25 @@ curl --fail-with-body \
   --output track-trend.json
 ```
 
-成功响应严格只有 `daily`。数组长度必须等于 `days`，日期按上海自然日连续升序且不重复，`pv`、`uv` 是满足 `0 <= uv <= pv` 的安全整数；没有记录的日期和完全没有该事件的范围也返回零值项。
+按 Track 当前文档核对响应。错误按以下方式处置：
 
-该接口是公开只读聚合；客户端事件和设备标识可以伪造，不能把结果用于计费、风控或审计。稳定错误的处置方式如下：
-
-- `400`：修正缺失、非法、未知或重复的 `project`、`event`、`days` 参数；`days` 只允许 `1`、`7`、`30`、`90`。
+- `400`：修正缺失、非法、未知或重复的查询参数。
 - `503 track_query_busy`：已有扫描，至少等待 `Retry-After` 指定的秒数再手工重试。
-- `503 track_log_unavailable`：检查 Backend 的 Track 只读挂载、目录穿越权限和当前 `events.jsonl`。Backend 不读取轮转文件或 gzip。
-- `503 track_log_too_large`：当前文件已超过 Backend 的 `64 MiB` 读取上限；停止重复查询并设计、验证、上线下一套存储机制，不临时移除上限。
-- `503 track_query_timeout`：扫描超过 20 秒；停止重复查询并检查当前文件规模和主机 I/O。
-- `500 internal_error`：检查 Backend 日志中的服务端异常；公开响应不会包含文件路径、原始行或堆栈。
+- `503 track_log_unavailable`：检查 Backend 的 Track 只读挂载、目录权限和当前日志文件。
+- `503 track_log_too_large` 或 `track_query_timeout`：停止重复查询，检查文件规模、单行异常和主机 I/O，建立存储改造 Change。
+- `500 internal_error`：检查 Backend 日志。
 
-四字段版本只使用当前 `events.jsonl`，不自动轮转、压缩或删除。达到 `32 MiB` 时启动存储方案评估，为 `64 MiB` 查询上限留出余量：
+需要核对生产文件时，在已获访问授权的目标 Linux 主机按 Track 当前文档的阈值检查文件规模：
 
 ```bash
 stat -c '%s bytes %n' /opt/zhangrh-shop/data/track/events.jsonl
 ```
 
-## 四字段生产状态
+## Track 生产变更
 
-私有台账记录的四字段生产切换与验收日期为 2026-08-16，本次文档迁移没有重新验证线上状态。
+Track 写入验证会产生真实事件。只有对应 Change 明确授权时才执行。配置或存储迁移必须在私有仓库建立 Change，先完成只读预检，再取得外部变更和破坏性操作授权。
 
-首次停服切换、旧数据删除和验证过程已经结束，记录保存在[四字段历史设计与执行清单](./docs/archive/2026-08-16-track-four-field-trend-redesign-spec.md#12-生产服务器执行清单)。不得把历史清单作为当前操作指令重新执行。
-
-后续生产配置或存储迁移必须建立新的 Change，先完成只读预检，再获得对应外部变更和破坏性操作授权。普通代码发布不得删除 Track 数据或改写私有基础设施配置。
+Track schema 或接收配置变更后，获准的写入验收应通过正常访问 Hub 产生事件，确认 `/track` 返回 `204`，并在目标主机只检查最新记录的字段、类型和格式。不得输出、截图或记录真实 `device_id`。
 
 ## 发布
 
@@ -113,17 +110,16 @@ npm --prefix frontend run publish -- analytics
 npm --prefix backend run publish
 ```
 
-前端发布流程与仓库脚本一致：
+目标发现和命令委托见 [Automation](./docs/current/automation.md)；部署流程、副作用和验证边界见[部署与生产边界](./docs/current/deployment.md)。
 
-1. 在仓库根目录执行 `git pull`。
-2. 构建指定前端项目。
-3. 上传 `dist/<project>/static` 下的静态资源到 OSS，并把 HTML 中的资源地址改写为 `https://static.zhangrh.shop/zhangrh-shop/<project>/static/...`。
-4. 把 `dist/<project>` 中的 HTML 上传到 `/opt/zhangrh-shop/site/<project>/`。
-
-后端发布会把运行文件同步到 `/opt/zhangrh-shop/backend/`，随后在 `/opt/zhangrh-shop` 执行：
+## 发布后只读检查
 
 ```bash
-docker compose up -d --build backend
+curl --fail --head https://zhangrh.shop/hub/
+curl --fail --head https://zhangrh.shop/cardgame/
+curl --fail --head https://zhangrh.shop/shotmarker/
+curl --fail --head https://zhangrh.shop/analytics/
+curl --fail-with-body https://zhangrh.shop/api/cardgame/health
 ```
 
-部署结构和发布后的只读检查见 [部署文档](./docs/deploy/README.md)。
+四个页面应返回可访问的 HTML；Cardgame health 应包含 `ok: true` 和 `project: "cardgame"`。按“埋点趋势查询”执行一次只读 Track 查询，并按 Track 当前文档核对响应。页面可访问但资源加载失败时，检查浏览器中 `static.zhangrh.shop` 的资源请求。

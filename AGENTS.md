@@ -13,6 +13,7 @@
 - Store active specifications and plans as flat `YYYY-MM-DD-topic-spec.md` and `YYYY-MM-DD-topic-plan.md` files in `docs/changes/`.
 - Update affected current documents before moving completed or cancelled Change files to `docs/archive/`.
 - Store completed public investigations, release records, deployment-contract decisions, superseded documents, and other finished material in the flat `docs/archive/` directory.
+- Keep runbooks and component READMEs procedural or component-local; link to `docs/current/` for cross-component current facts instead of duplicating them.
 - Prefer current code, tests, builds, and fresh external verification over documentation.
 - Include a verification date for changing external state; otherwise mark it unverified.
 
@@ -29,7 +30,7 @@
 - Use Node.js 24.
 - Run `npm test` for behavior-preserving documentation changes that affect project instructions or contracts.
 - Run `npm run check` for code changes or changes that affect build, lint, type, or release behavior.
-- Run `git diff --check` and verify local Markdown links before completion.
+- Run `git diff --check` and verify local Markdown links and heading anchors before completion.
 
 ## Safety
 

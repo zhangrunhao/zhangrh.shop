@@ -1,30 +1,51 @@
 # 部署与生产边界
 
-仓库脚本发布四个前端和一个 Backend。脚本维护公开发布契约，不维护实际服务器、网络、证书或生产配置。
+仓库脚本发布四个前端和一个 Backend。本文是公开部署拓扑、目标目录和发布副作用的当前事实来源；实际服务器、网络、证书和生产配置由私有台账维护。
+
+## 公开拓扑
+
+| 路径 | 组件 |
+| --- | --- |
+| `/hub/` | Hub HTML |
+| `/cardgame/` | Cardgame HTML |
+| `/shotmarker/` | ShotMarker HTML |
+| `/analytics/` | Analytics HTML |
+| `/track` | Nginx 接收 Track 并返回 `204` |
+| `/api/track/trend` | Backend Track 查询 |
+| `/api/cardgame/*` | Backend Cardgame HTTP/WebSocket |
+
+前端 HTML 通过 SSH/rsync 发布；JS、CSS、图片等 `static` 构建产物发布到 `https://static.zhangrh.shop/zhangrh-shop/<project>/static/`。
+
+## 目录契约
+
+| 目录 | 用途 |
+| --- | --- |
+| `/opt/zhangrh-shop/site/<project>/` | 前端 HTML |
+| `/opt/zhangrh-shop/backend/` | Backend 运行文件 |
+| `/opt/zhangrh-shop/data/track/` | 私有维护的 Track 持久目录 |
+| `/opt/zhangrh-shop/` | Compose 项目根目录 |
+
+Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查询契约见 [Track 当前文档](./track.md)。具体宿主机权限、Compose、Nginx 和证书配置不在公开仓库维护。
 
 ## 发布契约
 
-- 前端 HTML 通过 SSH/rsync 发布，静态资源发布到 OSS。
-- Backend 运行文件通过 SSH/rsync 发布，并从部署根目录重建 `backend` 服务。
-- 生产 Compose、Nginx、Track 数据目录和证书由私有基础设施维护。
-- 发布脚本不会执行生产停服、数据删除或基础设施迁移。
+- 根 `npm run publish` 通过 [Automation](./automation.md) 选择目标。
+- 前端发布先拉取 Git、构建目标项目、上传 OSS 静态资源、改写 HTML 资源地址，再 rsync HTML。
+- Backend 发布只同步受控运行文件，并从部署根目录重建 `backend` 服务；详细边界见 [Backend](./backend.md)。
+- 前端发布需要本地 SSH、rsync、`OSS_ACCESS_KEY_ID` 和 `OSS_ACCESS_KEY_SECRET`。
+- Backend 重建可能中断请求，并清空 Cardgame 内存状态。
+- 发布脚本不执行整栈停服，不修改生产 Compose、Nginx、证书、Track 数据或日志策略，不删除生产数据。
 
-## Track 当前契约
+## 验证边界
 
-- 浏览器发送 `project`、`event` 和 `device_id`；Nginx 生成服务器 `time`。
-- Nginx 向单一 `events.jsonl` 追加四字段记录，不自动轮转、压缩或删除。
-- Backend 只读当前文件，通过 `/api/track/trend` 返回单事件逐日 PV/UV。
-- 文件达到 `32 MiB` 时重新评估存储方案；Backend 的读取上限为 `64 MiB`。
+- 公开入口、Cardgame health 和 Track 查询可以使用 GET/HEAD 做只读验证。
+- Track 写入验证会产生真实事件，只有在对应 Change 明确授权时执行。
+- 生产配置或存储迁移必须在私有仓库建立 Change，完成预检、授权、实施和验证。
 
 ## 外部状态
 
-- 私有台账记录的最近生产切换与验收日期为 2026-08-16。
-- 本次文档迁移没有重新验证线上入口、生产配置、App Store 或 TestFlight。
-- 真实 Release/TestFlight ShotMarker 事件上报仍标为未确认。
+- 私有台账记录的 Track 四字段生产切换与验收日期为 2026-08-16。
+- 本次任务没有重新验证线上入口、生产配置、App Store 或 TestFlight。
+- 真实 Release/TestFlight ShotMarker 事件上报仍未确认。
 
-## 参考
-
-- [运行与发布手册](../../RUNBOOK.md)
-- [部署结构和只读验证](../deploy/README.md)
-- [前端埋点说明](../../frontend/docs/track.md)
-- [四字段 Track 历史设计与执行记录](../archive/2026-08-16-track-four-field-trend-redesign-spec.md)
+操作命令和错误处置见[运行手册](../../RUNBOOK.md)。历史四字段设计见[归档](../archive/2026-08-16-track-four-field-trend-redesign-spec.md)。
