@@ -10,6 +10,13 @@
 - Analytics：按项目、事件、时间范围和 PV/UV 口径查看逐日趋势。
 - Backend：Cardgame HTTP/WebSocket 服务和 Track 只读趋势查询。
 
+## ShotMarker 公开内容（实现事实）
+
+- `/shotmarker/support`、`/shotmarker/privacy` 和 `/shotmarker/how-to` 于 2026-08-19 按 ShotMarker main / `41bfda2`（产品代码基线 `42c249a`）重新核对。
+- 隐私页分别说明第一方产品 Analytics、Sentry SDK 到开发者自管 GlitchTip 的错误与崩溃上报，以及完整本地诊断日志；其中按 Sentry Cocoa 9.26.0 的发送前处理披露 SDK 技术上下文、独立安装范围标识和源 IP 保留未核验边界。支持页记录标题长按诊断导出和 App 内 iCloud 视频准备；使用说明记录持久化集锦任务和启动后中断恢复。
+- 使用说明中的已完成任务截图来自仅含合成预览数据的临时模拟器，不含真实用户数据。
+- 上述事实只经本地代码、测试、构建和页面渲染验证；截至 2026-08-19 未发布，也未验证线上页面或外部服务状态。
+
 ## 组件边界（实现事实）
 
 | 路径 | 职责 |

@@ -4,8 +4,8 @@ export const SUPPORT_PATH = "/shotmarker/support";
 export const PRIVACY_PATH = "/shotmarker/privacy";
 export const HOW_TO_PATH = "/shotmarker/how-to";
 export const ZHANGRH_SHOP_URL = "https://zhangrh.shop/hub/";
-export const EFFECTIVE_DATE = "August 16, 2026";
-export const LAST_UPDATED = "2026-08-16";
+export const EFFECTIVE_DATE = "Upon publication";
+export const LAST_UPDATED = "2026-08-19";
 export const DEVELOPER = "Rain / ShotMarker";
 
 export type HowToRelatedLink = {
@@ -102,7 +102,15 @@ export const howToPage: ShotMarkerPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "选择这次训练拍下的视频。确认可剪辑打点后，点“生成集锦”。集锦完成后可以播放，也可以保存到系统相册。",
+          text: "选择这次训练拍下的视频。确认可剪辑打点后，点“生成集锦”。App 会创建持久化队列任务并返回首页；任务在 App 进程内串行执行，不保证退出 App 或锁屏后仍由系统后台持续运行。",
+        },
+        {
+          kind: "paragraph",
+          text: "首页“集锦任务”区域会显示排队、处理中、完成、失败或中断状态。完成后可以播放、重复尝试保存到系统相册或删除任务；失败或中断任务可以重新开始，可取消的任务可以取消。保存到相册和生成完成是两个独立动作。",
+        },
+        {
+          kind: "paragraph",
+          text: "App 再次启动时，遗留的排队、运行或保存中任务会标记为中断，你可以回到首页重新开始。",
         },
       ],
     },
@@ -128,9 +136,9 @@ export const privacyPage: ShotMarkerPage = {
   description: "Privacy Policy for ShotMarker.",
   muted: `Effective date: ${EFFECTIVE_DATE}`,
   summary:
-    "ShotMarker is designed as a local-first training tool. The current version does not require an account, does not show ads, does not use third-party analytics SDKs, and does not upload your videos or training records to the developer's server.",
+    "ShotMarker is designed as a local-first training tool. The current version does not require an account, does not show ads, does not use third-party product analytics services, and does not upload your videos or training records to the developer's server. It uses the Sentry SDK to connect to a developer-operated GlitchTip service for crash and error reporting.",
   summaryZh:
-    "ShotMarker 是一个本地优先的训练工具。当前版本不需要账号，不展示广告，不使用第三方分析 SDK，也不会把你的视频或训练记录上传到开发者服务器。",
+    "ShotMarker 是一个本地优先的训练工具。当前版本不需要账号，不展示广告，不使用第三方产品分析服务，也不会把你的视频或训练记录上传到开发者服务器。App 使用 Sentry SDK 连接开发者运营的 GlitchTip 服务，用于崩溃与错误上报。",
   sections: [
     {
       id: "scope",
@@ -138,12 +146,12 @@ export const privacyPage: ShotMarkerPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "This policy explains how the current version of ShotMarker processes training markers, selected videos, HealthKit workout permission, WatchConnectivity sync data, first-party product analytics, and diagnostic logs.",
+          text: "This policy explains how the current version of ShotMarker processes training markers, selected videos, HealthKit workout permission, WatchConnectivity sync data, first-party product analytics, crash and error reports, and local diagnostic logs.",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "本政策说明当前版本的 ShotMarker 如何处理训练打点、用户选择的视频、HealthKit 训练权限、WatchConnectivity 同步数据、第一方产品分析数据和诊断日志。",
+          text: "本政策说明当前版本的 ShotMarker 如何处理训练打点、用户选择的视频、HealthKit 训练权限、WatchConnectivity 同步数据、第一方产品分析、崩溃与错误上报和本地诊断日志。",
         },
       ],
     },
@@ -231,19 +239,88 @@ export const privacyPage: ShotMarkerPage = {
           className: "language-block",
           text: "这些分析事件不包含训练记录、打点时间戳、视频、HealthKit 数据或诊断日志，也不包含广告标识符、设备型号或操作系统版本。数据仅用于第一方产品分析，不用于广告或跨公司跟踪，也不会共享给第三方分析服务商。",
         },
-        { kind: "heading", text: "Diagnostic Logs" },
+        { kind: "heading", text: "Crash and Error Reporting" },
         {
           kind: "paragraph",
-          text: "ShotMarker stores diagnostic logs locally on your iPhone to help troubleshoot issues such as Watch sync, video loading, highlight generation, and saving to Photos. Logs may include app launch events, sync status, video loading and export status, Photos save errors, app version, build number, device model, system version, error information, and local training session IDs.",
+          text: "When the iOS app has a valid DSN, it uses the Sentry SDK to send uncaught crashes and a trimmed subset of .error events to a developer-operated GlitchTip service. The Watch app does not use this reporting path.",
         },
         {
           kind: "paragraph",
-          text: "Diagnostic logs are kept locally with a limited rolling retention policy. In the current version, local diagnostic logs are rotated by time and total size. The developer can only access these logs if you choose to export and share them.",
+          text: "For a trimmed .error event, ShotMarker supplies a fixed message, error name and category, timestamp, and optional error domain and code. It does not copy AppLogEvent context, training IDs, job IDs, video IDs, file paths, or original error descriptions into that event.",
+        },
+        {
+          kind: "paragraph",
+          text: "Before sending, Sentry Cocoa 9.26.0 may add release, build, environment, SDK metadata, a current-thread stack and debug image data, and app, device, operating system, locale, and current-view context to the trimmed .error event. Native crash reports may include a crash stack and similar SDK-supplied technical context.",
+        },
+        {
+          kind: "paragraph",
+          text: "ShotMarker sets sendDefaultPii to false and does not set an account identity. In this SDK version, however, error and crash events still receive an installation-scoped Sentry user ID, separate from the 12-character first-party analytics identifier. ShotMarker does not attach training records, videos, screenshots, or complete local log files.",
+        },
+        {
+          kind: "paragraph",
+          text: "The HTTPS connection exposes the request's source IP address to the receiving network infrastructure. Whether the current GlitchTip deployment retains that address has not been independently verified.",
+        },
+        {
+          kind: "paragraph",
+          text: "Performance tracing, profiling, Session Replay, automatic session tracking, network tracing, and automatic breadcrumbs are disabled. These reports are used for fault diagnosis; no fixed GlitchTip retention period is stated here because the current hosted retention has not been independently verified.",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "ShotMarker 会在 iPhone 本地保存诊断日志，用于排查 Watch 同步、视频读取、集锦生成和相册保存等问题。日志可能包含 App 启动事件、同步状态、视频读取和导出状态、相册保存错误、App 版本、build 号、设备型号、系统版本、错误信息和本地训练记录 ID。诊断日志使用本地滚动保留策略；只有你主动导出并分享时，开发者才会看到这些日志。",
+          text: "崩溃与错误上报：当 iOS App 配置了有效 DSN 时，会使用 Sentry SDK 向开发者运营的 GlitchTip 服务发送未捕获崩溃和 .error 事件的精简子集；Watch App 不使用这条上报链路。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "对于精简 .error 事件，ShotMarker 提供固定消息、错误名称和分类、时间，以及可选的 error domain 和 code；不会复制 AppLogEvent context、训练 ID、任务 ID、视频 ID、文件路径或原始错误描述。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "发送前，Sentry Cocoa 9.26.0 可能补充 release、build、environment、SDK 元数据、当前线程栈与调试镜像数据，以及 App、设备、操作系统、语言区域和当前视图上下文。原生崩溃报告可能包含崩溃堆栈和相似的 SDK 技术环境。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "ShotMarker 将 sendDefaultPii 设为 false，也不会设置账号身份；但在这个 SDK 版本中，错误与崩溃事件仍会获得安装范围的 Sentry user ID，它与第一方分析使用的 12 位安装标识不同。ShotMarker 不会附加训练记录、视频、截图或完整本地日志文件。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "HTTPS 连接会向接收网络基础设施暴露请求源 IP 地址；当前 GlitchTip 部署是否保留该地址尚未独立核验。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "性能追踪、Profiling、Session Replay、自动 Session Tracking、网络追踪和自动 Breadcrumb 均已关闭。这些报告只用于故障诊断；由于当前托管保留状态尚未独立核验，本政策不声明固定的 GlitchTip 保留周期。",
+        },
+        { kind: "heading", text: "Local Diagnostic Logs" },
+        {
+          kind: "paragraph",
+          text: "ShotMarker writes complete JSONL diagnostic logs by day on your iPhone and keeps iPhone-side WatchConnectivity diagnostics locally. These logs may contain app and sync status, video and export status, Photos save errors, app and device information, local identifiers, context, and original error details needed for troubleshooting.",
+        },
+        {
+          kind: "paragraph",
+          text: "The full JSONL logs and iPhone-side WatchConnectivity diagnostics stay on the iPhone unless you export and share them through the system share sheet. A trimmed subset of .error events may be sent automatically through the separate GlitchTip path described above.",
+        },
+        {
+          kind: "paragraph",
+          text: "Local logs are written by day, and configured cleanup is applied when a diagnostic export is prepared. The current implementation does not establish that time and size limits are enforced continuously. Deleting the app removes these local log files.",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "本地诊断日志：ShotMarker 会在 iPhone 上按日写入完整 JSONL 诊断日志，并在本地保存 iPhone 侧 WatchConnectivity 诊断。这些内容可能包含 App 与同步状态、视频与导出状态、相册保存错误、App 与设备信息、本地标识、context 和排障所需的原始错误详情。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "完整 JSONL 日志和 iPhone 侧 WatchConnectivity 诊断会保留在本机，除非你主动导出并分享；.error 事件的精简子集可能自动发送，并属于上文独立的 GlitchTip 链路。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "本地日志按日写入，准备诊断导出时执行配置清理。当前实现不能证明时间和总量上限会持续执行；删除 App 会移除这些本地日志文件。",
         },
       ],
     },
@@ -259,13 +336,13 @@ export const privacyPage: ShotMarkerPage = {
             "ShotMarker does not upload your training records to the developer's server.",
             "ShotMarker does not sell personal data.",
             "ShotMarker does not use advertising tracking.",
-            "ShotMarker does not use third-party analytics SDKs in the current version.",
+            "ShotMarker does not use third-party product analytics services. The Sentry SDK is used only with the developer-operated GlitchTip crash and error reporting service described above.",
           ],
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "当前版本的 ShotMarker 不需要用户账号，不会把你的视频或训练记录上传到开发者服务器，不出售个人数据，不使用广告跟踪，也不使用第三方分析 SDK。",
+          text: "当前版本的 ShotMarker 不需要用户账号，不会把你的视频或训练记录上传到开发者服务器，不出售个人数据，不使用广告跟踪，也不使用第三方产品分析服务。Sentry SDK 只用于连接上文所述、由开发者运营的 GlitchTip 崩溃与错误上报服务。",
         },
       ],
     },
@@ -275,12 +352,39 @@ export const privacyPage: ShotMarkerPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "Training sessions, clip settings, Watch sync outbox data, and diagnostic logs are stored mainly on your devices. You can delete this local data by deleting ShotMarker from your iPhone and Apple Watch. Diagnostic logs are automatically rotated and removed according to the app's local retention policy.",
+          text: "Training sessions, clip settings, Watch sync outbox data, the installation identifier, and local diagnostic logs are stored on your devices. A persistent highlight job also stores a training snapshot, video local identifier, clip settings, status, error state, and output path.",
+        },
+        {
+          kind: "paragraph",
+          text: "When PhotosPicker cannot keep a reusable photo-library reference, ShotMarker stores a required input copy in the app sandbox for the persistent job. A completed job keeps its local output video in the app sandbox until the job is cancelled or deleted. Cancelling or deleting a highlight job removes its corresponding job files. Deleting the app removes data in the app sandbox and UserDefaults.",
+        },
+        {
+          kind: "paragraph",
+          text: "Original photo-library videos and highlights you manually save to the photo library are managed by Photos. Deleting a job or uninstalling ShotMarker does not remove that photo-library content. HealthKit workouts are managed by Apple Health and system permissions. Uninstalling ShotMarker does not delete videos already in the photo library or workouts already saved in Apple Health.",
+        },
+        {
+          kind: "paragraph",
+          text: "Local diagnostic logs are written by day, and configured cleanup is applied when a diagnostic export is prepared. The current implementation does not establish continuous enforcement of configured time or size limits.",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "训练记录、剪辑设置、Watch 同步 outbox 和诊断日志主要保存在你的设备本地。你可以通过删除 iPhone 和 Apple Watch 上的 ShotMarker 来删除这些本地数据。诊断日志会根据 App 的本地保留策略自动滚动和删除。",
+          text: "训练记录、剪辑设置、Watch 同步 outbox、安装标识和本地诊断日志保存在设备上。持久化集锦任务还会保存训练快照、视频本地标识、剪辑设置、状态、错误状态和输出路径。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "当 PhotosPicker 无法保持可复用的照片库引用时，ShotMarker 会为持久任务在 App 沙盒保存必要输入副本；完成的任务会把本地输出视频保留在 App 沙盒。取消或删除集锦任务会移除对应任务文件；删除 App 会移除 App 沙盒和 UserDefaults 中的数据。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "原始照片库视频和手动保存到系统照片库的集锦由照片 App 管理，删除任务或卸载 ShotMarker 不会自动删除这些内容。HealthKit workout 由 Apple Health 和系统权限管理；卸载 ShotMarker 不会删除系统照片库中的视频，也不等于删除 Apple Health 中已保存的 workout。",
+        },
+        {
+          kind: "paragraph",
+          className: "language-block",
+          text: "本地诊断日志按日写入，准备诊断导出时执行配置清理；当前实现不能证明配置的时间或总量上限会持续执行。",
         },
         {
           kind: "paragraph",
@@ -323,12 +427,12 @@ export const privacyPage: ShotMarkerPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "ShotMarker does not share your personal data with third-party advertisers or analytics providers. If you choose to export diagnostic logs and send them to the developer, the logs will be used only to troubleshoot your support request.",
+          text: "ShotMarker does not share your personal data with advertisers or third-party product analytics providers. Crash and error reports use the Sentry SDK to reach the developer-operated GlitchTip service described above. If you export complete diagnostic logs and send them to the developer, they are used only to troubleshoot your support request.",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "ShotMarker 不会向广告商或第三方分析服务共享你的个人数据。如果你主动导出诊断日志并发送给开发者，这些日志只会用于处理你的支持请求。",
+          text: "ShotMarker 不会向广告商或第三方产品分析服务共享你的个人数据。崩溃与错误报告通过 Sentry SDK 发送到上文所述、由开发者运营的 GlitchTip 服务。如果你主动导出完整诊断日志并发送给开发者，这些日志只会用于处理你的支持请求。",
         },
       ],
     },
@@ -427,13 +531,16 @@ export const supportPage: ShotMarkerPage = {
             "Make sure ShotMarker is installed on both devices.",
             "Open ShotMarker on iPhone, then reopen the Watch app.",
             "Keep the two devices close to each other.",
-            "If the issue continues, export diagnostic logs from the iPhone app home screen and email them to support.",
+            "If the issue continues, open the ShotMarker home screen on iPhone.",
+            "Press and hold the centered “训练记录” navigation title for 5 seconds.",
+            "Choose “导出” in the “是否导出诊断日志？” prompt.",
+            "Use the system share sheet to decide whether to send the generated diagnostic file to support.",
           ],
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "如果 Apple Watch 打点没有同步到 iPhone，请确认手表和手机已配对、两个设备都安装了 ShotMarker，并保持距离较近。仍无法同步时，可以在 iPhone App 首页导出诊断日志后通过邮件联系开发者。",
+          text: "如果 Apple Watch 打点没有同步到 iPhone，请确认手表和手机已配对、两个设备都安装了 ShotMarker，并保持距离较近。仍无法同步时，在 iPhone 打开 ShotMarker 首页，长按页面中央导航标题“训练记录”5 秒，在“是否导出诊断日志？”提示中选择“导出”，再通过系统分享面板决定是否把生成的诊断文件发送给支持邮箱。",
         },
         { kind: "heading", text: "2. Why did the selected video not match any markers?" },
         {
@@ -452,13 +559,19 @@ export const supportPage: ShotMarkerPage = {
         },
         { kind: "heading", text: "3. Why did iCloud video loading fail?" },
         {
-          kind: "paragraph",
-          text: "If a video only exists in iCloud, iOS may need to download the original video before ShotMarker can read it. Open the video in the Photos app first, confirm that it can play fully, then return to ShotMarker and try again.",
+          kind: "list",
+          items: [
+            "After selecting a video, tap its card if it says “未下载或未准备好” (not downloaded or not ready).",
+            "Confirm “开始” in the “下载或准备视频？” prompt. Preparation may use network data.",
+            "Watch the preparation progress on the card. Tap a preparing card to pause; tap a paused card to start preparation again.",
+            "If preparation fails, confirm that the network is available and try again.",
+            "If the problem continues, open and fully play the original in Photos as an additional troubleshooting step, then return to ShotMarker.",
+          ],
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "如果视频只存在 iCloud 中，系统可能需要先下载原视频。请先在照片 App 中打开该视频并确认可以完整播放，然后回到 ShotMarker 再试。",
+          text: "选择视频后，如果卡片显示“未下载或未准备好”，请点击该卡片，在“下载或准备视频？”提示中确认“开始”；这个过程可能使用网络流量。你可以在卡片查看准备进度，再次点击准备中的卡片可暂停，点击已暂停的卡片可重新开始准备。失败时先确认网络可用后重试；如果仍有问题，再在照片 App 中打开并完整播放原视频作为补充排障，然后回到 ShotMarker。",
         },
         { kind: "heading", text: "4. Why did saving the highlight clip fail?" },
         {
@@ -488,16 +601,19 @@ export const supportPage: ShotMarkerPage = {
         {
           kind: "list",
           items: [
-            "Open ShotMarker on iPhone.",
-            "Tap the export button in the top-right corner of the home screen.",
+            "Open the ShotMarker home screen on iPhone.",
+            "Press and hold the centered “训练记录” navigation title for 5 seconds.",
+            "Choose “导出” in the “是否导出诊断日志？” prompt.",
+            "Use the system share sheet to decide whether to send the generated diagnostic file to the support email.",
+            "The top-right down and up arrows import and export training records; they do not export diagnostic logs.",
             "Diagnostic logs can help troubleshoot Watch sync, video loading, highlight generation, and saving to Photos.",
-            "The developer can only see these logs if you choose to share them.",
+            "The complete diagnostic file reaches the developer only if you share it. Automatic trimmed GlitchTip errors are a separate path described in the privacy policy.",
           ],
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "在 iPhone App 首页点击右上角导出按钮即可导出诊断日志。诊断日志可帮助排查同步、视频读取、集锦生成和相册保存问题；只有你主动分享时，开发者才会看到这些日志。",
+          text: "在 iPhone 打开 ShotMarker 首页，长按页面中央导航标题“训练记录”5 秒，在“是否导出诊断日志？”提示中选择“导出”，再通过系统分享面板决定是否把生成的诊断文件发送给支持邮箱。右上角向下和向上箭头用于导入和导出训练记录，不是诊断日志入口。完整诊断文件只有你选择分享时才会交给开发者；自动发送的 GlitchTip 精简错误属于另一条链路，详见隐私政策。",
         },
         { kind: "heading", text: "7. How should I report a problem or suggestion?" },
         {

@@ -63,6 +63,20 @@ test("How-to page renders the confirmed related links", async () => {
 
     assert.match(html, /<h2 id="how-to-related-links-title">相关链接<\/h2>/);
 
+    const stepArticles = html.match(
+      /<article class="how-to-step">[\s\S]*?<\/article>/g,
+    );
+    assert.equal(stepArticles?.length, 3);
+    const thirdStep = stepArticles[2];
+    assert.match(thirdStep, /<div class="how-to-visual trio">/);
+    assert.equal(thirdStep.match(/<img\b/g)?.length, 3);
+    assert.match(thirdStep, /iphone-highlight-ready\.png/);
+    assert.match(thirdStep, /iphone-highlight-generate\.png/);
+    assert.match(
+      thirdStep,
+      /<img[^>]*src="[^"]*iphone-highlight-job-completed\.png"[^>]*alt="iPhone 首页的集锦任务，显示已完成状态和播放、保存、删除入口"[^>]*>/,
+    );
+
     for (const link of HOW_TO_RELATED_LINKS) {
       const anchor = html.match(
         new RegExp(

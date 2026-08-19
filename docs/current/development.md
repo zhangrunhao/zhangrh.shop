@@ -31,6 +31,6 @@ npm run check
 
 ## 最近验证
 
-2026-08-19 在 Node.js v24.19.0 下运行 `npm test`：根自动化 9 项、前端 158 项、后端 20 项，共 187 项通过、0 失败；本次验证不包含 lint、类型检查或完整生产构建。
+2026-08-19 在 Node.js v24.19.0 下运行 `npm run check`：根自动化 9 项、前端 163 项、后端 20 项，共 192 项通过、0 失败；前端 lint、TypeScript 检查和 Hub、Cardgame、ShotMarker、Analytics 四个生产构建全部通过。
 
 详细命令见[运行手册](../../RUNBOOK.md)，组件边界见 [Automation](./automation.md) 和 [Backend](./backend.md)。

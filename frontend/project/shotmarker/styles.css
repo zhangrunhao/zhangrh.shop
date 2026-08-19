@@ -352,6 +352,18 @@ a {
   box-shadow: 0 28px 58px rgba(0, 0, 0, 0.17);
 }
 
+.how-to-visual.trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.how-to-visual.trio img {
+  width: 100%;
+  border-radius: 22px;
+  box-shadow: 0 28px 58px rgba(0, 0, 0, 0.17);
+}
+
 .how-to-page .how-to-tips {
   padding: 18px 24px 92px;
 }
@@ -544,6 +556,15 @@ a {
   .how-to-visual.single.phone-shot img,
   .how-to-visual.pair img {
     width: min(260px, 76vw);
+  }
+
+  .how-to-visual.trio {
+    grid-template-columns: 1fr;
+  }
+
+  .how-to-visual.trio img {
+    width: min(260px, 76vw);
+    justify-self: center;
   }
 
   .how-to-visual.single.watch-shot img {

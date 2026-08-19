@@ -14,6 +14,7 @@ import {
 import { resolveRoute, withBase } from "./shared/route";
 import appleWatchImage from "./assets/how-to/apple-watch-49mm.jpg";
 import highlightGenerateImage from "./assets/how-to/iphone-highlight-generate.png";
+import completedHighlightJobImage from "./assets/how-to/iphone-highlight-job-completed.png";
 import highlightReadyImage from "./assets/how-to/iphone-highlight-ready.png";
 import trainingRecordsImage from "./assets/how-to/iphone-training-records.png";
 
@@ -109,10 +110,14 @@ const stepVisuals = [
     images: [{ src: trainingRecordsImage, alt: "iPhone 上的 ShotMarker 训练记录列表" }],
   },
   {
-    className: "how-to-visual pair",
+    className: "how-to-visual trio",
     images: [
       { src: highlightReadyImage, alt: "iPhone 上已选择视频并显示可剪辑打点" },
       { src: highlightGenerateImage, alt: "iPhone 上点击生成集锦的页面" },
+      {
+        src: completedHighlightJobImage,
+        alt: "iPhone 首页的集锦任务，显示已完成状态和播放、保存、删除入口",
+      },
     ],
   },
 ] as const;
