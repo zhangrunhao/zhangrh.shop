@@ -4,7 +4,7 @@ export const SUPPORT_PATH = "/shotmarker/support";
 export const PRIVACY_PATH = "/shotmarker/privacy";
 export const HOW_TO_PATH = "/shotmarker/how-to";
 export const ZHANGRH_SHOP_URL = "https://zhangrh.shop/hub/";
-export const EFFECTIVE_DATE = "Upon publication";
+export const EFFECTIVE_DATE = "August 19, 2026";
 export const LAST_UPDATED = "2026-08-19";
 export const DEVELOPER = "Rain / ShotMarker";
 

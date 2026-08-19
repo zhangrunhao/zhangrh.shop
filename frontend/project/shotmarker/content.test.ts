@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   CONTACT_EMAIL,
-  EFFECTIVE_DATE,
   HOW_TO_PATH,
   LAST_UPDATED,
   PRIVACY_PATH,
@@ -214,7 +213,7 @@ test("privacy page documents highlight job and deletion boundaries", () => {
 test("privacy page documents the first-party analytics contract", () => {
   const text = pageText(privacyPage);
 
-  assert.equal(EFFECTIVE_DATE, "Upon publication");
+  assert.equal(privacyPage.muted, "Effective date: August 19, 2026");
   assert.equal(LAST_UPDATED, "2026-08-19");
   assert.match(text, /random 12-character installation identifier/);
   assert.match(
