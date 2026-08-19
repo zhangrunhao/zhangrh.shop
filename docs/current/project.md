@@ -1,6 +1,6 @@
 # 项目与组件
 
-`zhangrh.shop` 是个人主页与独立项目的公开代码仓库，包含四个 Vite 前端和一个 Node/Express 后端。代码、构建配置和测试于 2026-08-19 复核；截至该日未验证线上可用性。
+`zhangrh.shop` 是个人主页与独立项目的公开代码仓库，包含四个 Vite 前端和一个 Node/Express 后端。代码、构建配置和测试于 2026-08-19 复核；同日已验证 ShotMarker 公开页面，其余线上入口未在本次复核。
 
 ## 当前范围（实现事实）
 
@@ -15,7 +15,7 @@
 - `/shotmarker/support`、`/shotmarker/privacy` 和 `/shotmarker/how-to` 于 2026-08-19 按 ShotMarker main / `41bfda2`（产品代码基线 `42c249a`）重新核对。
 - 隐私页分别说明第一方产品 Analytics、Sentry SDK 到开发者自管 GlitchTip 的错误与崩溃上报，以及完整本地诊断日志；其中按 Sentry Cocoa 9.26.0 的发送前处理披露 SDK 技术上下文、独立安装范围标识和源 IP 保留未核验边界。支持页记录标题长按诊断导出和 App 内 iCloud 视频准备；使用说明记录持久化集锦任务和启动后中断恢复。
 - 使用说明中的已完成任务截图来自仅含合成预览数据的临时模拟器，不含真实用户数据。
-- 上述事实只经本地代码、测试、构建和页面渲染验证；截至 2026-08-19 未发布，也未验证线上页面或外部服务状态。
+- 上述页面于 2026-08-19 从公开仓库 revision `42d21e7` 发布；当次公网只读验证确认 `/shotmarker/`、`/shotmarker/privacy`、`/shotmarker/support`、`/shotmarker/how-to` 及页面引用的 JS、CSS 和已完成任务截图均为 HTTP 200，生产 DOM 包含本次内容且浏览器控制台没有错误或警告。该验证不覆盖 App Store、TestFlight、真实 App Analytics 或 GlitchTip 上报链路。
 
 ## 组件边界（实现事实）
 

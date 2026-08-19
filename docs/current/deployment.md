@@ -1,6 +1,6 @@
 # 部署与生产边界
 
-本文同时记录公开部署契约和仓库发布实现。脚本于 2026-08-19 复核；实际服务器、网络、证书和生产配置由私有台账维护，且本次未重新验证。
+本文同时记录公开部署契约和仓库发布实现。脚本于 2026-08-19 复核，并于同日用于发布和只读验证 ShotMarker；实际服务器、网络、证书和生产配置仍由私有台账维护，本次未重新复核这些配置。
 
 ## 公开拓扑（有效决定）
 
@@ -46,7 +46,8 @@ Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查�
 ## 外部状态（带日期事实）
 
 - 私有台账记录的 Track 四字段生产切换与验收日期为 2026-08-16。
-- 截至 2026-08-19，未重新验证线上入口、生产配置、App Store 或 TestFlight。
+- 2026-08-19，`/shotmarker/`、`/shotmarker/privacy`、`/shotmarker/support`、`/shotmarker/how-to` 及当次 HTML 引用的 JS、CSS 和已完成任务截图经公网只读验证为 HTTP 200。
+- 其余线上入口、生产配置、App Store 和 TestFlight 未在本次发布中重新验证。
 - 真实 Release/TestFlight ShotMarker 事件上报仍未确认。
 
 操作命令和错误处置见[运行手册](../../RUNBOOK.md)。历史四字段设计见[归档](../archive/2026-08/2026-08-16-track-four-field-trend-redesign-spec.md)。
