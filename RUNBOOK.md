@@ -87,20 +87,13 @@ curl --fail-with-body \
 stat -c '%s bytes %n' /opt/zhangrh-shop/data/track/events.jsonl
 ```
 
-## 四字段生产切换
+## 四字段生产状态
 
-本地代码完成或单独发布 Backend 都不代表生产服务器已经切换。生产切换涉及全站停服和不可恢复的旧埋点删除，必须获得明确授权，并按[四字段设计的生产执行清单](./docs/superpowers/specs/2026-08-16-track-four-field-trend-redesign-design.md#12-生产服务器执行清单)逐项完成。
+私有台账记录的四字段生产切换与验收日期为 2026-08-16，本次文档迁移没有重新验证线上状态。
 
-切换时必须遵守以下边界：
+首次停服切换、旧数据删除和验证过程已经结束，记录保存在[四字段历史设计与执行清单](./docs/archive/2026-08-16-track-four-field-trend-redesign-spec.md#12-生产服务器执行清单)。不得把历史清单作为当前操作指令重新执行。
 
-1. 先只读确认 Compose 服务、实际生效的 Nginx 配置、Track 目录真实路径、第一层文件类型和 Nginx worker 数字 UID/GID。
-2. 停止整个 `zhangrh-shop` Compose 项目并确认所有容器均已停止，再确认 Nginx 不再追加文件。
-3. 仅在路径、文件类型和停服状态全部符合预期时永久删除旧 `events.jsonl`、轮转文件和 gzip；数据内容不备份、不可恢复。
-4. 创建新的空 `events.jsonl`，按预检结果恢复正确所有权和 mode；Nginx 使用读写挂载，Backend 使用只读挂载。
-5. 把只含 `project`、`event`、Nginx 服务器 `time`、`device_id` 的 Track `log_format` 合并进现有私有配置，不覆盖证书、站点、普通访问日志或 `/api/` 代理。
-6. 完成 `nginx -t`、整体启动、容器状态、真实页面事件、新接口、Analytics、Cardgame health/WebSocket 和文件 key 检查后，才更新私有生产台账。
-
-路径、文件类型、挂载或容器状态任一项异常都必须停止切换。删数后只修复四字段新链路，不恢复旧 schema、旧查询接口或旧数据。
+后续生产配置或存储迁移必须建立新的 Change，先完成只读预检，再获得对应外部变更和破坏性操作授权。普通代码发布不得删除 Track 数据或改写私有基础设施配置。
 
 ## 发布
 

@@ -1,31 +1,24 @@
 # Nginx 埋点持久化与公开查询接口实现 Spec
 
-> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](./2026-08-16-track-four-field-trend-redesign-design.md)取代，仅保留历史记录。旧 schema、轮转/gzip 读取、可选事件汇总 API 和响应字段不再代表当前实现。
+> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](./2026-08-16-track-four-field-trend-redesign-spec.md)取代，仅保留历史记录。旧 schema、轮转/gzip 读取、可选事件汇总 API 和响应字段不再代表当前实现。
 
-> **状态更新（2026-08-16）：** 本文中的 Track 专用 logrotate、约 98 天保留和自动轮转设计已被[单一 JSONL 存储设计](./2026-08-16-track-single-jsonl-storage-design.md)取代。生产环境当前只持续追加 `events.jsonl`，不自动轮转或删除；历史 gzip 保留，Backend 兼容读取。本文其余 API、校验与聚合设计仍作为已实现功能的历史依据。
+> **状态更新（2026-08-16）：** 本文中的 Track 专用 logrotate、约 98 天保留和自动轮转设计已被[单一 JSONL 存储设计](./2026-08-16-track-single-jsonl-storage-spec.md)取代。四字段重构前，生产环境曾只持续追加 `events.jsonl`，Backend 曾兼容读取历史 gzip。本文其余内容也是旧实现的历史依据，不代表当前行为。
 
 ## 背景
 
 Hub 与 Cardgame 已共用 `frontend/common/track.ts` 发送一方埋点。浏览器将
 `time`、`project`、`device_id`、`event` 和 `params` 编码到同源
-`GET /track` 请求中。线上 Nginx 对 `/track` 直接返回 `204`，请求不进入
+`GET /track` 请求中。Nginx 部署契约要求 `/track` 直接返回 `204`，请求不进入
 Node/Express Backend。
 
-2026-08-15 的现状盘点确认：
+2026-08-15 的设计输入：
 
-- `/track` 继承 Nginx 全局 Combined Log，完整查询参数与普通访问日志一起输出到
-  stdout。
-- Docker 使用 `json-file` 驱动；Nginx 容器已经配置单文件 `50 MB`、最多
-  `3` 个文件的轮转上限。
-- 旧容器日志曾累计约 `513 MB`、1,373,084 行，其中只有 395 条埋点，占
-  `0.0288%`。
-- 这 395 条埋点覆盖约 90 天、28 个设备标识；Hub 381 条，Cardgame 12 条，
-  另有 2 条审计或诊断请求。
-- 历史 Hub 数据包含已经下线的 `ideas`、`reviews`、`product_detail` 等值，
-  说明参数值会随产品演进，读取端不能只接受当前页面和按钮枚举。
-- 旧日志已经允许丢弃，不做历史迁移；新方案从正式上线时开始累计。
-- 当前 Compose 与运行容器已经重新对齐：Nginx 只有配置、证书、站点三个只读
-  挂载；全局 Docker 日志限制已经生效。
+- `/track` 与普通访问日志混写，查询埋点需要扫描大量无关记录。
+- 埋点量远低于通用日志量，适合独立存储。
+- 历史事件值会随产品演进，读取端不能只接受当前页面和按钮枚举。
+- 旧日志无需迁移，新方案从上线时开始累计。
+
+日志规模、事件数量、运行配置和挂载状态等生产盘点实值由私有台账维护。
 
 通用 Docker 日志适合故障排查，却不适合作为三个月产品埋点的来源：它的保留时间
 受爬虫、静态页面、API 和错误流量共同影响，查询一次埋点需要扫描大量无关记录。
@@ -45,7 +38,7 @@ Node/Express Backend。
 补充约束：
 
 - 埋点保留目标为三个月。
-- 普通 Nginx/Docker 日志继续使用已经生效的 `json-file`、`50 MB × 3` 配置。
+- 普通 Nginx/Docker 日志继续使用独立的有界轮转策略；实值由私有台账维护。
 - 所有服务器操作由用户执行；仓库实现和文档不能保存私钥、Token、IP、设备标识样本、
   真实访问日志或第二阶段未来使用的任何账号凭据与 Session 密钥。
 
@@ -65,10 +58,10 @@ Node/Express Backend。
 - 不引入 SQLite、PostgreSQL、ClickHouse、第三方分析 SDK 或独立分析平台。
 - 第一阶段不增加统计后台页面、图表、账号系统、Session、登录接口、MFA 或多角色权限。
 - 第一版不提供逐条原始事件接口、CSV 下载接口或具体 `device_id` 列表。
-- 不补录已经删除的 Docker 日志，也不迁移旧的 395 条事件。
+- 不补录已经删除的 Docker 日志，也不迁移旧事件。
 - 不修改 Hub 与 Cardgame 当前事件名称、参数或触发语义。
 - 不把 GlitchTip、`back` 服务器或 OSS 纳入埋点链路。
-- 不改变普通 Nginx/Docker 日志已经生效的 `50 MB × 3` 策略。
+- 不改变普通 Nginx/Docker 日志的既有轮转策略。
 - 不把生产 Compose、真实 Nginx 配置或其他私有基础设施资产提交到公开仓库。
 - 不把这些客户端可伪造的埋点用于计费、风控、审计或强一致业务指标。
 
@@ -159,18 +152,9 @@ GET /track
 | `backend` | `/var/log/nginx/track` | 只读 | 查询当前和轮转日志 |
 
 不得重新引入 `/var/log/nginx` 整目录挂载。只挂载 `track` 子目录，确保普通
-`access.log` 与 `error.log` 继续输出到 stdout/stderr，并继续受 Docker
-`50 MB × 3` 轮转约束。
+`access.log` 与 `error.log` 继续输出到 stdout/stderr，并继续受 Docker 的既有轮转约束。
 
-宿主机权限目标：
-
-- `/opt/zhangrh-shop/data/track`：`0750 root:root`。
-- `events.jsonl` 及轮转文件：`0640 root:root`。
-- 首次部署在重建 Nginx 前显式创建空的 `events.jsonl` 并设为 `0640`；不能依赖 Nginx
-  用默认 mode 首次创建。后续新文件由 logrotate 的 `create 0640 root root` 保持一致。
-- 当前 Nginx master 和 Backend 均以容器内 root 运行，因此能够分别写入和读取。
-- 如果未来 Backend 改为非 root 用户，必须先重新设计共享组和文件所有权，不能简单
-  放宽为全局可读。
+宿主机目录和文件必须使用经运行时 UID/GID 验证的最小权限：Nginx 可追加，Backend 只读，其他用户不可读。所有权、mode 和轮转创建参数由私有配置与台账维护；运行用户变化时必须重新验证，不得直接放宽权限。
 
 ### 单行格式
 
@@ -373,23 +357,22 @@ Cookie 属性、CSRF/CORS、登录限流、过期与撤销、管理路由、审�
 
 ## Compose 设计
 
-生产 Compose 仍由 `/opt/zhangrh-shop/compose.yml` 管理，不纳入公开仓库。
+生产 Compose 不纳入公开仓库。
 
 `nginx` 服务新增：
 
-- `/opt/zhangrh-shop/data/track:/var/log/nginx/track` 读写挂载。
+- 宿主机 Track 数据目录到 `/var/log/nginx/track` 的读写挂载。
 
 `backend` 服务新增：
 
-- `/opt/zhangrh-shop/data/track:/var/log/nginx/track:ro` 只读挂载。
+- 宿主机 Track 数据目录到 `/var/log/nginx/track` 的只读挂载。
 - 非敏感环境变量 `TRACK_LOG_DIR=/var/log/nginx/track`。
 
 保持：
 
 - Nginx 配置、证书、HTML 三个现有只读挂载。
 - Backend 端口只存在于 Docker 网络，不映射宿主机或公网。
-- Nginx `json-file` 的 `max-size=50m`、`max-file=3`。
-- `restart: unless-stopped`。
+- Nginx 的既有 Docker 日志策略和重启策略。
 
 禁止：
 
@@ -403,11 +386,6 @@ services:
   nginx:
     volumes:
       - ./data/track:/var/log/nginx/track
-    logging:
-      driver: json-file
-      options:
-        max-size: "50m"
-        max-file: "3"
 
   backend:
     environment:
@@ -553,7 +531,7 @@ events.jsonl-YYYYMMDD.gz
 - 每处理 500 行使用一次 `setImmediate` 主动让出事件循环，使 Cardgame HTTP 与
   WebSocket 在较大扫描期间仍有调度机会。
 - 聚合阶段只保存计数器、日期桶和设备 ID Set，不保留全部原始事件数组。
-- 第一版不做跨请求缓存。当前约数百条/90 天的数据量不需要缓存，避免文件轮转后的
+- 第一版不做跨请求缓存。低流量阶段不需要缓存，避免文件轮转后的
   失效复杂度。
 - Nginx 公开查询入口限流后，并发扫描量可控；查询错误不能终止 Backend 进程。
 
@@ -790,54 +768,12 @@ Backend 对服务器日志只记录稳定错误码和必要异常类型，不记
 
 ## 日志轮转与三个月保留
 
-宿主机新增专用 `logrotate` 规则，目标文件：
-
-```text
-/opt/zhangrh-shop/data/track/events.jsonl
-```
-
-策略：
-
-- `weekly`
-- `rotate 14`
-- `maxage 98`
-- `maxsize 50M`
-- `dateext`
-- `compress`
-- `missingok`
-- 以 `0640 root:root` 创建新文件
-- 轮转后向 `zhangrh-nginx` 发送 `USR1`，要求 Nginx 安全关闭旧日志描述符并重新打开
-  当前文件
+宿主机为 Track 文件配置独立轮转。设计目标是按周保留约 98 天、启用压缩和容量安全阀，并在轮转后通知 Nginx 重新打开文件。
 
 不用 `copytruncate`，避免复制和截断窗口内丢失事件。Backend 同时支持当前 JSONL、
 轮转过程中的未压缩日期文件和已经完成的 gzip 文件。
 
-规范性规则如下：
-
-```logrotate
-/opt/zhangrh-shop/data/track/events.jsonl {
-    su root root
-    weekly
-    rotate 14
-    maxage 98
-    maxsize 50M
-    missingok
-    notifempty
-    dateext
-    dateformat -%Y%m%d
-    compress
-    create 0640 root root
-    sharedscripts
-    postrotate
-        /usr/bin/docker kill --signal=USR1 zhangrh-nginx >/dev/null
-    endscript
-}
-```
-
-安装前必须确认 Docker 客户端的绝对路径确实为 `/usr/bin/docker`；如服务器结果不同，
-规则使用服务器实际绝对路径。`maxsize 50M` 是磁盘安全阀：正常低流量下按周保留约 98
-天；若发生异常灌流而频繁触发按大小轮转，安全阀优先，实际可查询天数可能缩短，必须从
-监控和轮转文件数量中发现，而不能宣称仍严格保留三个月。
+具体目标路径、运行用户、创建权限、容量值、容器名和信号命令由私有配置维护。容量安全阀优先于保留天数；频繁按大小轮转时，实际可查询天数可能缩短。
 
 保留语义是“运维目标约 98 天”，不是审计合规型强制删除 SLA。如果未来需要严格在
 第 99 天删除、跨机器备份或一年趋势，应另行设计归档任务。
@@ -908,12 +844,7 @@ backend/tools/publish-lib.mjs
 
 ### 服务器私有变更，不提交公开仓库
 
-```text
-/opt/zhangrh-shop/compose.yml
-/opt/zhangrh-shop/nginx/conf.d/zhangrh.shop.conf
-/opt/zhangrh-shop/data/track/
-/etc/logrotate.d/zhangrh-track
-```
+生产 Compose、Nginx 配置、Track 数据目录和 logrotate 规则均由私有资产维护。
 
 私有基础设施文档需要在部署完成后更新当前挂载、日志格式、轮转和公开查询边界，但不得
 记录 IP 或真实设备数据。
@@ -997,7 +928,7 @@ npm run check
 - 超过公开查询限流时返回 `429`，请求不进入 Backend。
 - Hub、Cardgame、GlitchTip 公网入口继续返回成功。
 - Cardgame health 与 WebSocket 建连继续正常。
-- Docker 通用日志仍为 `50 MB × 3`。
+- Docker 通用日志仍符合私有台账记录的既有策略。
 - `logrotate` dry-run 不报错，轮转测试后 Nginx 继续向新文件写入。
 
 ### 安全与公开边界验证
@@ -1026,7 +957,7 @@ npm run check
 
 ### 数据处理
 
-- 回滚应用或 Nginx 不自动删除 `/opt/zhangrh-shop/data/track`。
+- 回滚应用或 Nginx 不自动删除宿主机 Track 数据目录。
 - 是否删除新产生的 JSONL 属于单独的破坏性操作，必须再次确认。
 
 ## 官方实现依据
@@ -1054,5 +985,5 @@ npm run check
 - 埋点目录不可用时只有 Track 查询返回 `503`，Cardgame 与其他入口不受影响。
 - 第一阶段没有 Basic Auth、登录接口、Session、管理页面或相关占位实现；第二阶段仅在
   Spec 中保留独立建设方向。
-- 自动化测试、根检查和所有线上验证通过。
+- 自动化测试与根检查通过；生产验证结果记录在私有台账。
 - 公开仓库不包含任何生产凭据或私有基础设施资产。

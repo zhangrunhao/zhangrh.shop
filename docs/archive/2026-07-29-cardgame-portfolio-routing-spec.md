@@ -53,7 +53,7 @@ CardGame 当前还存在两个结构性问题：
 
 `roomId` 必须是 4 位数字。其他路径进入 CardGame 自己的 404 页面，并提供返回入口的操作。
 
-服务器当前已经对 `/cardgame/*` 深路径返回 CardGame HTML，因此不需要修改网关或后端部署配置。
+部署契约已将 `/cardgame/*` 深路径映射到 CardGame HTML，因此本变更不修改网关或后端配置。
 
 ### 路由模块
 

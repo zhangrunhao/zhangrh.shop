@@ -1,6 +1,6 @@
 # Track Analytics Page Implementation Plan
 
-> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](../specs/2026-08-16-track-four-field-trend-redesign-design.md)取代，仅保留历史记录。不得重新执行旧 summary 查询、totals、breakdown 或双指标趋势步骤。
+> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](./2026-08-16-track-four-field-trend-redesign-spec.md)取代，仅保留历史记录。不得重新执行旧 summary 查询、totals、breakdown 或双指标趋势步骤。
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

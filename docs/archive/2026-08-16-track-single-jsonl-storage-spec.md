@@ -1,6 +1,6 @@
 # Track 单一 JSONL 存储设计
 
-> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](./2026-08-16-track-four-field-trend-redesign-design.md)取代，仅保留历史记录。历史 gzip 保留和旧 reader 兼容等内容不再代表当前实现。
+> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](./2026-08-16-track-four-field-trend-redesign-spec.md)取代，仅保留历史记录。历史 gzip 保留和旧 reader 兼容等内容不再代表当前实现。
 
 ## 状态与范围
 
@@ -15,9 +15,9 @@
 - 不修改前端协议、Nginx Track 格式、Compose 挂载或 Backend 代码。
 - `events.jsonl` 达到 `32 MiB` 时重新评估轮转、归档或数据库方案，并在 Backend 的 `64 MiB` 总解码上限前完成调整。
 
-## 权限说明
+## 权限边界
 
-宿主机 Track 目录当前为 `0751 root:root`，当前文件为 `0640 uid=101 gid=0`。`101` 是 Nginx 容器 worker 的数字 UID；bind mount 在宿主机只显示同一个数字，不表示同名宿主机服务负责写入。移除 logrotate 不改变这套权限，也不需要为 UID/GID 增加额外处理。
+Nginx 必须能够追加 Track 文件，Backend 只读。宿主机所有权、权限实值和验证记录由私有台账维护。
 
 ## 接受的取舍
 
@@ -32,23 +32,11 @@
 
 ## 部署与回滚
 
-服务器上的 `/etc/logrotate.d/zhangrh-track` 已移出活动目录，备份为：
-
-```text
-/root/zhangrh-track-backup-20260815-213510/zhangrh-track.disabled-20260816
-```
-
-备份文件 SHA-256 为：
-
-```text
-40c4bba76930be2c04ce91c7a810022c4a2abaf8baa2b48e02f9286bef7acac8
-```
-
-该操作不需要重建或重启 Nginx、Backend，也不影响系统全局 `logrotate.timer`。若未来经过重新设计决定恢复，先复核权限、信号和保留需求，再把备份恢复到精确活动路径；不能顺带删除当前 JSONL 或历史 gzip。
+生产启用结果、备份位置和校验值由私有台账维护。该变更不要求重建或重启 Nginx、Backend，也不影响系统全局 `logrotate.timer`。若未来决定恢复专用轮转，必须先复核权限、信号和保留需求，且不得删除当前 JSONL 或历史 gzip。
 
 ## 验收标准
 
-- `/etc/logrotate.d/zhangrh-track` 不存在，系统 logrotate debug 检查不再包含 Track 路径。
+- Track 专用 logrotate 规则未启用，系统 logrotate debug 检查不再包含 Track 路径。
 - 全局 `logrotate.timer` 仍为 enabled/active。
 - 当前 `events.jsonl` 与历史 gzip 的 inode、大小和内容不因停用规则而改变。
 - Nginx 配置检查通过，`/track` 继续返回 `204` 并能追加 JSONL。

@@ -1,6 +1,6 @@
 # Track Analytics 页面设计
 
-> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](./2026-08-16-track-four-field-trend-redesign-design.md)取代，仅保留历史记录。旧 totals、breakdown、双折线和 summary API 不再代表当前实现。
+> **状态更新（2026-08-16）：** 本文已被[四字段埋点与单事件趋势重构设计](./2026-08-16-track-four-field-trend-redesign-spec.md)取代，仅保留历史记录。旧 totals、breakdown、双折线和 summary API 不再代表当前实现。
 
 ## 目标
 

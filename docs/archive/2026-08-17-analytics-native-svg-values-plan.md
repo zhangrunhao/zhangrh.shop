@@ -1,5 +1,7 @@
 # Analytics Native SVG Values Implementation Plan
 
+> **状态更新（2026-08-17）：** 实现与自动化测试已完成；`trend-chart.ts`、`trend-view.tsx` 及对应测试保留实现证据。原计划勾选状态按历史原文保留，不表示当前实现状态；未保留人工桌面、键盘和 320px 视口验收记录。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在不新增图表依赖的前提下，为 Analytics 单序列趋势补充整数 Y 轴、非零值标签以及鼠标、键盘和触摸精确值 Tooltip。
@@ -1280,7 +1282,7 @@ Expected: Vite 输出本地 URL，默认是 `http://127.0.0.1:5173/`。打开该
 - Tab 聚焦图表后默认显示末日，方向键、Home、End 和 Escape 符合设计。
 - 320px 视口下页面不整体横向溢出，图表区域可横向滚动，手机点击命中区域不阻止纵向滚动。
 
-Expected: 所有行为与 `docs/superpowers/specs/2026-08-17-analytics-native-svg-values-design.md` 的验收标准一致。
+Expected: 所有行为与[原设计](./2026-08-17-analytics-native-svg-values-spec.md)的验收标准一致。
 
 - [ ] **Step 7: 停止两个本地服务并清理验收数据**
 

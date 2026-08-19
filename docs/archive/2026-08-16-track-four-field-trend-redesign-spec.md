@@ -2,11 +2,11 @@
 
 日期：2026-08-16
 
-状态：实现、生产服务器切换与线上验证完成；真实 Release/TestFlight ShotMarker 上报仍待发布验收
+状态：公开实现完成；私有台账记录生产切换完成；真实 Release/TestFlight ShotMarker 上报仍待验收
 
-涉及范围：`zhangrh.shop`、`ShotMarker`、生产服务器上的 Nginx、Docker Compose 与旧埋点数据
+涉及范围：`zhangrh.shop`、`ShotMarker`、Nginx 与 Docker Compose 部署契约、旧埋点数据处置规则
 
-实现状态更新（2026-08-16）：两个仓库的客户端、Backend、Analytics、测试和公开文档已按本设计完成；ShotMarker Release Simulator 构建与隐私清单也已验证。生产环境于 21:55:50～21:59:54 停止整个 Compose 项目，旧 JSONL 与两个历史 gzip 在复核真实路径和文件类型后永久删除且没有数据备份，随后部署四字段 Nginx 配置、四个前端和 revision `a98c038` Backend。容器、严格四字段日志、30 天趋势 API、Hub/Cardgame 真实事件、Cardgame health/WebSocket、Analytics 桌面与 390×844 布局、新版 ShotMarker 隐私页均通过线上验收；旧 `/api/track/summary` 返回 404。验收快照为 7 条四字段记录，不保存或回显任何设备标识。真实 iPhone Release/TestFlight 的 ShotMarker 三参数请求尚未验证，不属于本次服务器切换完成条件。
+实现状态更新（2026-08-16）：客户端、Backend、Analytics、自动化测试和公开文档已按本设计完成；ShotMarker Release Simulator 构建与隐私清单已验证。私有台账记录生产切换和线上验证完成，并独立保存执行时间、配置、版本、权限与验收快照。真实 iPhone Release/TestFlight 的 ShotMarker 三参数请求尚未验证。
 
 ## 1. 结果概述
 
@@ -51,7 +51,7 @@
     不增加自动切换、自动扩容或额外容量防线。
 22. 当前没有仍发送旧 Hub/Cardgame 事件名的客户端或需要保留的旧事件；不增加旧事件过渡、
     白名单兼容或迁移逻辑。
-23. 这是个人新项目，当前没有实际访问量，本次以快速整体替换为优先，不为旧数据、旧协议、
+23. 本版按低流量个人项目场景设计，以快速整体替换为优先，不为旧数据、旧协议、
     旧 API 或旧页面增加兼容和回滚分支。
 
 ## 3. 取代范围
@@ -614,69 +614,71 @@ ShotMarker：
 每个提交前运行与该范围直接相关的测试；两个仓库全部完成后再运行各自完整验证。不得把服务
 器私有 Nginx、Compose、IP、凭据或真实设备 ID 提交到公开仓库。
 
-## 12. 生产服务器执行清单
+## 12. 生产部署契约
+
+本节保留公开部署约束，不记录实际执行状态。执行时间、配置实值、权限、发布版本和外部验证结果由私有台账维护。
 
 ### 12.1 本地发布前
 
-- [x] 两个仓库工作区无未说明的改动。
-- [x] 所有实现提交已审查并推送。
-- [x] `zhangrh.shop` 的 `npm run check` 通过。
-- [x] ShotMarker 相关测试、Release build 和隐私清单检查通过。
-- [x] 准备好前端 OSS 发布所需环境变量，但不把值写入命令历史或文档。
-- [x] 确认可以 SSH 到目标服务器，且发布脚本目标仍是 `/opt/zhangrh-shop`。
+- 两个仓库工作区无未说明的改动。
+- 所有实现提交已审查并推送。
+- `zhangrh.shop` 的 `npm run check` 通过。
+- ShotMarker 相关测试、Release build 和隐私清单检查通过。
+- 准备好前端 OSS 发布所需环境变量，但不把值写入命令历史或文档。
+- 确认可以 SSH 到目标服务器，且发布脚本目标仍是 `/opt/zhangrh-shop`。
 
 ### 12.2 服务器只读预检
 
-- [x] 进入 `/opt/zhangrh-shop`，运行 `docker compose config --services` 和
+- 进入 `/opt/zhangrh-shop`，运行 `docker compose config --services` 和
   `docker compose ps`，确认只会停止本 Compose 项目。
-- [x] 用 `nginx -T` 或容器内等价命令定位实际生效配置，不能猜测配置文件路径。
-- [x] 确认 `readlink -f /opt/zhangrh-shop/data/track` 精确返回同一路径，且它不是符号链接。
-- [x] 列出数据目录第一层条目、类型和大小；若出现预期外目录、设备文件或链接则停止操作。
-- [x] 确认旧内容只包括 `events.jsonl`、`events.jsonl-*` 和历史 gzip。
-- [x] 查询 Nginx worker 实际数字 UID/GID，并记录新文件所需 mode。
-- [x] 检查当前 Nginx 配置和 Compose 文件备份方式；配置可备份，旧埋点数据不备份。
+- 用 `nginx -T` 或容器内等价命令定位实际生效配置，不能猜测配置文件路径。
+- 确认 `readlink -f /opt/zhangrh-shop/data/track` 精确返回同一路径，且它不是符号链接。
+- 列出数据目录第一层条目、类型和大小；若出现预期外目录、设备文件或链接则停止操作。
+- 确认旧内容只包括 `events.jsonl`、`events.jsonl-*` 和历史 gzip。
+- 查询 Nginx worker 实际数字 UID/GID，并记录新文件所需 mode。
+- 检查当前 Nginx 配置和 Compose 文件备份方式；配置可备份，旧埋点数据不备份。
 
 ### 12.3 停止服务
 
-- [x] 在 `/opt/zhangrh-shop` 执行 `docker compose stop`。
-- [x] 再次运行 `docker compose ps`，确认该项目所有容器均已停止。
-- [x] 确认 Nginx 不再追加 `events.jsonl`，Backend 不再读取它。
+- 在 `/opt/zhangrh-shop` 执行 `docker compose stop`。
+- 再次运行 `docker compose ps`，确认该项目所有容器均已停止。
+- 确认 Nginx 不再追加 `events.jsonl`，Backend 不再读取它。
 
 停服期间 Hub、Cardgame、ShotMarker 网站、Analytics 和 Backend 均不可用。当前低访问量下
 接受这一点，不增加临时维护路由。
 
 ### 12.4 永久删除旧数据
 
-- [x] 停服后再次校验数据目录真实路径和第一层内容。
-- [x] 永久删除 `/opt/zhangrh-shop/data/track` 第一层内全部预期旧埋点文件。
-- [x] 不复制、不压缩、不移动旧数据到备份目录。
-- [x] 确认旧 `events.jsonl`、轮转文件和 gzip 均已不存在。
-- [x] 创建新的空 `events.jsonl`。
-- [x] 使用预检得到的 Nginx UID/GID 和既有安全 mode 设置所有权与权限。
-- [x] 确认 Backend 容器通过现有只读挂载能够读取，Nginx 通过读写挂载能够追加。
+- 停服后再次校验数据目录真实路径和第一层内容。
+- 永久删除 `/opt/zhangrh-shop/data/track` 第一层内全部预期旧埋点文件。
+- 不复制、不压缩、不移动旧数据到备份目录。
+- 确认旧 `events.jsonl`、轮转文件和 gzip 均已不存在。
+- 创建新的空 `events.jsonl`。
+- 使用预检得到的 Nginx UID/GID 和既有安全 mode 设置所有权与权限。
+- 确认 Backend 容器通过现有只读挂载能够读取，Nginx 通过读写挂载能够追加。
 
 该删除不可恢复。路径、文件类型或容器状态任一项不符合预期时不得执行删除。
 
 ### 12.5 部署
 
-- [x] 把最终四字段 `log_format` 合并到服务器私有 Nginx 配置。
-- [x] 确认 `/track` 只写专用 `events.jsonl`，不写普通完整 URI 日志。
-- [x] 发布 Hub、Cardgame、ShotMarker 和 Analytics 静态资源与 HTML。
-- [x] 发布 Backend；发布脚本可能先启动 Backend，但 Nginx 尚未启动时不会暴露外部流量。
-- [x] 在服务器执行最终 `docker compose up -d --build`，启动整个项目。
-- [x] 运行 `docker compose ps`，确认所有目标服务 healthy/running。
-- [ ] ShotMarker 代码更新完成后按正常 TestFlight/App Store 流程发布；它不阻塞服务器切换。
+- 把最终四字段 `log_format` 合并到服务器私有 Nginx 配置。
+- 确认 `/track` 只写专用 `events.jsonl`，不写普通完整 URI 日志。
+- 发布 Hub、Cardgame、ShotMarker 和 Analytics 静态资源与 HTML。
+- 发布 Backend；发布脚本可能先启动 Backend，但 Nginx 尚未启动时不会暴露外部流量。
+- 在服务器执行最终 `docker compose up -d --build`，启动整个项目。
+- 运行 `docker compose ps`，确认所有目标服务 healthy/running。
+- ShotMarker 代码更新后按正常 TestFlight/App Store 流程发布；它不阻塞服务器切换，当前仍待真实客户端验收。
 
 ### 12.6 线上验证
 
-- [x] Nginx 配置测试通过，无 reload/start 错误。
-- [x] `GET /track?...` 返回 `204`。
-- [x] 用正常 Hub 页面访问产生一条真实 `home_page_load`，不创建专用 smoke event。
-- [x] 只检查最新 JSON 行的 key、类型和格式，避免在终端或文档中输出真实 `device_id`。
-- [x] 确认最新行严格只有 `project`、`event`、`time`、`device_id`。
-- [x] 确认 `time` 是服务器 ISO 8601 时间，原始行没有 `params`、客户端 time、context、schema
+- Nginx 配置测试通过，无 reload/start 错误。
+- `GET /track?...` 返回 `204`。
+- 用正常 Hub 页面访问产生一条真实 `home_page_load`，不创建专用 smoke event。
+- 只检查最新 JSON 行的 key、类型和格式，避免在终端或文档中输出真实 `device_id`。
+- 确认最新行严格只有 `project`、`event`、`time`、`device_id`。
+- 确认 `time` 是服务器 ISO 8601 时间，原始行没有 `params`、客户端 time、context、schema
   或 request ID。
-- [x] 查询三个默认事件：
+- 查询三个默认事件：
 
 ```text
 /api/track/trend?project=hub&event=home_page_load&days=30
@@ -684,15 +686,15 @@ ShotMarker：
 /api/track/trend?project=shotmarker&event=app_launch&days=30
 ```
 
-- [x] 每个响应只有 `daily`，长度为 30，日期位于查询范围内、严格连续升序且不重复；`pv`、
+- 每个响应只有 `daily`，长度为 30，日期位于查询范围内、严格连续升序且不重复；`pv`、
   `uv` 是满足 `0 <= uv <= pv` 的安全整数，允许全部为 0。
-- [x] 打开 Analytics，确认默认值、三个项目事件列表、事件切换和 PV/UV 切换。
-- [x] 在浏览器中确认 PV/UV 切换前后 `/api/track/trend` 资源请求计数不变。
-- [x] 检查 Hub 五个页面事件和 Cardgame 页面/点击事件会产生正确行。
-- [x] 检查 Cardgame health 和 WebSocket 能重新连接并完成一次基本操作。
-- [x] 检查 Backend 与 Nginx 日志，没有持续解析、权限、文件或查询错误。
-- [x] 确认旧数据文件和 gzip 仍不存在。
-- [x] 更新 `docs/private.local` 中服务器台账并在其独立私有仓库提交、推送。
+- 打开 Analytics，确认默认值、三个项目事件列表、事件切换和 PV/UV 切换。
+- 在浏览器中确认 PV/UV 切换前后 `/api/track/trend` 资源请求计数不变。
+- 检查 Hub 五个页面事件和 Cardgame 页面/点击事件会产生正确行。
+- 检查 Cardgame health 和 WebSocket 能重新连接并完成一次基本操作。
+- 检查 Backend 与 Nginx 日志，没有持续解析、权限、文件或查询错误。
+- 确认旧数据文件和 gzip 仍不存在。
+- 更新 `docs/private.local` 中服务器台账并在其独立私有仓库提交、推送。
 
 ## 13. 故障处理
 
@@ -722,8 +724,8 @@ ShotMarker：
 - Cardgame 产生一个页面加载事件和六个现有动作事件。
 - ShotMarker 保持四个事件语义，只移除客户端 time 和 params。
 - 项目和天数能够合法持久化，PV/UV 切换不发请求。
-- 旧 JSONL、轮转文件和 gzip 已从生产服务器永久删除。
-- 两个仓库的相关测试、完整可行验证和生产只读检查全部通过。
+- 生产切换后不得保留旧 JSONL、轮转文件或 gzip。
+- 两个仓库的相关测试、完整可行验证和生产只读检查必须通过。
 - 公开隐私说明、埋点文档、运行手册和实际请求字段一致。
 
 ## 15. 明确不做

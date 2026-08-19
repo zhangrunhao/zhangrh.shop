@@ -1,6 +1,6 @@
 # CardGame 作品入口、资源本地化与路由实施计划
 
-> 对应设计：`docs/superpowers/specs/2026-07-29-cardgame-portfolio-routing-design.md`
+> 对应设计：[CardGame 作品入口、资源本地化与路由设计](./2026-07-29-cardgame-portfolio-routing-spec.md)
 
 ## 目标
 

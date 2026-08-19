@@ -1,7 +1,6 @@
 # 项目平衡整理实施计划
 
-> 设计依据：
-> `docs/superpowers/specs/2026-07-29-project-cleanup-design.md`
+> 设计依据：[项目平衡整理设计](./2026-07-29-project-cleanup-spec.md)
 
 ## 实施原则
 

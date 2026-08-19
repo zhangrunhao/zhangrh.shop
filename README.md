@@ -4,6 +4,8 @@
 
 ## 在线入口
 
+以下地址是公开入口；可用性未在 2026-08-19 的文档迁移任务中重新验证。
+
 - [Hub](https://zhangrh.shop/hub/)：个人主页、作品与文章入口。
 - [Cardgame](https://zhangrh.shop/cardgame/)：抽 5 选 3 的回合制卡牌 Demo。
 - [ShotMarker](https://zhangrh.shop/shotmarker/)：ShotMarker 产品介绍与帮助页面。
@@ -50,6 +52,7 @@ npm run publish
 
 ## 文档入口
 
+- [项目文档总入口](./docs/README.md)
 - [本地运行与发布手册](./RUNBOOK.md)
 - [部署结构与只读验证](./docs/deploy/README.md)
 - [前端埋点说明](./frontend/docs/track.md)
