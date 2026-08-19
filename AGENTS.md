@@ -1,40 +1,43 @@
-# Agent Instructions
+# Agent 工作说明
 
-## Read Order
+## 阅读顺序
 
-1. Read `docs/README.md`.
-2. Read the relevant files in `docs/current/`.
-3. Check `docs/changes/` for an existing Change on the same topic.
-4. Verify documentation against code, tests, builds, or fresh external evidence.
+1. 阅读 `docs/README.md`。
+2. 阅读 `docs/current/` 中与任务相关的文件。
+3. 检查 `docs/changes/` 中是否已有同主题变更。
+4. 使用当前代码、测试、构建或当次外部证据核验实现事实。
 
-## Documentation Governance
+## 文档治理
 
-- Treat `docs/current/` as the concise source of current public project facts and effective decisions.
-- Keep implementation facts and effective decisions explicit and distinct in `docs/current/`.
-- Keep each current document at or below 300 lines and use short, stable topic names.
-- Store active specifications and plans as flat `YYYY-MM-DD-topic-spec.md` and `YYYY-MM-DD-topic-plan.md` files in `docs/changes/`.
-- Update affected current documents before moving completed or cancelled Change files to the matching `docs/archive/YYYY-MM/` directory.
-- Store completed public investigations, release records, deployment-contract decisions, superseded documents, and other finished material under `docs/archive/YYYY-MM/`; do not add deeper topic or record-type directories.
-- Keep runbooks and component READMEs procedural or component-local; link to `docs/current/` for cross-component current facts instead of duplicating them.
-- Prefer current code, tests, builds, and fresh external verification over documentation.
-- Include a verification date for changing external state; otherwise mark it unverified.
+- 将 `docs/current/` 作为当前公开项目事实和有效决定的简洁来源。
+- 在 `docs/current/` 中明确区分实现事实与有效决定；用户明确确认的决定视为有效决定。
+- 判断实现事实时，以当前代码、测试、构建和当次外部验证为准；`docs/current/`、`docs/changes/`、`docs/archive/` 依次只能作为逐级减弱的实现证据。
+- 将 `docs/current/` 中记录的有效决定、契约和政策作为规范性来源。代码和测试只能证明当前实现；实现与有效决定冲突时，应同时记录决定与实现差距，并将差距作为缺陷处理。
+- 每份 current 文档不得超过 300 行。文件名应使用简短、稳定、常见的单词，不包含日期、不必要的缩写或预设的组织分类。
+- 将已经生成且仍处于活动状态的 spec 和 plan 以 `YYYY-MM-DD-topic-spec.md`、`YYYY-MM-DD-topic-plan.md` 扁平文件形式保存在 `docs/changes/`。
+- 完成或取消变更后，先更新受影响的 current 文档，再将变更文件移入对应的 `docs/archive/YYYY-MM/` 目录。
+- 将已完成的公开调查、发布记录、部署契约决定、被替代文档和其他已结束材料保存为 `docs/archive/YYYY-MM/` 下带日期的 `YYYY-MM-DD-topic.md` 文件；只有对应记录类型保留 `-spec` 或 `-plan` 后缀。月份目录必须与文件名前七位一致，仅在需要时创建，不得增加更深的 topic 或记录类型目录。
+- 运行手册和组件 README 只记录操作流程或组件局部内容；跨组件的当前事实应链接 `docs/current/`，不得重复维护。
+- 容易变化的外部状态必须注明验证日期；否则标记为未验证。
 
-## Public and Private Boundaries
+## 公开与私有边界
 
-- Keep public code behavior, interfaces, validation, and deployment contracts in this repository.
-- Keep infrastructure inventory, concrete production configuration, and private external verification in `docs/private.local/` when that independent repository is available.
-- Public documentation must remain understandable without `docs/private.local/`.
-- Never store passwords, private keys, tokens, access keys, database credentials, or actual `.env` values in either documentation repository.
-- Check and commit the public and private repositories separately.
+- 公开代码行为、接口、校验和部署契约由本仓库维护。
+- 基础设施清单、具体生产配置和私有外部验证由独立的 `docs/private.local/` 仓库维护（如果该仓库可用）。
+- 每项当前事实在所有仓库中只保留一个权威来源；其他仓库只能保留理解自身范围所需的摘要或链接。
+- 跨仓库变更在各仓库使用相同日期和 topic，并在各仓库分别更新 current、归档材料和检查 Git 状态。
+- 公开文档必须在 `docs/private.local/` 不可用时仍然完整可读。
+- 公开或私有文档都不得保存密码、私钥、Token、AccessKey、数据库凭据或 `.env` 实际值。
+- 公开仓库与私有仓库必须分别检查和提交。
 
-## Verification
+## 验证
 
-- Use Node.js 24.
-- Run `npm test` for behavior-preserving documentation changes that affect project instructions or contracts.
-- Run `npm run check` for code changes or changes that affect build, lint, type, or release behavior.
-- Run `git diff --check` and verify local Markdown links and heading anchors before completion.
+- 使用 Node.js 24。
+- 对不改变行为但影响项目说明或契约的文档变更运行 `npm test`。
+- 对代码变更或影响构建、lint、类型检查、发布行为的变更运行 `npm run check`。
+- 完成前运行 `git diff --check`，并检查本地 Markdown 链接和标题锚点。
 
-## Safety
+## 安全
 
-- Do not publish, alter production infrastructure, write production data, or perform irreversible cleanup without explicit authorization.
-- Treat production, App Store, TestFlight, DNS, certificate, and cloud-console state as unverified unless checked in the current task.
+- 未经明确授权，不得发布、修改生产基础设施、写入生产数据或执行不可逆清理。
+- 除非在当前任务中完成验证，否则生产、App Store、TestFlight、DNS、证书和云控制台状态均视为未验证。
