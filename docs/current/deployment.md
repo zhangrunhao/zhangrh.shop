@@ -45,7 +45,7 @@ Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查�
 ## 外部状态
 
 - 私有台账记录的 Track 四字段生产切换与验收日期为 2026-08-16。
-- 本次任务没有重新验证线上入口、生产配置、App Store 或 TestFlight。
+- 截至 2026-08-19，未重新验证线上入口、生产配置、App Store 或 TestFlight。
 - 真实 Release/TestFlight ShotMarker 事件上报仍未确认。
 
-操作命令和错误处置见[运行手册](../../RUNBOOK.md)。历史四字段设计见[归档](../archive/2026-08-16-track-four-field-trend-redesign-spec.md)。
+操作命令和错误处置见[运行手册](../../RUNBOOK.md)。历史四字段设计见[归档](../archive/2026-08/2026-08-16-track-four-field-trend-redesign-spec.md)。

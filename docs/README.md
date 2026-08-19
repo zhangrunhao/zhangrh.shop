@@ -2,7 +2,7 @@
 
 `current` 说明当前事实和有效决定，`changes` 保存未结束的变更，`archive` 保存已结束的过程和材料。
 
-`changes` 和 `archive` 使用扁平的 `YYYY-MM-DD-topic[-spec|-plan].md` 命名。
+`changes` 使用扁平的 `YYYY-MM-DD-topic[-spec|-plan].md`；`archive` 使用 `YYYY-MM/YYYY-MM-DD-topic[-spec|-plan].md`，月份必须与文件日期一致。
 
 ## 当前事实
 
@@ -27,5 +27,5 @@
 
 1. 开始任务前阅读相关 current，并检查同主题 Change。
 2. 从代码、测试、构建或当次外部验证确认事实。
-3. 完成变更后先更新 current，再将 spec 和 plan 移入 archive。
+3. 完成变更后先更新 current，再将 spec 和 plan 移入对应的 `archive/YYYY-MM/`。
 4. 公开仓库与 `docs/private.local/` 分别检查、提交和推送。

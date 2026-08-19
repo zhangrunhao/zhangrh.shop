@@ -10,9 +10,11 @@
 ## Documentation Governance
 
 - Treat `docs/current/` as the concise source of current public project facts and effective decisions.
+- Keep implementation facts and effective decisions explicit and distinct in `docs/current/`.
+- Keep each current document at or below 300 lines and use short, stable topic names.
 - Store active specifications and plans as flat `YYYY-MM-DD-topic-spec.md` and `YYYY-MM-DD-topic-plan.md` files in `docs/changes/`.
-- Update affected current documents before moving completed or cancelled Change files to `docs/archive/`.
-- Store completed public investigations, release records, deployment-contract decisions, superseded documents, and other finished material in the flat `docs/archive/` directory.
+- Update affected current documents before moving completed or cancelled Change files to the matching `docs/archive/YYYY-MM/` directory.
+- Store completed public investigations, release records, deployment-contract decisions, superseded documents, and other finished material under `docs/archive/YYYY-MM/`; do not add deeper topic or record-type directories.
 - Keep runbooks and component READMEs procedural or component-local; link to `docs/current/` for cross-component current facts instead of duplicating them.
 - Prefer current code, tests, builds, and fresh external verification over documentation.
 - Include a verification date for changing external state; otherwise mark it unverified.
