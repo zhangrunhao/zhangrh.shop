@@ -38,13 +38,13 @@ export const withBase = (path: string) => {
 export const resolveRoute = (pathname: string): Route => {
   const path = normalizePath(pathname);
 
-  if (path === "/" || path === "/support") {
+  if (path === "/support") {
     return { name: "support" };
   }
   if (path === "/privacy") {
     return { name: "privacy" };
   }
-  if (path === "/how-to") {
+  if (path === "/" || path === "/how-to") {
     return { name: "how-to" };
   }
 

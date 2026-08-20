@@ -4,8 +4,12 @@ import { resolveRoute } from "./route";
 
 const OLD_PROJECT_SLUG = "shot" + "maker";
 
+test("resolveRoute maps ShotMarker root URLs to how-to", () => {
+  assert.deepEqual(resolveRoute("/shotmarker/"), { name: "how-to" });
+  assert.deepEqual(resolveRoute("/"), { name: "how-to" });
+});
+
 test("resolveRoute maps ShotMarker support URLs to support", () => {
-  assert.deepEqual(resolveRoute("/shotmarker/"), { name: "support" });
   assert.deepEqual(resolveRoute("/shotmarker/support"), { name: "support" });
   assert.deepEqual(resolveRoute("/support"), { name: "support" });
 });
