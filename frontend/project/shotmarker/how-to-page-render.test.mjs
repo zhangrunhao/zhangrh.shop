@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, mkdtemp, rm } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -14,6 +14,16 @@ const configFile = path.join(currentDir, "vite.config.ts");
 
 const escapeRegExp = (value) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+test("default HTML metadata describes the How-to page", async () => {
+  const html = await readFile(new URL("./index.html", import.meta.url), "utf8");
+
+  assert.match(html, /<title>ShotMarker 使用说明<\/title>/);
+  assert.match(
+    html,
+    /name="description"\s+content="ShotMarker Apple Watch 和 iPhone 使用说明。"/,
+  );
+});
 
 test("How-to page renders the confirmed related links", async () => {
   const cacheDir = await mkdtemp(
