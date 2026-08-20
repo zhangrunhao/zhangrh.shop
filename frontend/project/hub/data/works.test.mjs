@@ -10,7 +10,7 @@ const assetsDirectory = path.resolve(currentDir, "..", "assets");
 const worksAssetsDirectory = path.join(assetsDirectory, "works");
 const workIdPattern = /^\d{8}_[a-z0-9]+(?:_[a-z0-9]+)*$/;
 const expectedWorkLinks = {
-  "20260517_shotmarker": "https://zhangrh.shop/shotmarker/how-to",
+  "20260517_shotmarker": "https://zhangrh.shop/shotmarker/",
   "20260729_cardgame": "https://zhangrh.shop/cardgame/",
 };
 
@@ -33,6 +33,16 @@ test("works data uses the Hub work contract", () => {
       .sort(),
     ["20260517_shotmarker", "20260729_cardgame"],
   );
+
+  assert.deepEqual(works[0], {
+    id: "20260517_shotmarker",
+    name: "ShotMarker",
+    summary:
+      "训练时用 Apple Watch 给精彩投篮打点，结束后在 iPhone 上把训练视频整理成集锦。",
+    link: "https://zhangrh.shop/shotmarker/",
+    coverImage: "works/20260517_shotmarker/cover.webp",
+    status: "active",
+  });
 
   for (const work of works) {
     assert.deepEqual(
