@@ -1,6 +1,6 @@
 # 文档入口
 
-`current` 说明当前事实和有效决定，`changes` 保存未结束的变更，`archive` 保存已结束的过程和材料。
+`current` 说明当前事实和有效决定，`changes` 保存已生成且尚未结束的变更材料，`archive` 保存已结束的过程和材料。
 
 `changes` 使用扁平的 `YYYY-MM-DD-topic[-spec|-plan].md`；`archive` 使用 `YYYY-MM/YYYY-MM-DD-topic[-spec|-plan].md`，月份必须与文件日期一致。
 

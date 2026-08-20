@@ -9,12 +9,14 @@
 
 ## 文档治理
 
+- `docs/current/`、`docs/changes/` 和 `docs/archive/` 的目录专属规则只适用于各自目录，不得跨目录类推。
 - 将 `docs/current/` 作为当前公开项目事实和有效决定的简洁来源。
-- 在 `docs/current/` 中明确区分实现事实与有效决定；用户明确确认的决定视为有效决定。
+- 在 `docs/current/` 中明确区分实现事实与有效决定；用户在任务中明确确认的决定视为已经作出并视为有效决定，Agent 不得将提议、推测或未确认方案写成有效决定。
 - 判断实现事实时，以当前代码、测试、构建和当次外部验证为准；`docs/current/`、`docs/changes/`、`docs/archive/` 依次只能作为逐级减弱的实现证据。
 - 将 `docs/current/` 中记录的有效决定、契约和政策作为规范性来源。代码和测试只能证明当前实现；实现与有效决定冲突时，应同时记录决定与实现差距，并将差距作为缺陷处理。
-- 每份 current 文档不得超过 300 行。文件名应使用简短、稳定、常见的单词，不包含日期、不必要的缩写或预设的组织分类。
-- 将已经生成且仍处于活动状态的 spec 和 plan 以 `YYYY-MM-DD-topic-spec.md`、`YYYY-MM-DD-topic-plan.md` 扁平文件形式保存在 `docs/changes/`。
+- 每份 `docs/current/` 文档不得超过 300 行。该上限不适用于 `docs/changes/` 或 `docs/archive/` 中的 spec、plan 或其他材料。current 文件名应使用简短、稳定、常见的单词，不包含日期、不必要的缩写或预设的组织分类。
+- spec 和 plan 以内容完整、无歧义且足以支持实施和验证为准；是否拆分依据变更范围和内容边界，不依据行数。
+- 文档治理不要求每个 Change 都生成 spec 或 plan。将已生成且 Change 尚未结束的变更材料（包括 spec 和 plan）以 `YYYY-MM-DD-topic[-spec|-plan].md` 的扁平文件形式保存在 `docs/changes/`。
 - 完成或取消变更后，先更新受影响的 current 文档，再将变更文件移入对应的 `docs/archive/YYYY-MM/` 目录。
 - 将已完成的公开调查、发布记录、部署契约决定、被替代文档和其他已结束材料保存为 `docs/archive/YYYY-MM/` 下带日期的 `YYYY-MM-DD-topic.md` 文件；只有对应记录类型保留 `-spec` 或 `-plan` 后缀。月份目录必须与文件名前七位一致，仅在需要时创建，不得增加更深的 topic 或记录类型目录。
 - 运行手册和组件 README 只记录操作流程或组件局部内容；跨组件的当前事实应链接 `docs/current/`，不得重复维护。
