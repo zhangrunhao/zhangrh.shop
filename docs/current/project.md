@@ -14,9 +14,10 @@
 
 - `/shotmarker/support`、`/shotmarker/privacy` 和 `/shotmarker/how-to` 于 2026-08-19 按 ShotMarker main / `41bfda2`（产品代码基线 `42c249a`）重新核对。
 - 从公开仓库 revision `1da28f6` 起，`/shotmarker/` 与 `/shotmarker/how-to` 都渲染产品介绍和使用说明；`/shotmarker/support` 继续独立渲染支持页。
+- 从 revision `0f2b584` 起，ShotMarker 初始 HTML 的默认标题和描述也与 How-to 一致；客户端挂载后仍按具体路由更新元数据。
 - 隐私页分别说明第一方产品 Analytics、Sentry SDK 到开发者自管 GlitchTip 的错误与崩溃上报，以及完整本地诊断日志；其中按 Sentry Cocoa 9.26.0 的发送前处理披露 SDK 技术上下文、独立安装范围标识和源 IP 保留未核验边界。支持页记录标题长按诊断导出和 App 内 iCloud 视频准备；使用说明记录持久化集锦任务和启动后中断恢复。
 - 使用说明中的已完成任务截图来自仅含合成预览数据的临时模拟器，不含真实用户数据。
-- 上述内容于 2026-08-19 从 revision `42d21e7` 发布，根入口于 2026-08-20 从 revision `1da28f6` 对齐；最近一次公网只读验证确认四个 ShotMarker 路由及页面引用资源均为 HTTP 200，根路径和 How-to 的生产 DOM 均为使用说明，独立 Support 与 Privacy 页面正常，浏览器控制台没有错误或警告。该验证不覆盖 App Store、TestFlight、真实 App Analytics 或 GlitchTip 上报链路。
+- 上述内容于 2026-08-19 从 revision `42d21e7` 发布，根入口路由在 2026-08-20 从 revision `1da28f6` 起对齐，默认 HTML 元数据随后从 revision `0f2b584` 起对齐并重新发布；最近一次公网只读验证确认四个 ShotMarker 路由及页面引用资源均为 HTTP 200，根路径原始 HTML 和生产 DOM 均指向使用说明，独立 Support 与 Privacy 页面正常，浏览器控制台没有错误或警告。该验证不覆盖 App Store、TestFlight、真实 App Analytics 或 GlitchTip 上报链路。
 
 ## 组件边界（实现事实）
 
