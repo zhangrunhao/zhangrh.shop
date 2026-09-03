@@ -60,6 +60,7 @@ const buildProject = ({ projectName, publishOssAssets }) => {
     bundle: fs.readFileSync(bundlePath, 'utf8'),
     coverFileNames: staticFileNames.filter((fileName) => /^cover-.+\.[^.]+$/.test(fileName)),
     html: fs.readFileSync(path.join(outDir, 'index.html'), 'utf8'),
+    outDir,
   }
 }
 
@@ -146,7 +147,7 @@ test('ShotMarker OSS publish build keeps its pathname routing base', () => {
 })
 
 test('WebTrace OSS publish build keeps its pathname routing base', () => {
-  const { bundle, html } = buildProject({
+  const { bundle, html, outDir } = buildProject({
     projectName: 'webtrace',
     publishOssAssets: true,
   })
@@ -158,6 +159,14 @@ test('WebTrace OSS publish build keeps its pathname routing base', () => {
   assert.match(bundle, /["']\/webtrace\/["']/)
   assert.match(bundle, /["']\/webtrace\/support["']/)
   assert.match(bundle, /["']\/webtrace\/privacy["']/)
+  assert.equal(
+    fs.readFileSync(path.join(outDir, 'support', 'index.html'), 'utf8'),
+    html,
+  )
+  assert.equal(
+    fs.readFileSync(path.join(outDir, 'privacy', 'index.html'), 'utf8'),
+    html,
+  )
   assert.doesNotMatch(
     bundle,
     new RegExp(`${escapedProjectOssBase}(?:support|privacy)`),

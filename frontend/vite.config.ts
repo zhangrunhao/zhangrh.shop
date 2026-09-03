@@ -1,6 +1,6 @@
 import path from 'node:path'
 import react from '@vitejs/plugin-react'
-import { defineConfig, mergeConfig } from 'vite'
+import { defineConfig, mergeConfig, type PluginOption } from 'vite'
 import { buildProjectPublicBase } from './scripts/oss-static-lib.mjs'
 import { OSS_STATIC_CONFIG } from './scripts/oss-static.config.mjs'
 
@@ -22,9 +22,11 @@ const sharedConfig = defineConfig({
 export const createProjectConfig = ({
   projectRoot,
   publicDir,
+  plugins = [],
 }: {
   projectRoot: string
   publicDir?: string
+  plugins?: PluginOption[]
 }) => {
   const projectName = path.basename(projectRoot)
   const distRoot = path.resolve(projectRoot, '../../dist', projectName)
@@ -43,6 +45,7 @@ export const createProjectConfig = ({
       root: projectRoot,
       base: command === 'build' || isPreview ? basePath : '/',
       ...(publicDir ? { publicDir } : {}),
+      plugins,
       appType: 'spa',
       experimental: publicAssetBase
         ? {
