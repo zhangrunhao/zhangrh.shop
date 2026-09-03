@@ -11,6 +11,7 @@ const worksAssetsDirectory = path.join(assetsDirectory, "works");
 const workIdPattern = /^\d{8}_[a-z0-9]+(?:_[a-z0-9]+)*$/;
 const expectedWorkLinks = {
   "20260517_shotmarker": "https://zhangrh.shop/shotmarker/",
+  "20260903_webtrace": "https://zhangrh.shop/webtrace/",
   "20260729_cardgame": "https://zhangrh.shop/cardgame/",
 };
 
@@ -23,7 +24,11 @@ test("works data uses the Hub work contract", () => {
 
   assert.deepEqual(
     works.map((work) => work.id),
-    ["20260517_shotmarker", "20260729_cardgame"],
+    [
+      "20260517_shotmarker",
+      "20260903_webtrace",
+      "20260729_cardgame",
+    ],
   );
   assert.deepEqual(
     fs
@@ -31,7 +36,11 @@ test("works data uses the Hub work contract", () => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort(),
-    ["20260517_shotmarker", "20260729_cardgame"],
+    [
+      "20260517_shotmarker",
+      "20260729_cardgame",
+      "20260903_webtrace",
+    ],
   );
 
   assert.deepEqual(works[0], {
@@ -124,6 +133,16 @@ test("works data uses the Hub work contract", () => {
   }
 
   assert.deepEqual(works[1], {
+    id: "20260903_webtrace",
+    name: "WebTrace",
+    summary:
+      "在本机记录指定网站的打开次数与有效使用时长，用最近 14 天趋势看清注意力去向。",
+    link: "https://zhangrh.shop/webtrace/",
+    coverImage: "works/20260903_webtrace/cover.webp",
+    status: "active",
+  });
+
+  assert.deepEqual(works[2], {
     id: "20260729_cardgame",
     name: "CardGame",
     summary: "策略卡牌对战 Demo，当前暂停维护，仍可体验。",

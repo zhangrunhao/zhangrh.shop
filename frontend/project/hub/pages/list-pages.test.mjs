@@ -98,12 +98,16 @@ test("migrated work consumers do not import the legacy Product contract", () => 
   }
 });
 
-test("works data contains ShotMarker and CardGame in display order", () => {
+test("works data keeps active products before the paused CardGame", () => {
   const works = readJson("data/works.json");
 
   assert.deepEqual(
     works.map((work) => work.id),
-    ["20260517_shotmarker", "20260729_cardgame"],
+    [
+      "20260517_shotmarker",
+      "20260903_webtrace",
+      "20260729_cardgame",
+    ],
   );
   assert.equal(hubFileExists("data/articles.json"), false);
 });

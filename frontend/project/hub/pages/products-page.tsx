@@ -9,7 +9,7 @@ export const ProductsPage = () => {
           作品
         </h1>
         <p className="mt-3 text-base leading-7 tracking-normal text-[#525252]">
-          测试作品列表，后续替换为正式作品。
+          独立产品与实验项目。
         </p>
       </div>
 

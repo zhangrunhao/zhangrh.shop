@@ -31,8 +31,10 @@ npm run check
 
 ## 最近验证
 
-2026-09-03 在 Node.js v24.19.0 下运行 `npm run check`：根自动化 9 项、前端 181 项、后端 20 项，共 210 项通过、0 失败；前端 lint、TypeScript 检查和 Hub、Cardgame、ShotMarker、Analytics、WebTrace 五个生产构建全部通过。
+2026-09-03 在 Node.js v24.19.0 下运行 `npm run check`：根自动化 9 项、前端 183 项、后端 20 项，共 212 项通过、0 失败；前端 lint、TypeScript 检查和 Hub、Cardgame、ShotMarker、Analytics、WebTrace 五个生产构建全部通过。
 
 同日使用 Playwright Chromium 验收 WebTrace 本地生产预览：首页在 1280×800 与 390×844 视口、支持页、隐私页和产品内 404 均正确渲染，浅色和深色内容可读，无横向溢出、控制台错误或警告；页面与静态资源请求均返回 200。
+
+同日使用 Playwright Chromium 验收 Hub 候选生产构建：1280×800 首页按 ShotMarker、WebTrace、CardGame 顺序显示三张精选卡；作品页在 1280×800 与 390×844 视口显示三张完整作品卡、正式介绍文案和正确 WebTrace 链接，窄屏封面不再裁掉品牌标题，页面无横向溢出。纯本地预览没有生产 `/track` 接收端，因此控制台存在预期的单条 404；公网发布验证需另行确认生产 Track 响应。
 
 详细命令见[运行手册](../../RUNBOOK.md)，组件边界见 [Automation](./automation.md) 和 [Backend](./backend.md)。

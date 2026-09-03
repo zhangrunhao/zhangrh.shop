@@ -4,7 +4,7 @@
 
 ## 当前范围（实现事实）
 
-- Hub：个人主页、作品列表和 Markdown 文章；ShotMarker 作品卡以产品名和产品用途介绍产品，并链接默认产品入口。
+- Hub：个人主页、作品列表和 Markdown 文章；ShotMarker 与 WebTrace 作品卡以产品名和产品用途介绍产品，并链接各自默认产品入口。
 - Cardgame：回合制卡牌 Demo；在 Hub 中标记为暂停维护，独立页面仍保留。
 - ShotMarker：产品介绍、帮助和隐私说明。
 - Analytics：按项目、事件、时间范围和 PV/UV 口径查看逐日趋势。
@@ -18,6 +18,7 @@
 - 隐私政策说明用途、`chrome.storage.local`、`chrome.storage.session`、IndexedDB、默认长期保留、按网站永久删除历史、卸载删除、权限理由和 Chrome Web Store Limited Use 规则；完整 URL 只在内存中用于解析主机名，不持久化路径、查询或页面内容。
 - WebTrace 官网不调用 Backend 或 Track，不提供账号、表单提交、远程字体、远程脚本或第三方嵌入。
 - 首页图标来自 WebTrace 扩展已确认的 128×128 品牌图标；产品图使用隔离 Chromium 中的扩展界面和纯合成数据。
+- Hub 首页精选与作品列表均展示 WebTrace `Active` 卡片，排在 ShotMarker 之后、暂停维护的 CardGame 之前，链接稳定产品入口 `/webtrace/`；封面复用 WebTrace 已确认的高清品牌宣传图，不含真实用户数据。
 - 2026-09-03 本地生产预览在 1280×800 与 390×844 视口完成首页、支持页、隐私页、404、浅色和深色检查；公网随后验证三个页面及其 JS、CSS、图标和合成截图均为 HTTP 200，生产 DOM 无横向溢出，控制台无错误或警告。
 
 ## ShotMarker 公开内容（实现事实）
@@ -54,6 +55,7 @@
 - Hub 文章属于产品内容，不进入项目文档的 Change 生命周期。
 - ShotMarker 的默认产品入口是 `/shotmarker/`，并与 `/shotmarker/how-to` 渲染相同的产品介绍和使用说明；支持页固定保留在 `/shotmarker/support`。
 - Hub 的 ShotMarker 作品卡表示完整产品，不以 Support 命名或只描述支持与隐私页面，并链接默认产品入口。
+- Hub 的 WebTrace 作品卡表示完整产品，文案聚焦本机统计与最近 14 天趋势，并链接默认产品入口 `/webtrace/`。
 - WebTrace 的稳定公开入口为 `/webtrace/`，支持和隐私政策固定保留在 `/webtrace/support` 与 `/webtrace/privacy`；官网不新增 Track 数据采集。
 
 详细入口见[根 README](../../README.md)。

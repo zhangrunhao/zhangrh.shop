@@ -8,6 +8,14 @@
     "status": "active"
   },
   {
+    "id": "20260903_webtrace",
+    "name": "WebTrace",
+    "summary": "在本机记录指定网站的打开次数与有效使用时长，用最近 14 天趋势看清注意力去向。",
+    "link": "https://zhangrh.shop/webtrace/",
+    "coverImage": "works/20260903_webtrace/cover.webp",
+    "status": "active"
+  },
+  {
     "id": "20260729_cardgame",
     "name": "CardGame",
     "summary": "策略卡牌对战 Demo，当前暂停维护，仍可体验。",

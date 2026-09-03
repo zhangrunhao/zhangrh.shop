@@ -24,7 +24,7 @@ export const WorkStatusBadge = ({ status }: { status: WorkStatus }) => (
 
 export const WorkCard = ({ work }: { work: Work }) => (
   <article className="overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white">
-    <div className="relative h-[334px] bg-neutral-100">
+    <div className="relative h-[230px] sm:h-[334px] bg-neutral-100">
       <img
         src={work.coverImage}
         alt=""

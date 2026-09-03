@@ -127,6 +127,20 @@ test("Hub work pages render the Work contract", async (t) => {
       }
     });
 
+    await t.test("ProductsPage introduces the published work collection", () => {
+      const html = renderToStaticMarkup(createElement(ProductsPage));
+
+      assert.ok(html.includes("独立产品与实验项目。"));
+      assert.equal(html.includes("测试作品列表"), false);
+    });
+
+    await t.test("ProductsPage keeps wide covers visible on narrow screens", () => {
+      const html = renderToStaticMarkup(createElement(ProductsPage));
+
+      assert.ok(html.includes("h-[230px] sm:h-[334px]"));
+      assert.equal(html.includes("relative h-[334px] bg-neutral-100"), false);
+    });
+
     await t.test("HomePage renders linked featured cards without nested links", () => {
       const html = renderToStaticMarkup(createElement(HomePage));
       let previousLinkIndex = -1;

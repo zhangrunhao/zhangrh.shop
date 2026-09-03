@@ -18,6 +18,7 @@ test("home data matches the Hub landing page brief", () => {
   assert.ok(Array.isArray(data.featuredWorkIds));
   assert.deepEqual(data.featuredWorkIds, [
     "20260517_shotmarker",
+    "20260903_webtrace",
     "20260729_cardgame",
   ]);
   assert.equal(new Set(data.featuredWorkIds).size, data.featuredWorkIds.length);
