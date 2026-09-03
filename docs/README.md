@@ -16,6 +16,7 @@
 ## 当前 Change
 
 - [WebTrace 官网与商店发布准备规格](./changes/2026-09-03-webtrace-store-release-spec.md)
+- [WebTrace 官网与商店发布准备计划](./changes/2026-09-03-webtrace-store-release-plan.md)
 
 ## 参考文档
 
