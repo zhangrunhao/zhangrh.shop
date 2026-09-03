@@ -1,6 +1,6 @@
 # 开发与质量
 
-本文同时记录开发与验证的有效决定和当前实现。代码、清单和测试于 2026-08-19 复核。
+本文同时记录开发与验证的有效决定和当前实现。代码、清单和测试于 2026-09-03 复核。
 
 ## 有效决定
 
@@ -23,14 +23,16 @@ npm --prefix backend ci
 # 根自动化、前端和后端测试
 npm test
 
-# 测试、前端 lint、TypeScript 检查和四个前端生产构建
+# 测试、前端 lint、TypeScript 检查和五个前端生产构建
 npm run check
 ```
 
-`npm test` 运行根自动化、前端和后端测试。`npm run check` 在测试后继续运行前端 lint、TypeScript 检查和四个前端生产构建；Backend 当前没有 lint、类型检查或构建脚本。
+`npm test` 运行根自动化、前端和后端测试。`npm run check` 在测试后继续运行前端 lint、TypeScript 检查和 Hub、Cardgame、ShotMarker、Analytics、WebTrace 五个前端生产构建；Backend 当前没有 lint、类型检查或构建脚本。
 
 ## 最近验证
 
-2026-08-19 在 Node.js v24.19.0 下运行 `npm run check`：根自动化 9 项、前端 163 项、后端 20 项，共 192 项通过、0 失败；前端 lint、TypeScript 检查和 Hub、Cardgame、ShotMarker、Analytics 四个生产构建全部通过。
+2026-09-03 在 Node.js v24.19.0 下运行 `npm run check`：根自动化 9 项、前端 181 项、后端 20 项，共 210 项通过、0 失败；前端 lint、TypeScript 检查和 Hub、Cardgame、ShotMarker、Analytics、WebTrace 五个生产构建全部通过。
+
+同日使用 Playwright Chromium 验收 WebTrace 本地生产预览：首页在 1280×800 与 390×844 视口、支持页、隐私页和产品内 404 均正确渲染，浅色和深色内容可读，无横向溢出、控制台错误或警告；页面与静态资源请求均返回 200。
 
 详细命令见[运行手册](../../RUNBOOK.md)，组件边界见 [Automation](./automation.md) 和 [Backend](./backend.md)。

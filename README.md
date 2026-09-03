@@ -1,6 +1,6 @@
 # zhangrh.shop
 
-`zhangrh.shop` 是个人主页与独立项目的统一代码仓库，包含四个 Vite 前端和一个 Node/Express 后端。
+`zhangrh.shop` 是个人主页与独立项目的统一代码仓库，包含五个 Vite 前端和一个 Node/Express 后端。
 
 ## 在线入口
 
@@ -10,6 +10,7 @@
 - [Cardgame](https://zhangrh.shop/cardgame/)：抽 5 选 3 的回合制卡牌 Demo。
 - [ShotMarker](https://zhangrh.shop/shotmarker/)：ShotMarker 产品介绍与帮助页面。
 - [Analytics](https://zhangrh.shop/analytics/)：按项目、事件和时间范围查看每日 PV/UV 趋势。
+- [WebTrace](https://zhangrh.shop/webtrace/)：本地优先的网站时间追踪器、使用支持与隐私说明。
 
 ## 组件职责
 
@@ -19,6 +20,7 @@
 | `frontend/project/cardgame` | Cardgame 浏览器界面与 WebSocket 客户端 |
 | `frontend/project/shotmarker` | ShotMarker 产品页面 |
 | `frontend/project/analytics` | 必选单事件的逐日 PV/UV 趋势 |
+| `frontend/project/webtrace` | WebTrace 产品介绍、支持与隐私政策 |
 | `frontend/common` | 前端项目共用的设备标识与埋点代码 |
 | `backend` | Cardgame HTTP/WebSocket 服务与 Track 只读趋势查询 |
 | `automation/publish` | 根目录的交互式启动与发布脚本；相关测试由根 `npm test` 和 `npm run check` 调用 |
