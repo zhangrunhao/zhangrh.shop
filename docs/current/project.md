@@ -1,6 +1,6 @@
 # 项目与组件
 
-`zhangrh.shop` 是个人主页与独立项目的公开代码仓库，包含五个 Vite 前端和一个 Node/Express 后端。代码、构建配置和测试于 2026-09-03 复核；同日已发布并验证 WebTrace 的三个公开页面。
+`zhangrh.shop` 是个人主页与独立项目的公开代码仓库，包含五个 Vite 前端和一个 Node/Express 后端。代码、构建配置和测试于 2026-09-03 复核；同日已发布并验证 WebTrace 的三个公开页面及 Hub WebTrace 作品入口。
 
 ## 当前范围（实现事实）
 
@@ -18,8 +18,9 @@
 - 隐私政策说明用途、`chrome.storage.local`、`chrome.storage.session`、IndexedDB、默认长期保留、按网站永久删除历史、卸载删除、权限理由和 Chrome Web Store Limited Use 规则；完整 URL 只在内存中用于解析主机名，不持久化路径、查询或页面内容。
 - WebTrace 官网不调用 Backend 或 Track，不提供账号、表单提交、远程字体、远程脚本或第三方嵌入。
 - 首页图标来自 WebTrace 扩展已确认的 128×128 品牌图标；产品图使用隔离 Chromium 中的扩展界面和纯合成数据。
-- Hub 首页精选与作品列表均展示 WebTrace `Active` 卡片，排在 ShotMarker 之后、暂停维护的 CardGame 之前，链接稳定产品入口 `/webtrace/`；封面复用 WebTrace 已确认的高清品牌宣传图，不含真实用户数据。
+- 从公开仓库 revision `83187cb` 起，Hub 首页精选与作品列表均展示 WebTrace `Active` 卡片，排在 ShotMarker 之后、暂停维护的 CardGame 之前，链接稳定产品入口 `/webtrace/`；封面复用 WebTrace 已确认的高清品牌宣传图，不含真实用户数据。
 - 2026-09-03 本地生产预览在 1280×800 与 390×844 视口完成首页、支持页、隐私页、404、浅色和深色检查；公网随后验证三个页面及其 JS、CSS、图标和合成截图均为 HTTP 200，生产 DOM 无横向溢出，控制台无错误或警告。
+- 2026-09-03 公网验证 `/hub/` 与 `/hub/products` 均展示 ShotMarker、WebTrace、CardGame，WebTrace 链接可打开正式产品主页；两个 Hub 页面在 1280×800 和 390×844 视口无横向溢出，浏览器控制台无错误或警告。
 
 ## ShotMarker 公开内容（实现事实）
 
