@@ -47,3 +47,11 @@ test("WebTrace styles include mobile, focus, and reduced-motion safeguards", asy
   assert.match(css, /\.privacy-callout/);
   assert.match(css, /\.policy-page/);
 });
+
+test("the complete frontend build includes WebTrace", async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL("../../package.json", import.meta.url), "utf8"),
+  );
+
+  assert.match(packageJson.scripts["build:all"], /npm run build webtrace/);
+});

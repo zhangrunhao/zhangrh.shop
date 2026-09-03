@@ -1,6 +1,6 @@
 # zhangrh.shop 运行手册
 
-当前仓库维护 `hub`、`cardgame`、`shotmarker`、`analytics` 四个前端项目和一个 `backend` 服务。所有命令均以仓库根目录为起点。
+当前仓库维护 `hub`、`cardgame`、`shotmarker`、`analytics`、`webtrace` 五个前端项目和一个 `backend` 服务。所有命令均以仓库根目录为起点。
 
 ## 环境准备
 
@@ -27,6 +27,7 @@ npm --prefix frontend run dev -- hub
 npm --prefix frontend run dev -- cardgame
 npm --prefix frontend run dev -- shotmarker
 npm --prefix frontend run dev -- analytics
+npm --prefix frontend run dev -- webtrace
 ```
 
 前端 Vite 开发服务器会把 `/api` 请求代理到 `http://localhost:3001`，Cardgame 的 WebSocket 也使用该代理。因此联调 Cardgame 或 Analytics 时需要同时启动后端和对应前端。
@@ -42,6 +43,7 @@ npm run check
 
 # 单独构建一个前端项目
 npm --prefix frontend run build -- hub
+npm --prefix frontend run build -- webtrace
 
 # 单独测试后端
 npm --prefix backend test
@@ -107,6 +109,7 @@ npm --prefix frontend run publish -- hub
 npm --prefix frontend run publish -- cardgame
 npm --prefix frontend run publish -- shotmarker
 npm --prefix frontend run publish -- analytics
+npm --prefix frontend run publish -- webtrace
 npm --prefix backend run publish
 ```
 
@@ -119,7 +122,10 @@ curl --fail --head https://zhangrh.shop/hub/
 curl --fail --head https://zhangrh.shop/cardgame/
 curl --fail --head https://zhangrh.shop/shotmarker/
 curl --fail --head https://zhangrh.shop/analytics/
+curl --fail --head https://zhangrh.shop/webtrace/
+curl --fail --head https://zhangrh.shop/webtrace/support
+curl --fail --head https://zhangrh.shop/webtrace/privacy
 curl --fail-with-body https://zhangrh.shop/api/cardgame/health
 ```
 
-四个页面应返回可访问的 HTML；Cardgame health 应包含 `ok: true` 和 `project: "cardgame"`。按“埋点趋势查询”执行一次只读 Track 查询，并按 Track 当前文档核对响应。页面可访问但资源加载失败时，检查浏览器中 `static.zhangrh.shop` 的资源请求。
+五个前端项目及 WebTrace 的支持、隐私路由应返回可访问的 HTML；Cardgame health 应包含 `ok: true` 和 `project: "cardgame"`。按“埋点趋势查询”执行一次只读 Track 查询，并按 Track 当前文档核对响应。页面可访问但资源加载失败时，检查浏览器中 `static.zhangrh.shop` 的资源请求。

@@ -13,7 +13,7 @@
     "pretest": "node project/hub/scripts/prepare-articles.mjs development",
     "test": "tsx --tsconfig tsconfig.app.json --test --test-concurrency=1",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "build:all": "npm run build hub && npm run build cardgame && npm run build shotmarker && npm run build analytics",
+    "build:all": "npm run build hub && npm run build cardgame && npm run build shotmarker && npm run build analytics && npm run build webtrace",
     "preview": "node tools/vite-project.mjs preview",
     "publish": "node tools/publish.mjs",
     "deploy": "node scripts/deploy-static.mjs"

@@ -144,3 +144,22 @@ test('ShotMarker OSS publish build keeps its pathname routing base', () => {
     new RegExp(`${escapedProjectOssBase}(?:support|privacy|how-to)`),
   )
 })
+
+test('WebTrace OSS publish build keeps its pathname routing base', () => {
+  const { bundle, html } = buildProject({
+    projectName: 'webtrace',
+    publishOssAssets: true,
+  })
+  const projectOssBase = `${ossBase}/webtrace/`
+  const escapedProjectOssBase = escapeRegExp(projectOssBase)
+
+  assert.match(html, new RegExp(`${escapedProjectOssBase}static/[^"]+\\.js`))
+  assert.match(html, new RegExp(`${escapedProjectOssBase}static/[^"]+\\.css`))
+  assert.match(bundle, /["']\/webtrace\/["']/)
+  assert.match(bundle, /["']\/webtrace\/support["']/)
+  assert.match(bundle, /["']\/webtrace\/privacy["']/)
+  assert.doesNotMatch(
+    bundle,
+    new RegExp(`${escapedProjectOssBase}(?:support|privacy)`),
+  )
+})
