@@ -50,7 +50,7 @@ Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查�
 - 2026-08-19，`/shotmarker/`、`/shotmarker/privacy`、`/shotmarker/support`、`/shotmarker/how-to` 及当次 HTML 引用的 JS、CSS 和已完成任务截图经公网只读验证为 HTTP 200。
 - 2026-08-20，`/shotmarker/` 已对齐为与 `/shotmarker/how-to` 相同的使用说明，原始 HTML 的默认标题和描述也已同步；独立 Support 和 Privacy 路由保持正常，四个路由在 390×844 视口均无横向溢出且浏览器控制台无错误或警告。
 - 2026-08-20，Hub 的 ShotMarker 作品卡已改为产品名称与产品用途描述，并链接 `/shotmarker/`；`/hub/`、当次 JS/CSS、封面和图标均为 HTTP 200，390×844 视口无横向溢出且浏览器控制台无错误或警告。
-- 2026-09-03，WebTrace 的三个路由、本地图标与合成截图已通过本地生产构建和浏览器验收；公网发布和公网资源状态尚未验证。
+- 2026-09-03，WebTrace 从公开仓库 revision `0c83897` 发布；`/webtrace/`、`/webtrace/support/`、`/webtrace/privacy/` 及当次 HTML/DOM 引用的 JS、CSS、图标和合成截图经公网只读验证为 HTTP 200。支持与隐私的无尾斜杠地址经一次 301 规范化到目录地址。三个生产页面在 1280×800 和 390×844 视口无横向溢出，路由标题与描述正确，浏览器控制台无错误或警告。
 - 其余线上入口、生产配置、App Store 和 TestFlight 未在本次发布中重新验证。
 - 真实 Release/TestFlight ShotMarker 事件上报仍未确认。
 

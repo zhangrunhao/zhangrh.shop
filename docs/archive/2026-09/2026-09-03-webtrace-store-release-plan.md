@@ -1,5 +1,7 @@
 # WebTrace Website Release Implementation Plan
 
+完成状态：已于 2026-09-03 执行完毕；最终实现与公网验证事实见 `docs/current`。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在 zhangrh.shop 建立并发布 WebTrace 首页、支持页和中英双语隐私政策页，供用户与 Chrome Web Store 使用。

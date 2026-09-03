@@ -1,5 +1,7 @@
 # WebTrace 官网与商店发布准备规格
 
+完成状态：已于 2026-09-03 发布并完成公网只读验证。
+
 ## 当前结论
 
 本 Change 在 zhangrh.shop 新增独立的 WebTrace 前端项目，提供产品首页、支持页和隐私政策页，并把三个页面发布到稳定公开 URL，供用户和 Chrome Web Store Developer Dashboard 使用。
