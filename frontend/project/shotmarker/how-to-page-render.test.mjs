@@ -21,7 +21,7 @@ test("default HTML metadata describes the How-to page", async () => {
   assert.match(html, /<title>ShotMarker 使用说明<\/title>/);
   assert.match(
     html,
-    /name="description"\s+content="ShotMarker Apple Watch 和 iPhone 使用说明。"/,
+    /name="description"\s+content="ShotMarker 1\.3：Apple Watch 训练打点，iPhone 逐片段预览和调整，保存可继续编辑的集锦任务。"/,
   );
 });
 
@@ -72,6 +72,10 @@ test("How-to page renders the confirmed related links", async () => {
     const html = renderToStaticMarkup(createElement(HowToPage));
 
     assert.match(html, /<h2 id="how-to-related-links-title">相关链接<\/h2>/);
+    assert.match(html, /升级到 1.3 前，请先保存需要保留的成片/);
+    assert.match(html, /不提供自动迁移/);
+    assert.match(html, /具体可用版本以 App Store 为准/);
+    assert.match(html, /配图为旧版基础操作示意/);
 
     const stepArticles = html.match(
       /<article class="how-to-step">[\s\S]*?<\/article>/g,

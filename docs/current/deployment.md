@@ -1,6 +1,6 @@
 # 部署与生产边界
 
-本文同时记录公开部署契约和仓库发布实现。脚本于 2026-09-03 复核；实际服务器、网络、证书和生产配置仍由私有台账维护，本次未重新复核这些配置。
+本文同时记录公开部署契约和仓库发布实现。前端发布脚本于 2026-09-29 复核；实际服务器、网络、证书和生产配置仍由私有台账维护，本次未重新复核这些配置。
 
 ## 公开拓扑（有效决定）
 
@@ -49,8 +49,7 @@ Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查�
 - 2026-09-29，WebTrace 与 Hub 均通过各自的 `npm --prefix frontend run publish -- <project>` 完成 Git 同步、生产构建、OSS 静态资源上传和 SSH/rsync HTML 发布。公网读取三个 WebTrace 页面、Hub 首页与作品列表及 9 个静态资源，均为 HTTP 200，内容与本地发布产物逐字节一致；新版趋势文案、中英隐私政策、截图和 Hub 介绍已生效。
 - 同日使用隔离 Playwright Chromium `151.0.7922.34` 在 1280×800 和 390×844 视口验证上述五个页面，新文案、政策更新日期、截图、标题与链接正确，无横向溢出、图片加载失败、控制台错误或警告。Hub Track 请求被浏览器拦截并模拟 `204`，未写入生产事件，本次未验证生产 Track 接收端。网络超时与身份认证错误的排查顺序见[运行手册](../../RUNBOOK.md#ssh-连接超时)。
 - 私有台账记录的 Track 四字段生产切换与验收日期为 2026-08-16。
-- 2026-08-19，`/shotmarker/`、`/shotmarker/privacy`、`/shotmarker/support`、`/shotmarker/how-to` 及当次 HTML 引用的 JS、CSS 和已完成任务截图经公网只读验证为 HTTP 200。
-- 2026-08-20，`/shotmarker/` 已对齐为与 `/shotmarker/how-to` 相同的使用说明，原始 HTML 的默认标题和描述也已同步；独立 Support 和 Privacy 路由保持正常，四个路由在 390×844 视口均无横向溢出且浏览器控制台无错误或警告。
+- 2026-09-29，ShotMarker 通过 `npm --prefix frontend run publish -- shotmarker` 完成 Git 同步、构建、8 个 OSS 静态资源上传和 HTML 发布；只发布该前端，没有修改生产基础设施或写入 Track 数据。四个页面和全部 8 个静态资源经公网 GET 确认为 HTTP 200，且与本地产物逐字节一致；Chrome 中确认首页、支持和隐私页显示 1.3 文案。使用旧 HTML 缓存的首页在强制刷新后更新。官网配图仍是已标注的旧版示意，未替换为 1.3 截图。详情见[发布记录](../archive/2026-09/2026-09-29-shotmarker-content-release.md)。
 - 2026-08-20，Hub 的 ShotMarker 作品卡已改为产品名称与产品用途描述，并链接 `/shotmarker/`；`/hub/`、当次 JS/CSS、封面和图标均为 HTTP 200，390×844 视口无横向溢出且浏览器控制台无错误或警告。
 - 其余线上入口、生产配置、App Store 和 TestFlight 未在本次发布中重新验证。
 - 真实 Release/TestFlight ShotMarker 事件上报仍未确认。

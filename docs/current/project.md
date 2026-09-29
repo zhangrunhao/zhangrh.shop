@@ -1,6 +1,6 @@
 # 项目与组件
 
-`zhangrh.shop` 是个人主页与独立项目的公开代码仓库，包含五个 Vite 前端和一个 Node/Express 后端。2026-09-29 WebTrace 页面、Hub 作品卡、中英隐私政策和产品截图已对齐扩展的双线图与历史周切换并发布；公网资源一致性及桌面、手机宽度下的浏览器验证通过。
+`zhangrh.shop` 是个人主页与独立项目的公开代码仓库，包含五个 Vite 前端和一个 Node/Express 后端。2026-09-29 已发布 ShotMarker 1.3 的产品、支持与隐私文案，以及 WebTrace 双线图与历史周切换的公开说明；各自的验证范围见下文。
 
 ## 当前范围（实现事实）
 
@@ -25,13 +25,14 @@
 
 ## ShotMarker 公开内容（实现事实）
 
-- `/shotmarker/support`、`/shotmarker/privacy` 和 `/shotmarker/how-to` 于 2026-08-19 按 ShotMarker main / `41bfda2`（产品代码基线 `42c249a`）重新核对。
-- 从公开仓库 revision `1da28f6` 起，`/shotmarker/` 与 `/shotmarker/how-to` 都渲染产品介绍和使用说明；`/shotmarker/support` 继续独立渲染支持页。
-- 从 revision `0f2b584` 起，ShotMarker 初始 HTML 的默认标题和描述也与 How-to 一致；客户端挂载后仍按具体路由更新元数据。
-- 从 revision `ecd758c` 起，Hub 的作品卡使用名称 `ShotMarker`、描述“训练时用 Apple Watch 给精彩投篮打点，结束后在 iPhone 上把训练视频整理成集锦。”，并链接 `https://zhangrh.shop/shotmarker/`。
-- 隐私页分别说明第一方产品 Analytics、Sentry SDK 到开发者自管 GlitchTip 的错误与崩溃上报，以及完整本地诊断日志；其中按 Sentry Cocoa 9.26.0 的发送前处理披露 SDK 技术上下文、独立安装范围标识和源 IP 保留未核验边界。支持页记录标题长按诊断导出和 App 内 iCloud 视频准备；使用说明记录持久化集锦任务和启动后中断恢复。
-- 使用说明中的已完成任务截图来自仅含合成预览数据的临时模拟器，不含真实用户数据。
-- 上述内容于 2026-08-19 从 revision `42d21e7` 发布，根入口路由在 2026-08-20 从 revision `1da28f6` 起对齐，默认 HTML 元数据随后从 revision `0f2b584` 起对齐并重新发布；最近一次公网只读验证确认四个 ShotMarker 路由及页面引用资源均为 HTTP 200，根路径原始 HTML 和生产 DOM 均指向使用说明，独立 Support 与 Privacy 页面正常，浏览器控制台没有错误或警告。该验证不覆盖 App Store、TestFlight、真实 App Analytics 或 GlitchTip 上报链路。
+- `/shotmarker/` 与 `/shotmarker/how-to` 都渲染产品介绍和使用说明；`/shotmarker/support` 与 `/shotmarker/privacy` 分别提供独立支持和中英隐私页面。初始 HTML 的默认标题和描述与使用说明一致，客户端按具体路由更新元数据。
+- 2026-09-29 按 ShotMarker 1.3 当前代码同步公开文案：从训练选择视频与默认时长、调整序数样式，到保存可编辑任务、逐片段预览和调整范围、确认保留或排除、生成和保存成片。
+- 使用说明与支持 FAQ 明确生成需保持前台；进入后台会停止排队及运行中的生成，之后需手动重新生成。停止、失败或编辑保留任务及已有成片，重新生成成功后才替换；“当前成片不包含最新修改”说明旧成片尚未包含编辑结果。
+- 首页显著提示 1.3 首次升级会清理旧的 App 本地数据且不自动迁移，建议提前将需要保留的成片保存到系统相册。支持和中英隐私页同步清理范围，并区分不受影响的系统照片库、HealthKit 和 App 外导出文件，以及之后正常保留的新数据。页面说明具体可用版本以 App Store 为准。
+- 隐私页继续区分第一方产品 Analytics、Sentry Cocoa 9.26.0 到开发者自管 GlitchTip 的精简错误与崩溃上报，以及主动分享的完整本地诊断日志；保留 SDK 技术上下文、独立安装范围标识和源 IP 保留未核验边界。此次文案同步不增加数据采集；原生效日期保持 2026-08-19，最后更新为 2026-09-29。
+- 官网配图仍是旧版基础操作示意，页面已显著标注；尚未替换为 1.3 截图。已完成任务截图来自仅含合成预览数据的临时模拟器。
+- Hub 的作品卡使用名称 `ShotMarker`、描述“训练时用 Apple Watch 给精彩投篮打点，结束后在 iPhone 上把训练视频整理成集锦。”，并链接默认产品入口。
+- 2026-09-29 发布后，四个 ShotMarker 路由和全部 8 个静态资源均返回 HTTP 200，内容与本地发布产物逐字节一致；Chrome 确认首页、支持和隐私页的新文案。桌面及 390×844 本地预览核对了排版；本次不包含 App 实机功能或生产上报链路验证。详情见[发布记录](../archive/2026-09/2026-09-29-shotmarker-content-release.md)。
 
 ## 组件边界（实现事实）
 

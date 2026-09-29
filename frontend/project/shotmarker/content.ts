@@ -5,8 +5,11 @@ export const PRIVACY_PATH = "/shotmarker/privacy";
 export const HOW_TO_PATH = "/shotmarker/how-to";
 export const ZHANGRH_SHOP_URL = "https://zhangrh.shop/hub/";
 export const EFFECTIVE_DATE = "August 19, 2026";
-export const LAST_UPDATED = "2026-08-19";
+export const LAST_UPDATED = "2026-09-29";
 export const DEVELOPER = "Rain / ShotMarker";
+export const VERSION_NOTICE = "以下介绍适用于 ShotMarker 1.3；具体可用版本以 App Store 为准。";
+export const UPGRADE_NOTICE_ZH = "升级到 1.3 后首次启动，会清理 iPhone 和 Apple Watch 中 ShotMarker 的旧训练与打点、集锦任务、片段确认、App 内视频副本和成片、待同步数据、缓存、日志及设置，不提供自动迁移。请在升级前将需要保留的成片保存到系统相册。系统照片库、HealthKit 数据和 App 外导出文件不受影响；此后创建的新数据正常保留。";
+export const UPGRADE_NOTICE_EN = "On first launch after upgrading to 1.3, ShotMarker clears old local training records and markers, highlight tasks, clip reviews, in-app video copies and highlights, pending sync data, caches, logs, and settings on iPhone and Apple Watch. There is no automatic migration. Before updating, save any highlights you want to keep to Photos. Your system photo library, HealthKit data, and files exported outside the app are not affected. New data is retained on subsequent launches.";
 
 export type HowToRelatedLink = {
   title: string;
@@ -71,10 +74,10 @@ export type ShotMarkerPage = {
 
 export const howToPage: ShotMarkerPage = {
   title: "ShotMarker 使用说明",
-  description: "ShotMarker Apple Watch 和 iPhone 使用说明。",
-  muted: "Apple Watch + iPhone",
-  summary: "训练时打点，结束后把投篮视频整理成集锦。",
-  summaryZh: "只记住三步：手表打点、选择记录、生成集锦。",
+  description: "ShotMarker 1.3：Apple Watch 训练打点，iPhone 逐片段预览和调整，保存可继续编辑的集锦任务。",
+  muted: "Apple Watch + iPhone · 1.3 使用说明",
+  summary: "记下好球，逐段调整，留下自己的训练集锦。",
+  summaryZh: "手表打点 → 选择训练视频 → 审核片段并生成。任务可以保存，之后继续编辑。",
   sections: [
     {
       id: "watch-markers",
@@ -92,27 +95,40 @@ export const howToPage: ShotMarkerPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "训练结束后，记录会同步到 iPhone。找到对应日期和时间，点进这次训练。",
+          text: "训练结束后，记录会同步到 iPhone。找到对应日期和时间，点进这次训练，选择拍摄时间覆盖打点的视频。可以选择多个视频，并调整视频顺序。",
+        },
+        {
+          kind: "paragraph",
+          text: "设置默认剪辑时长，展开“样式调整”，预览并调整片段序数的位置、字号、文字和背景透明度。点击“下一步：审核片段”后，App 会保存一个独立的集锦任务。",
         },
       ],
     },
     {
       id: "generate-highlight",
-      title: "选择视频，生成集锦",
+      title: "审核片段，生成集锦",
       blocks: [
         {
           kind: "paragraph",
-          text: "选择这次训练拍下的视频。确认可剪辑打点后，点“生成集锦”。App 会创建持久化队列任务并返回首页；任务在 App 进程内串行执行，不保证退出 App 或锁屏后仍由系统后台持续运行。",
+          text: "在片段图集中查看自动匹配的结果。可以直接使用默认范围，也可以预览每个片段、调整起止时间，确认保留或排除；确认后会继续打开后续尚未确认的片段。",
         },
         {
           kind: "paragraph",
-          text: "首页“集锦任务”区域会显示排队、处理中、完成、失败或中断状态。完成后可以播放、重复尝试保存到系统相册或删除任务；失败或中断任务可以重新开始，可取消的任务可以取消。保存到相册和生成完成是两个独立动作。",
+          text: "点“生成视频”后返回首页，任务会排队并依次生成。请保持 App 在前台；进入后台会停止生成，稍后可手动重新生成，不会自动继续。生成完成后可以播放，或保存到系统相册。保存到相册和生成完成是两个独立动作。",
         },
         {
           kind: "paragraph",
-          text: "App 再次启动时，遗留的排队、运行或保存中任务会标记为中断，你可以回到首页重新开始。",
+          text: "从首页重新打开“集锦任务”，可以继续调整视频、默认时长、序数样式和片段。停止、生成失败或退出审核都不会删除任务；已有成片会保留，重新生成成功后才替换。",
+        },
+        {
+          kind: "paragraph",
+          text: "修改后出现“当前成片不包含最新修改”时，播放的仍是之前的成片。重新生成后即可看到新效果。删除任务会清理任务的 App 内视频文件，不影响系统相册中已经保存的视频。",
         },
       ],
+    },
+    {
+      id: "upgrade",
+      title: "升级到 1.3 前，请先保存需要保留的成片",
+      blocks: [{ kind: "paragraph", text: UPGRADE_NOTICE_ZH }],
     },
     {
       id: "tips",
@@ -123,7 +139,10 @@ export const howToPage: ShotMarkerPage = {
           items: [
             "视频要对得上训练时间，应用会按时间自动匹配打点。",
             "默认保留打点前 9 秒、打点后 4 秒，剪辑范围可以调整。",
-            "不用手动拖进度条，ShotMarker 会把有效打点整理成一条集锦。",
+            "可以使用默认片段直接生成，也可以逐段调整起止时间、确认保留或排除。",
+            "序数标识的位置、字号、文字与背景透明度都可以调整。",
+            "任务保存后可随时继续编辑；修改期间保留旧成片，重新生成成功后再替换。",
+            "生成时保持 App 在前台；进入后台会停止，之后需要手动重新生成。",
           ],
         },
       ],
@@ -352,11 +371,11 @@ export const privacyPage: ShotMarkerPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "Training sessions, clip settings, Watch sync outbox data, the installation identifier, and local diagnostic logs are stored on your devices. A persistent highlight job also stores a training snapshot, video local identifier, clip settings, status, error state, and output path.",
+          text: "Training sessions, clip settings, Watch sync outbox data, the installation identifier, and local diagnostic logs are stored on your devices. A saved highlight task also stores a training snapshot, video local identifier, selected video order, label style, clip ranges and keep/exclude decisions, generation status, error state, and output path.",
         },
         {
           kind: "paragraph",
-          text: "When PhotosPicker cannot keep a reusable photo-library reference, ShotMarker stores a required input copy in the app sandbox for the persistent job. A completed job keeps its local output video in the app sandbox until the job is cancelled or deleted. Cancelling or deleting a highlight job removes its corresponding job files. Deleting the app removes data in the app sandbox and UserDefaults.",
+          text: "When PhotosPicker cannot keep a reusable photo-library reference, ShotMarker stores a required input copy in the app sandbox for the saved task. Stopping generation keeps the task and any existing local output video. Editing a task keeps the previous output until a replacement is generated successfully. Deleting a highlight task removes its corresponding task files. Deleting the app removes data in the app sandbox and UserDefaults.",
         },
         {
           kind: "paragraph",
@@ -369,12 +388,12 @@ export const privacyPage: ShotMarkerPage = {
         {
           kind: "paragraph",
           className: "language-block",
-          text: "训练记录、剪辑设置、Watch 同步 outbox、安装标识和本地诊断日志保存在设备上。持久化集锦任务还会保存训练快照、视频本地标识、剪辑设置、状态、错误状态和输出路径。",
+          text: "训练记录、剪辑设置、Watch 同步 outbox、安装标识和本地诊断日志保存在设备上。集锦任务还会保存训练快照、视频本地标识与顺序、序数样式、片段范围及保留/排除决定、生成状态、错误状态和输出路径。",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "当 PhotosPicker 无法保持可复用的照片库引用时，ShotMarker 会为持久任务在 App 沙盒保存必要输入副本；完成的任务会把本地输出视频保留在 App 沙盒。取消或删除集锦任务会移除对应任务文件；删除 App 会移除 App 沙盒和 UserDefaults 中的数据。",
+          text: "当 PhotosPicker 无法保持可复用的照片库引用时，ShotMarker 会为任务在 App 沙盒保存必要输入副本。停止生成会保留任务和已有本地输出视频；编辑任务时保留旧成片，重新生成成功后才替换。删除集锦任务会移除对应任务文件；删除 App 会移除 App 沙盒和 UserDefaults 中的数据。",
         },
         {
           kind: "paragraph",
@@ -404,6 +423,16 @@ export const privacyPage: ShotMarkerPage = {
           className: "language-block",
           text: "卸载并重新安装 ShotMarker 会重置本地安装标识符，但不会立即删除此前的服务器事件。公开聚合查询不会返回原始安装标识符。",
         },
+      ],
+    },
+    {
+      id: "version-1-3-upgrade",
+      title: "Version 1.3 Local Data Upgrade / 1.3 本地数据升级",
+      blocks: [
+        { kind: "paragraph", text: UPGRADE_NOTICE_EN },
+        { kind: "paragraph", text: "This reset also prevents pre-upgrade Watch records from being imported again. New training sessions can sync normally. The reset does not delete prior server analytics or diagnostic reports." },
+        { kind: "paragraph", className: "language-block", text: UPGRADE_NOTICE_ZH },
+        { kind: "paragraph", className: "language-block", text: "升级清理也会阻止旧 Watch 记录再次导入；新训练可以正常同步。本地清理不会删除此前服务器上的分析事件或诊断报告。" },
       ],
     },
     {
@@ -454,12 +483,12 @@ export const privacyPage: ShotMarkerPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "This Privacy Policy may be updated when ShotMarker's features or data practices change. The updated version will be posted on this page with a new effective date.",
+          text: "This Privacy Policy may be updated when ShotMarker's features or data practices change. The last-updated date is shown below. The September 29, 2026 update describes editable tasks and the local data reset that applies when upgrading to version 1.3; it does not add new analytics or diagnostic collection.",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "如果 ShotMarker 的功能或数据实践发生变化，本隐私政策可能会更新。更新后的版本会发布在本页面，并标明新的生效日期。",
+          text: "如果 ShotMarker 的功能或数据实践发生变化，本隐私政策会相应更新，并在页尾标明最后更新日期。2026 年 9 月 29 日的更新补充了可编辑任务和升级到 1.3 时的本地清理说明，没有增加新的分析或诊断采集。",
         },
       ],
     },
@@ -497,11 +526,11 @@ export const privacyPage: ShotMarkerPage = {
 export const supportPage: ShotMarkerPage = {
   title: "ShotMarker Support",
   description: "Support information and FAQ for ShotMarker.",
-  muted: "ShotMarker 支持",
+  muted: "ShotMarker 支持 · 含 1.3 使用说明",
   summary:
-    "ShotMarker is a basketball training helper app. It lets you mark moments on Apple Watch during training, sync those markers to iPhone, select training videos, and generate highlight clips.",
+    "ShotMarker helps you turn basketball training videos into highlights using Apple Watch markers. Version 1.3 adds editable tasks, clip previews and trimming, keep/exclude decisions, and customizable clip number labels. Available versions are shown in the App Store.",
   summaryZh:
-    "ShotMarker 是一个篮球训练辅助 App。你可以在 Apple Watch 上训练打点，结束后同步到 iPhone，选择对应训练视频，并自动生成集锦。",
+    "ShotMarker 帮你用 Apple Watch 打点，把篮球训练视频整理成集锦。1.3 支持保存并继续编辑任务、逐片段预览和范围调整、保留/排除，以及自定义序数样式。具体可用版本以 App Store 为准。",
   sections: [
     {
       id: "contact",
@@ -615,7 +644,16 @@ export const supportPage: ShotMarkerPage = {
           className: "language-block",
           text: "在 iPhone 打开 ShotMarker 首页，长按页面中央导航标题“训练记录”5 秒，在“是否导出诊断日志？”提示中选择“导出”，再通过系统分享面板决定是否把生成的诊断文件发送给支持邮箱。右上角向下和向上箭头用于导入和导出训练记录，不是诊断日志入口。完整诊断文件只有你选择分享时才会交给开发者；自动发送的 GlitchTip 精简错误属于另一条链路，详见隐私政策。",
         },
-        { kind: "heading", text: "7. How should I report a problem or suggestion?" },
+        { kind: "heading", text: "7. Can I edit a saved highlight task in 1.3?" },
+        { kind: "paragraph", text: "Yes. Open the task from the home screen, change videos, default clip durations or number-label style, then tap “下一步：审核片段”. You can preview and trim clips and confirm which ones to keep or exclude. Your previous highlight is kept until a new one is generated successfully." },
+        { kind: "paragraph", className: "language-block", text: "可以。从首页打开集锦任务，调整视频、默认时长或序数样式，再点“下一步：审核片段”。可以预览并调整片段范围，确认保留或排除。旧成片会保留，重新生成成功后才替换；“当前成片不包含最新修改”表示需要重新生成才能看到修改效果。" },
+        { kind: "heading", text: "8. Why did generation stop in 1.3?" },
+        { kind: "paragraph", text: "Keep the app in the foreground while generating. Entering the background stops queued and running generation. After an unexpected exit, unfinished generation is marked as stopped. The task and any previous output remain available, but generation does not resume automatically. Reopen the task and restart manually; if you changed its settings, review the clips again before generating." },
+        { kind: "paragraph", className: "language-block", text: "生成时请保持 App 在前台。进入后台会停止排队和正在进行的生成；异常退出后的未完成生成也会标记为已停止。任务和已有成片会保留，但不会自动继续。重新打开任务后手动重新生成；若修改了设置，先重新进入片段审核。" },
+        { kind: "heading", text: "9. What should I save before upgrading to 1.3?" },
+        { kind: "paragraph", text: UPGRADE_NOTICE_EN },
+        { kind: "paragraph", className: "language-block", text: UPGRADE_NOTICE_ZH },
+        { kind: "heading", text: "10. How should I report a problem or suggestion?" },
         {
           kind: "email",
           text: `Email ${CONTACT_EMAIL}. If possible, include your app version, iPhone model, Apple Watch model, iOS version, watchOS version, screenshots, and diagnostic logs.`,

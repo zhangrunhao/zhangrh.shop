@@ -185,9 +185,15 @@ test("privacy page documents highlight job and deletion boundaries", () => {
 
   assert.match(
     text,
-    /Cancelling or deleting a highlight job removes its corresponding job files/,
+    /Deleting a highlight task removes its corresponding task files/,
   );
-  assert.match(text, /取消或删除集锦任务会移除对应任务文件/);
+  assert.match(text, /删除集锦任务会移除对应任务文件/);
+  assert.match(text, /Stopping generation keeps the task and any existing local output video/);
+  assert.match(text, /停止生成会保留任务和已有本地输出视频/);
+  assert.match(text, /There is no automatic migration/);
+  assert.match(text, /不提供自动迁移/);
+  assert.match(text, /New data is retained on subsequent launches/);
+  assert.match(text, /此后创建的新数据正常保留/);
   assert.match(
     text,
     /Deleting the app removes data in the app sandbox and UserDefaults/,
@@ -214,7 +220,7 @@ test("privacy page documents the first-party analytics contract", () => {
   const text = pageText(privacyPage);
 
   assert.equal(privacyPage.muted, "Effective date: August 19, 2026");
-  assert.equal(LAST_UPDATED, "2026-08-19");
+  assert.equal(LAST_UPDATED, "2026-09-29");
   assert.match(text, /random 12-character installation identifier/);
   assert.match(
     text,
@@ -374,34 +380,36 @@ test("how-to page contains the core Chinese usage flow", () => {
   assert.equal(howToPage.title, "ShotMarker 使用说明");
   assert.match(text, /用 Apple Watch 给好球打点/);
   assert.match(text, /打开 iPhone 里的训练记录/);
-  assert.match(text, /选择视频，生成集锦/);
+  assert.match(text, /审核片段，生成集锦/);
   assert.match(text, /双击按钮或转动数码表冠/);
 });
 
-test("how-to page documents persistent highlight jobs and launch recovery", () => {
+test("how-to page documents editable tasks and explicit generation restart", () => {
   const text = pageText(howToPage);
 
   for (const phrase of [
-    "持久化队列任务",
+    "独立的集锦任务",
     "返回首页",
     "集锦任务",
     "排队",
-    "处理中",
     "完成",
     "失败",
-    "中断",
     "播放",
     "保存到系统相册",
     "删除任务",
-    "重新开始",
-    "取消",
+    "重新生成",
+    "下一步：审核片段",
+    "确认保留或排除",
+    "背景透明度",
+    "不提供自动迁移",
   ]) {
     assert.match(text, new RegExp(phrase));
   }
 
   assert.match(text, /保存到相册和生成完成是两个独立动作/);
-  assert.match(text, /遗留的排队、运行或保存中任务会标记为中断/);
-  assert.match(text, /不保证退出 App 或锁屏后仍由系统后台持续运行/);
+  assert.match(text, /进入后台会停止生成/);
+  assert.match(text, /不会自动继续/);
+  assert.match(text, /已有成片会保留，重新生成成功后才替换/);
   assert.doesNotMatch(text, /退出 App 后会继续在后台生成/);
 });
 

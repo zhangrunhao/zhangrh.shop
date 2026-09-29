@@ -8,6 +8,7 @@ import {
   LAST_UPDATED,
   privacyPage,
   supportPage,
+  VERSION_NOTICE,
   type ContentBlock,
   type ShotMarkerPage,
 } from "./content";
@@ -99,6 +100,7 @@ const ContentPage = ({ page }: { page: ShotMarkerPage }) => (
 
 const HOW_TO_STEPS = howToPage.sections.slice(0, 3);
 const HOW_TO_TIPS = howToPage.sections.find((section) => section.id === "tips");
+const HOW_TO_UPGRADE = howToPage.sections.find((section) => section.id === "upgrade");
 
 const stepVisuals = [
   {
@@ -135,6 +137,7 @@ export const HowToPage = () => (
               <span key={step.id}>{step.title.replace(/^用 |^打开 |^选择 /, "")}</span>
             ))}
           </div>
+          <p className="how-to-version-note">{VERSION_NOTICE}</p>
         </div>
 
         <div className="how-to-device-stage" aria-label="ShotMarker 产品截图">
@@ -143,7 +146,15 @@ export const HowToPage = () => (
           <img className="how-to-watch" src={appleWatchImage} alt="Apple Watch 训练打点页面" />
         </div>
       </div>
+      <p className="how-to-image-note">配图为旧版基础操作示意；1.3 的新增功能与操作步骤见下文。</p>
     </section>
+
+    {HOW_TO_UPGRADE ? (
+      <section className="how-to-upgrade" aria-labelledby="how-to-upgrade-title">
+        <h2 id="how-to-upgrade-title">{HOW_TO_UPGRADE.title}</h2>
+        {HOW_TO_UPGRADE.blocks.map((block, index) => <Block key={index} block={block} />)}
+      </section>
+    ) : null}
 
     <section className="how-to-steps" aria-labelledby="how-to-steps-title">
       <div className="how-to-section-title">
