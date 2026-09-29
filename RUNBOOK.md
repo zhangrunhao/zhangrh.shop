@@ -52,8 +52,23 @@ npm --prefix backend test
 ## 发布前提
 
 - 本机可通过 SSH 访问 `zhangrh.shop`，并已安装 `rsync`。
+- 更换公司、家庭、热点或 VPN 网络后，先按下方 SSH 排查步骤核对当前公网出口 IP 的访问授权。
 - 发布前端前设置 `OSS_ACCESS_KEY_ID` 和 `OSS_ACCESS_KEY_SECRET`。
 - 前端发布脚本首先执行 `git pull`；运行前确认当前分支和工作区允许拉取远端更新。
+
+### SSH 连接超时
+
+发布时，如果 Git 拉取、构建或 OSS 上传正常，但连接 `zhangrh.shop:22` 超时，**优先检查阿里云安全组是否允许当前网络的公网出口 IP 访问 TCP 22 端口**。这是此类故障的首要排查项，原因仍需按当次连接结果确认。
+
+1. 确认当前 SSH 连接实际使用的公网出口 IP；公司内网 IP 不能作为公网来源，切换网络、VPN 或代理后需重新核对出口。
+2. 检查发布服务器实例绑定的阿里云安全组，其入方向 TCP 22 规则的授权来源应包含该公网出口 IP，按实际需要放行对应来源。
+3. 授权更新后先执行下面的 SSH 连通检查；成功后再运行原有发布命令。
+
+```bash
+ssh -o BatchMode=yes -o ConnectTimeout=10 root@zhangrh.shop true
+```
+
+如果当前出口已获授权仍超时，再检查连接路径、代理和服务器 SSH 服务。若返回 `Permission denied`，则已进入身份认证阶段，应检查 SSH 用户、密钥或 Agent。具体生产规则和来源地址由私有台账维护，不写入本手册。
 
 ## 埋点趋势查询
 

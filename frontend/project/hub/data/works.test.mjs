@@ -136,7 +136,7 @@ test("works data uses the Hub work contract", () => {
     id: "20260903_webtrace",
     name: "WebTrace",
     summary:
-      "在本机记录指定网站的打开次数与有效使用时长，用最近 14 天趋势看清注意力去向。",
+      "在本机记录指定网站的打开次数与有效使用时长，按周回看 14 天双线趋势和访问明细。",
     link: "https://zhangrh.shop/webtrace/",
     coverImage: "works/20260903_webtrace/cover.webp",
     status: "active",

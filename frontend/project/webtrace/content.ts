@@ -5,7 +5,7 @@ export const SUPPORT_PATH = "/webtrace/support";
 export const PRIVACY_PATH = "/webtrace/privacy";
 export const ZHANGRH_SHOP_URL = "https://zhangrh.shop/hub/";
 export const EFFECTIVE_DATE = "September 3, 2026";
-export const LAST_UPDATED = "2026-09-03";
+export const LAST_UPDATED = "2026-09-29";
 
 export type ContentBlock =
   | { kind: "paragraph"; text: string; className?: string }
@@ -44,10 +44,10 @@ export type ContentPage = {
 
 export const homeContent = {
   title: "WebTrace - 网站时间追踪器",
-  description: "WebTrace 在本机统计你配置的网站打开次数与有效观看时长，并展示最近 14 天趋势和访问明细。",
+  description: "WebTrace 在本机统计你配置的网站打开次数与有效观看时长，提供可按周回看的 14 天双线趋势和访问明细。",
   eyebrow: "本地优先的网站时间追踪器",
   headline: "看见时间去了哪里，数据仍留在你的电脑里。",
-  lead: "WebTrace 帮你统计主动配置的网站每天打开了多少次、真正查看了多久，并在一个清晰的分析页里呈现最近 14 天趋势。",
+  lead: "WebTrace 帮你统计主动配置的网站每天打开了多少次、真正查看了多久。两项指标在同一张图中展示，默认展示最近 14 天，支持按周回看更早记录。",
   privacyCallout: {
     title: "只记录必要信息，只保存在本机",
     text: "WebTrace 只记录你主动配置的网站名称和可注册主域名、打开时间、结束时间和有效观看时长。这些数据全部仅保存在本机的当前 Chrome 配置文件中；不上传、不出售、不用于广告，也不与第三方共享。",
@@ -63,7 +63,7 @@ export const homeContent = {
     },
     {
       title: "查看统计",
-      text: "点击工具栏图标，查看今日概览、最近 14 天趋势，以及按打开日期归属的逐次访问明细。",
+      text: "点击工具栏图标，查看今日概览和双线趋势；默认展示最近 14 天，支持按周回看更早记录。点击数据点可查看对应打开日期的逐次访问明细。",
     },
   ],
   measurement: [
@@ -84,7 +84,9 @@ export const homeContent = {
   },
   features: [
     "今日打开次数与有效使用时长",
-    "固定最近 14 天的两张趋势图",
+    "打开次数与有效时长同图展示，每屏 14 天",
+    "每次前后移动一周，一键回到最新",
+    "悬停高亮对应指标与每日数值，浮层显示完整日期",
     "按打开日期查看逐次访问明细",
     "多个网站与长按拖动排序",
     "按网站永久删除访问历史",
@@ -152,7 +154,10 @@ export const supportPage: ContentPage = {
           kind: "list",
           items: [
             "今日概览始终显示所选网站今天的打开次数和有效观看时长。",
-            "两张趋势图固定显示今天及此前 13 个本地日；更早记录仍保存在本机，但当前页面不展示。",
+            "打开次数与有效观看时长在同一张图中展示，分别使用左右纵轴；默认展示最近 14 天，支持按周回看更早记录。",
+            "点击“前一周”或“后一周”，每次移动 7 个本地日，每屏仍显示 14 天；回看历史时可用“后一周”和“回到最新”，到达最新窗口后这两个按钮不可用。",
+            "悬停折线、数据点或图例时，对应指标及每天数值高亮；图例和数据点也可通过键盘聚焦。日期浮层只显示完整日期。",
+            "点击数据点可查看该日期的访问明细；“回到最新”会选中今天。切换趋势窗口不会删除更早记录。",
             "访问明细按打开日期归属；跨午夜时长会拆分到趋势中的对应日期。",
             "鼠标长按网站后拖动，或在触摸设备上长按右侧把手，即可调整并保存网站顺序。",
           ],
@@ -209,7 +214,7 @@ export const supportPage: ContentPage = {
 export const privacyPage: ContentPage = {
   title: "WebTrace Privacy Policy / 隐私政策",
   description: "WebTrace 隐私政策：本机数据、用途、保留、删除、不共享与权限说明。",
-  eyebrow: `Effective ${EFFECTIVE_DATE} · 生效日期 2026-09-03`,
+  eyebrow: `Effective ${EFFECTIVE_DATE} · 生效日期 2026-09-03 · Last updated / 最后更新 ${LAST_UPDATED}`,
   intro: "WebTrace is a local-only website time tracker. Its extension data stays in the current Chrome profile on your device and is not sent to the developer, zhangrh.shop, or third parties.",
   introSecondary: "WebTrace 是一个仅在本机处理数据的网站时间追踪器。扩展数据保存在你设备的当前 Chrome 配置文件中，不发送给开发者、zhangrh.shop 或第三方。",
   sections: [
@@ -258,12 +263,12 @@ export const privacyPage: ContentPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "The data is used only to show opening counts and active viewing duration for websites you configure, today's summary, the most recent 14-day trends, per-visit details, site ordering, and crash-safe local recovery.",
+          text: "The data is used only to show opening counts and active viewing duration for websites you configure, today's summary, historical trends, per-visit details, site ordering, and crash-safe local recovery. Trends show the most recent 14 days by default and let you browse older records one week at a time.",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "这些数据仅用于展示你配置网站的打开次数和有效观看时长、今日概览、最近 14 天趋势、逐次访问明细、网站顺序，以及异常退出后的本地恢复。",
+          text: "这些数据仅用于展示你配置网站的打开次数和有效观看时长、今日概览、历史趋势、逐次访问明细、网站顺序，以及异常退出后的本地恢复。趋势默认展示最近 14 天，支持按周回看更早记录。",
         },
       ],
     },
@@ -288,12 +293,12 @@ export const privacyPage: ContentPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "Visit records are retained indefinitely by default and have no automatic expiration. Showing only the most recent 14 days does not delete older records. You can permanently delete visit history for one configured website from Manage Sites; this cannot be undone, but the website configuration remains and tracking continues. Uninstalling WebTrace removes the extension data that Chrome stores for it.",
+          text: "Visit records are retained indefinitely by default and have no automatic expiration. Trends show the most recent 14 days by default and let you browse older records one week at a time. Moving the displayed window does not delete stored records. You can permanently delete visit history for one configured website from Manage Sites; this cannot be undone, but the website configuration remains and tracking continues. Uninstalling WebTrace removes the extension data that Chrome stores for it.",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "访问记录默认长期保留，没有自动过期。页面只展示最近 14 天不等于删除更早记录。你可以在“管理网站”中按网站永久删除访问历史；操作不可撤销，但删除历史会保留网站配置并继续统计。卸载 WebTrace 会移除 Chrome 为该扩展保存的本地数据。",
+          text: "访问记录默认长期保留，没有自动过期。趋势默认展示最近 14 天，支持按周回看更早记录；切换展示窗口不会删除已保存的数据。你可以在“管理网站”中按网站永久删除访问历史；操作不可撤销，但删除历史会保留网站配置并继续统计。卸载 WebTrace 会移除 Chrome 为该扩展保存的本地数据。",
         },
         {
           kind: "paragraph",

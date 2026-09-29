@@ -44,7 +44,7 @@ test("WebTrace home renders one product heading, real screenshot, and stable lin
     assert.match(html, /全部仅保存在本机/);
     assert.match(html, /class="[^"]*steps-grid[^"]*"/);
     assert.match(html, /src="[^"]*webtrace-dashboard\.png"/);
-    assert.match(html, /alt="WebTrace 分析页，展示合成网站数据和最近 14 天趋势"/);
+    assert.match(html, /alt="WebTrace 分析页，展示合成网站数据、14 天双线趋势和按周浏览按钮"/);
     assert.match(html, /href="\/webtrace\/support"/);
     assert.match(html, /href="\/webtrace\/privacy"/);
     assert.match(html, /href="https:\/\/zhangrh\.shop\/hub\/"/);
@@ -76,7 +76,7 @@ test("WebTrace privacy renders equivalent English and Chinese policy sections", 
     assert.match(html, /全部仅保存在你设备的当前 Chrome 配置文件中/);
     assert.match(html, /Chrome Web Store User Data Policy/);
     assert.match(html, /Limited Use requirements/);
-    assert.match(html, /Last updated: 2026-09-03/);
+    assert.match(html, /Last updated: 2026-09-29/);
   });
 });
 

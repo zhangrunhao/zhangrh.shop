@@ -21,7 +21,7 @@ test("WebTrace default metadata and resources are local", async () => {
   assert.match(html, /<title>WebTrace - 网站时间追踪器<\/title>/);
   assert.match(
     html,
-    /name="description"\s+content="WebTrace 在本机记录已配置网站的打开次数与有效观看时长。"/,
+    /name="description"\s+content="WebTrace 在本机统计你配置的网站打开次数与有效观看时长，提供可按周回看的 14 天双线趋势和访问明细。"/,
   );
   assert.match(html, /rel="icon"[^>]*href="\.\/assets\/icon-128\.png"/);
   assert.doesNotMatch(html, /<(?:script|link|img)\b[^>]*(?:src|href)="https?:\/\//i);

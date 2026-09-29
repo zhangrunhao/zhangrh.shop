@@ -118,7 +118,7 @@ export const HomePage = () => (
           </div>
           <img
             src={dashboardImage}
-            alt="WebTrace 分析页，展示合成网站数据和最近 14 天趋势"
+            alt="WebTrace 分析页，展示合成网站数据、14 天双线趋势和按周浏览按钮"
           />
           <figcaption>真实扩展界面 · 纯合成演示数据</figcaption>
         </figure>

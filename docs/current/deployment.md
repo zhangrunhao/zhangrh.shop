@@ -46,12 +46,12 @@ Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查�
 
 ## 外部状态（带日期事实）
 
+- 2026-09-29，WebTrace 与 Hub 均通过各自的 `npm --prefix frontend run publish -- <project>` 完成 Git 同步、生产构建、OSS 静态资源上传和 SSH/rsync HTML 发布。公网读取三个 WebTrace 页面、Hub 首页与作品列表及 9 个静态资源，均为 HTTP 200，内容与本地发布产物逐字节一致；新版趋势文案、中英隐私政策、截图和 Hub 介绍已生效。
+- 同日使用隔离 Playwright Chromium `151.0.7922.34` 在 1280×800 和 390×844 视口验证上述五个页面，新文案、政策更新日期、截图、标题与链接正确，无横向溢出、图片加载失败、控制台错误或警告。Hub Track 请求被浏览器拦截并模拟 `204`，未写入生产事件，本次未验证生产 Track 接收端。网络超时与身份认证错误的排查顺序见[运行手册](../../RUNBOOK.md#ssh-连接超时)。
 - 私有台账记录的 Track 四字段生产切换与验收日期为 2026-08-16。
 - 2026-08-19，`/shotmarker/`、`/shotmarker/privacy`、`/shotmarker/support`、`/shotmarker/how-to` 及当次 HTML 引用的 JS、CSS 和已完成任务截图经公网只读验证为 HTTP 200。
 - 2026-08-20，`/shotmarker/` 已对齐为与 `/shotmarker/how-to` 相同的使用说明，原始 HTML 的默认标题和描述也已同步；独立 Support 和 Privacy 路由保持正常，四个路由在 390×844 视口均无横向溢出且浏览器控制台无错误或警告。
 - 2026-08-20，Hub 的 ShotMarker 作品卡已改为产品名称与产品用途描述，并链接 `/shotmarker/`；`/hub/`、当次 JS/CSS、封面和图标均为 HTTP 200，390×844 视口无横向溢出且浏览器控制台无错误或警告。
-- 2026-09-03，WebTrace 从公开仓库 revision `0c83897` 发布；`/webtrace/`、`/webtrace/support/`、`/webtrace/privacy/` 及当次 HTML/DOM 引用的 JS、CSS、图标和合成截图经公网只读验证为 HTTP 200。支持与隐私的无尾斜杠地址经一次 301 规范化到目录地址。三个生产页面在 1280×800 和 390×844 视口无横向溢出，路由标题与描述正确，浏览器控制台无错误或警告。
-- 2026-09-03，Hub 从公开仓库 revision `83187cb` 发布 WebTrace 作品卡；`/hub/`、`/hub/products`、当次 JS、CSS、图标及 ShotMarker/WebTrace 封面经公网只读验证为 HTTP 200。首页精选和作品列表均按 ShotMarker、WebTrace、CardGame 排列，WebTrace 链接可打开 `/webtrace/`；两个 Hub 页面在 1280×800 和 390×844 视口无横向溢出，浏览器控制台无错误或警告。
 - 其余线上入口、生产配置、App Store 和 TestFlight 未在本次发布中重新验证。
 - 真实 Release/TestFlight ShotMarker 事件上报仍未确认。
 

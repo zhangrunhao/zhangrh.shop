@@ -22,7 +22,7 @@ test("WebTrace publishes stable brand, contact, route, and date constants", () =
   assert.equal(SUPPORT_PATH, "/webtrace/support");
   assert.equal(PRIVACY_PATH, "/webtrace/privacy");
   assert.equal(EFFECTIVE_DATE, "September 3, 2026");
-  assert.equal(LAST_UPDATED, "2026-09-03");
+  assert.equal(LAST_UPDATED, "2026-09-29");
 });
 
 test("WebTrace content matches the implemented local data boundary", () => {

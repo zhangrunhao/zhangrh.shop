@@ -38,6 +38,7 @@
 - 对不改变行为但影响项目说明或契约的文档变更运行 `npm test`。
 - 对代码变更或影响构建、lint、类型检查、发布行为的变更运行 `npm run check`。
 - 完成前运行 `git diff --check`，并检查本地 Markdown 链接和标题锚点。
+- 发布在 SSH/rsync 阶段出现连接超时时，优先按 [RUNBOOK 的 SSH 排查步骤](RUNBOOK.md#ssh-连接超时) 检查当前公网出口 IP 是否获准访问阿里云安全组的 TCP 22 端口，再排查代理或 SSH 服务。
 
 ## 安全
 
