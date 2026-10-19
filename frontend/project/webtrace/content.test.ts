@@ -63,7 +63,7 @@ test("WebTrace content explains real behavior without inventing unavailable feat
   assert.match(allText, /鼠标长按网站/);
   assert.match(allText, /最近 14 天/);
   assert.match(allText, new RegExp(CONTACT_EMAIL));
-  assert.doesNotMatch(allText, /已上架/);
+  assert.match(allText, /已上架/);
   assert.doesNotMatch(allText, /云同步/);
   assert.doesNotMatch(allText, /限制使用时长/);
 });

@@ -4,8 +4,10 @@ export const HOME_PATH = "/webtrace/";
 export const SUPPORT_PATH = "/webtrace/support";
 export const PRIVACY_PATH = "/webtrace/privacy";
 export const ZHANGRH_SHOP_URL = "https://zhangrh.shop/hub/";
+export const CHROME_WEB_STORE_URL = "https://chromewebstore.google.com/detail/webtrace/efpighgeknabppbmfjpkfmebmnmckpgj";
 export const EFFECTIVE_DATE = "September 3, 2026";
 export const LAST_UPDATED = "2026-09-29";
+export const SUPPORT_LAST_UPDATED = "2026-10-19";
 
 export type ContentBlock =
   | { kind: "paragraph"; text: string; className?: string }
@@ -45,7 +47,7 @@ export type ContentPage = {
 export const homeContent = {
   title: "WebTrace - 网站时间追踪器",
   description: "WebTrace 在本机统计你配置的网站打开次数与有效观看时长，提供可按周回看的 14 天双线趋势和访问明细。",
-  eyebrow: "本地优先的网站时间追踪器",
+  eyebrow: "Chrome Web Store · 已上架",
   headline: "看见时间去了哪里，数据仍留在你的电脑里。",
   lead: "WebTrace 帮你统计主动配置的网站每天打开了多少次、真正查看了多久。两项指标在同一张图中展示，默认展示最近 14 天，支持按周回看更早记录。",
   privacyCallout: {
@@ -122,6 +124,13 @@ export const supportPage: ContentPage = {
       title: "开始使用",
       blocks: [
         {
+          kind: "internalLink",
+          prefix: "WebTrace 1.1.0 已上架，前往 ",
+          label: "Chrome 应用商店安装 WebTrace",
+          href: CHROME_WEB_STORE_URL,
+          suffix: "，点击“添加至 Chrome”并按提示完成安装。",
+        },
+        {
           kind: "list",
           items: [
             "安装并启用扩展后，点击 Chrome 工具栏中的 WebTrace 图标打开分析页。",
@@ -184,7 +193,7 @@ export const supportPage: ContentPage = {
             "没有首次记录：确认已经离开添加时打开的页面，再从站外重新进入；新增网站不回填旧页面。",
             "时长没有增加：确认目标标签页活动、页面可见、Chrome 位于前台且设备未锁屏。",
             "子域名没有单独次数：同一个可注册主域名及其子域名按同一网站处理，这是预期行为。",
-            "修改扩展文件后行为未更新：在 chrome://extensions 重新加载未打包扩展。",
+            "从 TimeTracker 1.0.0 升级：旧版汇总记录不会自动迁移，请在“管理网站”中重新配置需要统计的网站。",
           ],
         },
       ],

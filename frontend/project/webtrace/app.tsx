@@ -3,11 +3,13 @@ import dashboardImage from "./assets/webtrace-dashboard.png";
 import iconImage from "./assets/icon-128.png";
 import {
   APP_NAME,
+  CHROME_WEB_STORE_URL,
   CONTACT_EMAIL,
   HOME_PATH,
   LAST_UPDATED,
   PRIVACY_PATH,
   SUPPORT_PATH,
+  SUPPORT_LAST_UPDATED,
   homeContent,
   privacyPage,
   supportPage,
@@ -107,7 +109,8 @@ export const HomePage = () => (
           <p className="hero-headline">{homeContent.headline}</p>
           <p className="hero-lead">{homeContent.lead}</p>
           <div className="hero-actions">
-            <a className="primary-link" href={SUPPORT_PATH}>查看使用方法</a>
+            <a className="primary-link" href={CHROME_WEB_STORE_URL}>从 Chrome 应用商店安装</a>
+            <a className="text-link" href={SUPPORT_PATH}>使用方法</a>
             <a className="text-link" href={PRIVACY_PATH}>阅读隐私政策 <span aria-hidden="true">↗</span></a>
           </div>
         </div>
@@ -242,7 +245,7 @@ export const ContentPage = ({ page }: { page: ContentPageModel }) => {
             </section>
           ))}
         </div>
-        <p className="last-updated">Last updated: {LAST_UPDATED}</p>
+        <p className="last-updated">Last updated: {isPrivacy ? LAST_UPDATED : SUPPORT_LAST_UPDATED}</p>
       </main>
     </PageShell>
   );

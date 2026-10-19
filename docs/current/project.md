@@ -1,6 +1,6 @@
 # 项目与组件
 
-`zhangrh.shop` 是个人主页与独立项目的公开代码仓库，包含五个 Vite 前端和一个 Node/Express 后端。2026-09-29 已发布 ShotMarker 1.3 的产品、支持与隐私文案，以及 WebTrace 双线图与历史周切换的公开说明；各自的验证范围见下文。
+`zhangrh.shop` 是个人主页与独立项目的公开代码仓库，包含五个 Vite 前端和一个 Node/Express 后端。WebTrace 1.1.0 于 2026-10-19 核验已在 Chrome 应用商店公开上架，官网内容已补充商店安装入口；官网实际部署验证见[部署与生产边界](./deployment.md)。ShotMarker 1.3 的公开文案最近发布于 2026-09-29。
 
 ## 当前范围（实现事实）
 
@@ -13,6 +13,7 @@
 
 ## WebTrace 公开内容（实现事实）
 
+- 2026-10-19，通过商店公开页面核验 WebTrace 1.1.0 已上架并可添加至 Chrome。首页主要按钮和支持页链接[Chrome 应用商店](https://chromewebstore.google.com/detail/webtrace/efpighgeknabppbmfjpkfmebmnmckpgj)，Hub 作品卡同步显示已上架；支持页说明从 TimeTracker 1.0.0 升级不自动迁移旧汇总记录，需重新配置统计网站。支持页更新日期为 2026-10-19，隐私政策日期和内容保持不变。
 - 从公开仓库 revision `0c83897` 起，`/webtrace/`、`/webtrace/support/` 和 `/webtrace/privacy/` 分别提供产品与使用说明、问题排查和中英双语隐私政策；未知产品内路径在 SPA 内显示 WebTrace 自己的 404。无尾斜杠的支持和隐私地址由生产服务器规范化到对应目录地址。
 - 首页明确说明 WebTrace 只记录用户主动配置的网站名称和可注册主域名、打开与结束时间、有效观看区间和时长，并且数据只保存在当前 Chrome 配置文件中，不上传、不出售、不用于广告或与第三方共享。
 - 隐私政策说明用途、`chrome.storage.local`、`chrome.storage.session`、IndexedDB、默认长期保留、按网站永久删除历史、卸载删除、权限理由和 Chrome Web Store Limited Use 规则；完整 URL 只在内存中用于解析主机名，不持久化路径、查询或页面内容。
