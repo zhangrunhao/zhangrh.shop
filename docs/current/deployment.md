@@ -46,6 +46,7 @@ Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查�
 
 ## 外部状态（带日期事实）
 
+- 2026-10-19，WebTrace 1.1.0 已在 Chrome 应用商店公开上架；官网与 Hub 的公开 revision `f4e7225` 经各自正常发布流程上线。三个 WebTrace 入口、Hub 首页与作品列表，以及 9 个静态资源均通过公网读取并与本地生产产物逐字节一致。首页商店安装按钮、支持页安装步骤与升级提示、Hub 已上架文案已发布；隐私政策内容与更新日期未改。详情及浏览器验证边界见[发布记录](../archive/2026-10/2026-10-19-webtrace-store-release.md)。
 - 2026-10-18，Hub 文档治理文章 100004（公开 revision `92bc2e8`）已发布。首页、文章列表和文章详情的公网 HTML，以及 5 个静态资源，均返回 HTTP 200 并与本地构建产物逐字节一致。详情见[发布记录](../archive/2026-10/2026-10-18-hub-document-governance-article-release.md)。
 - 2026-09-29，WebTrace 与 Hub 均通过各自的 `npm --prefix frontend run publish -- <project>` 完成 Git 同步、生产构建、OSS 静态资源上传和 SSH/rsync HTML 发布。公网读取三个 WebTrace 页面、Hub 首页与作品列表及 9 个静态资源，均为 HTTP 200，内容与本地发布产物逐字节一致；新版趋势文案、中英隐私政策、截图和 Hub 介绍已生效。
 - 同日使用隔离 Playwright Chromium `151.0.7922.34` 在 1280×800 和 390×844 视口验证上述五个页面，新文案、政策更新日期、截图、标题与链接正确，无横向溢出、图片加载失败、控制台错误或警告。Hub Track 请求被浏览器拦截并模拟 `204`，未写入生产事件，本次未验证生产 Track 接收端。网络超时与身份认证错误的排查顺序见[运行手册](../../RUNBOOK.md#ssh-连接超时)。
