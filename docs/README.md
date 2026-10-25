@@ -23,6 +23,21 @@
 - [Cardgame 规则与开发说明](../frontend/project/cardgame/README.md)
 - [Hub 文章目录规则](../frontend/project/hub/content/articles/README.md)
 
+## 资料边界
+
+产品、代码、测试，以及不含敏感信息的发布记录、线上验证和验收结果由本仓库维护。服务器资产、网络、证书、具体生产配置和备份细节保留在私有基础设施台账。是否私有由内容决定，不因验证发生在线上或生产环境而一律私有。
+
+历史验证只对应记录中的日期；迁移文档不表示重新验收。以下记录由本仓库作为唯一权威来源：
+
+- [CardGame 路由前置验证](./archive/2026-07/2026-07-29-cardgame-portfolio-routing.md)
+- [项目整理生产盘点](./archive/2026-07/2026-07-29-project-cleanup.md)
+- [Analytics 数值验收输入](./archive/2026-08/2026-08-17-analytics-native-svg-values.md)
+- [ShotMarker 公开页面发布](./archive/2026-08/2026-08-19-shotmarker-public-content-release.md)
+- [ShotMarker 根入口对齐发布](./archive/2026-08/2026-08-20-shotmarker-root-how-to-release.md)
+- [Hub ShotMarker 作品卡发布](./archive/2026-08/2026-08-20-hub-shotmarker-card-release.md)
+
+本次迁移范围与检查结果见 [2026-10-25 文档边界调整](./archive/2026-10/2026-10-25-documentation-boundaries.md)。
+
 ## 维护流程
 
 1. 开始任务前阅读相关 current，并检查同主题 Change。
