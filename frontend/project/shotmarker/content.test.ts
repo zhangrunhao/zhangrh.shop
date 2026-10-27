@@ -207,8 +207,15 @@ test("privacy page documents highlight job and deletion boundaries", () => {
     text,
     /卸载 ShotMarker 不会删除系统照片库中的视频，也不等于删除 Apple Health 中已保存的 workout/,
   );
-  assert.match(text, /cleanup is applied when a diagnostic export is prepared/);
-  assert.match(text, /准备诊断导出时执行配置清理/);
+  assert.equal(
+    text.match(/After normal log writes and when a diagnostic export is prepared/g)?.length,
+    2,
+  );
+  assert.equal(text.match(/14-day retention window and a 30 MiB total-size limit/g)?.length, 2);
+  assert.equal(text.match(/正常写入日志后，以及准备诊断导出时/g)?.length, 2);
+  assert.equal(text.match(/14 天保留窗口和 30 MiB 总量上限/g)?.length, 2);
+  assert.doesNotMatch(text, /does not establish.*(?:limits|enforcement)/);
+  assert.doesNotMatch(text, /不能证明.*(?:时间|总量)/);
   assert.doesNotMatch(
     text,
     /automatically rotated and removed according to the app's local retention policy/,

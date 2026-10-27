@@ -28,5 +28,11 @@
 - 在生产容器内部启动仅监听回环地址的隔离 Nginx，复制实际部署的 log_format 并写临时日志；旧网页与新 ShotMarker 样例均为 11 个字符串字段，旧扩展为空、新字段符合预期。隔离进程已停止，没有向生产 events.jsonl 写入虚构用户事件。
 - `/analytics/`、ShotMarker 首页、how-to、support、privacy 共 5 个页面均 HTTP 200，响应与本地发布 HTML 逐字节一致；Analytics 3 与 ShotMarker 8 个静态资源均 HTTP 200 且逐字节一致。
 - `/api/track/shotmarker?days=30&audience=production` 为 200，三流程全零；旧趋势 90 天 app_launch 共 83 条，unknown 筛选同为 83。历史无来源记录没有被回填为正式使用。
-- 本轮浏览器初始化超时，未将该尝试计为生产浏览器验收；HTTP、API 和资产一致性均独立完成。此前本地浏览器验证不替代真实分发端到端。
+- 生产 Chrome 浏览器首屏曾命中旧缓存；强制刷新后，来源/版本筛选、同步/生成/保存三流程表、失败诊断空表和截图布局正常。正式使用三流程全零，切换未知来源后显示历史趋势。公开隐私页显示新增字段及 2026-10-27 更新日期。浏览器验收与 HTTP、API、资产一致性检查均已完成，但不替代真实 App 分发端到端。
 - 真实 App Store/TestFlight 来源分类、手机到生产接收完整链路、App 上传/审核状态由 ShotMarker 仓库另行记录。新步骤零值不证明无人使用或没有错误，也不扩大为发布后的持续观测结论。
+
+## 隐私文案核对
+
+2026-10-27 追加检查 App main 的 `AppLogStore.append`、`cleanup` 和 `AppLogExportService`：正常日志写入后和准备诊断导出时都执行 14 天窗口及 `30 * 1024 * 1024` 字节总量清理。官网隐私页的 Local Diagnostic Logs 与 Data Retention and Deletion 两节仍沿用“仅导出清理、持续执行未证实”的旧描述；现将两节中英文共四处同步为实际触发点，大小用精确单位 30 MiB。此修正只改公开文字及契约断言，不改变 App、业务留存行为或基础设施配置。
+
+更新后的既有文案契约在旧文字上先失败，修正后 ShotMarker 定向 10 项通过。Node.js v24.19.0 下再次运行 `npm run check`：222 项测试、lint、TypeScript 与五站构建全部通过；本地 Markdown 链接、标题锚点、current 行数和 `git diff --check` 通过。

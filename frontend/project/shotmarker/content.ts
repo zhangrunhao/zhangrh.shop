@@ -324,7 +324,7 @@ export const privacyPage: ShotMarkerPage = {
         },
         {
           kind: "paragraph",
-          text: "Local logs are written by day, and configured cleanup is applied when a diagnostic export is prepared. The current implementation does not establish that time and size limits are enforced continuously. Deleting the app removes these local log files.",
+          text: "Local logs are written by day. After normal log writes and when a diagnostic export is prepared, cleanup removes expired or oldest log files according to a 14-day retention window and a 30 MiB total-size limit. Deleting the app removes these local log files.",
         },
         {
           kind: "paragraph",
@@ -339,7 +339,7 @@ export const privacyPage: ShotMarkerPage = {
         {
           kind: "paragraph",
           className: "language-block",
-          text: "本地日志按日写入，准备诊断导出时执行配置清理。当前实现不能证明时间和总量上限会持续执行；删除 App 会移除这些本地日志文件。",
+          text: "本地日志按日写入。正常写入日志后，以及准备诊断导出时，会按日志日期删除过期或最早的文件，执行 14 天保留窗口和 30 MiB 总量上限；删除 App 会移除这些本地日志文件。",
         },
       ],
     },
@@ -383,7 +383,7 @@ export const privacyPage: ShotMarkerPage = {
         },
         {
           kind: "paragraph",
-          text: "Local diagnostic logs are written by day, and configured cleanup is applied when a diagnostic export is prepared. The current implementation does not establish continuous enforcement of configured time or size limits.",
+          text: "Local diagnostic logs are written by day. After normal log writes and when a diagnostic export is prepared, cleanup removes expired or oldest log files according to a 14-day retention window and a 30 MiB total-size limit.",
         },
         {
           kind: "paragraph",
@@ -403,7 +403,7 @@ export const privacyPage: ShotMarkerPage = {
         {
           kind: "paragraph",
           className: "language-block",
-          text: "本地诊断日志按日写入，准备诊断导出时执行配置清理；当前实现不能证明配置的时间或总量上限会持续执行。",
+          text: "本地诊断日志按日写入。正常写入日志后，以及准备诊断导出时，会按日志日期删除过期或最早的文件，执行 14 天保留窗口和 30 MiB 总量上限。",
         },
         {
           kind: "paragraph",
