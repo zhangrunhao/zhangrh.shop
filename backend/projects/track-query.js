@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { setImmediate as yieldToEventLoop } from 'node:timers/promises'
 
+import { EXTENSION_KEYS, parseExtension, matchesFilters, createFlowState, includeFlowRecord, buildFlowResponse } from './track-shotmarker.js'
+
 const fileSystem = fs.promises
 
 const SHANGHAI_OFFSET_MS = 8 * 60 * 60 * 1000
@@ -88,8 +90,8 @@ const parseRecord = (parsed) => {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
 
   const keys = Object.keys(parsed).sort()
-  if (keys.length !== RECORD_KEYS.length) return null
-  if (!keys.every((key, index) => key === RECORD_KEYS[index])) return null
+  if (!RECORD_KEYS.every((key) => keys.includes(key))) return null
+  if (keys.some((key) => !RECORD_KEYS.includes(key) && !EXTENSION_KEYS.includes(key))) return null
   if (typeof parsed.project !== 'string' || !PROJECTS.has(parsed.project)) return null
   if (typeof parsed.event !== 'string' || !EVENT_PATTERN.test(parsed.event)) return null
   if (typeof parsed.device_id !== 'string' || !DEVICE_ID_PATTERN.test(parsed.device_id)) return null
@@ -98,7 +100,11 @@ const parseRecord = (parsed) => {
   const timeMs = Date.parse(parsed.time)
   if (!Number.isFinite(timeMs)) return null
 
+  const extension = parseExtension(parsed)
+  if (!extension) return null
+
   return {
+    ...extension,
     project: parsed.project,
     event: parsed.event,
     timeMs,
@@ -133,7 +139,9 @@ const includeLine = (state, line) => {
   const parsedRecord = parseRecord(parsed)
   if (!parsedRecord) return
   if (parsedRecord.timeMs < state.range.fromMs || parsedRecord.timeMs > state.range.toMs) return
-  if (parsedRecord.project !== state.project || parsedRecord.event !== state.event) return
+  if (parsedRecord.project !== state.project || (state.event && parsedRecord.event !== state.event)) return
+  if (!matchesFilters(parsedRecord, state)) return
+  if (state.flows) { includeFlowRecord(state.flows, parsedRecord); return }
 
   const day = state.daily.get(formatShanghaiDate(parsedRecord.timeMs))
   if (!day) return
@@ -276,7 +284,7 @@ const buildResponse = (state) => ({
   })),
 })
 
-export async function queryTrackTrend({ logDir, project, event, days, now, limits }) {
+async function queryTrack({ logDir, project, event, days, now, limits, audience, version, flows }) {
   const resolvedLimits = resolveLimits(limits)
   const deadline = createDeadline(resolvedLimits.timeoutMs)
   let snapshot = null
@@ -285,12 +293,16 @@ export async function queryTrackTrend({ logDir, project, event, days, now, limit
     deadline.check()
     const range = buildRange(days, now)
     const state = createState(range, project, event, resolvedLimits, deadline)
+    Object.assign(state, { audience, version, flows: flows ? createFlowState() : null })
     snapshot = await openSnapshot(logDir, resolvedLimits, deadline)
     await readSnapshot(snapshot, state)
     deadline.check()
-    return buildResponse(state)
+    return flows ? buildFlowResponse(state.flows, deadline) : buildResponse(state)
   } finally {
     await closeSnapshot(snapshot)
     deadline.close()
   }
 }
+
+export const queryTrackTrend = (options) => queryTrack(options)
+export const queryShotMarker = (options) => queryTrack({ ...options, project: 'shotmarker', audience: options.audience ?? 'production', flows: true })

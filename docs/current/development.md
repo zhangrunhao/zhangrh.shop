@@ -1,6 +1,6 @@
 # 开发与质量
 
-本文同时记录开发与验证的有效决定和当前实现。完整检查于 2026-09-29 在 ShotMarker 1.3 文案、隐私说明和页面样式同步后复核。
+本文同时记录开发与验证的有效决定和当前实现。最近完整检查于 2026-10-27 针对 ShotMarker 来源与步骤埋点在本地复核。
 
 ## 有效决定
 
@@ -30,6 +30,12 @@ npm run check
 `npm test` 运行根自动化、前端和后端测试。`npm run check` 在测试后继续运行前端 lint、TypeScript 检查和 Hub、Cardgame、ShotMarker、Analytics、WebTrace 五个前端生产构建；Backend 当前没有 lint、类型检查或构建脚本。
 
 ## 最近验证
+
+2026-10-27，Node.js v24.19.0 下 `npm run check` 通过：根自动化 9、前端 188、后端 25，共 222 项，0 失败；前端 lint、TypeScript 与五站生产构建通过。Analytics 定向 27 项通过，额外包含默认发现规则不执行的既有 `.test.tsx`；新增非 JSX 测试已使用 `.test.ts` 纳入默认检查。此次没有升级依赖或改全仓库测试发现规则。
+
+本地虚构数据页面验证了正式、自用、测试及版本筛选、三流程结果与中文诊断；浏览器未见 error/warn。Swift 真实请求构造出的 15 类事件与 Nginx 示例字段集合、Node 24 解析及来源/版本过滤交叉检查通过，没有发送网络请求。Nginx 本机无可执行文件，未运行 `nginx -t`；本次未部署或写入生产。
+
+本次完整范围与限制见[埋点增强验证](../archive/2026-10/2026-10-27-analytics-steps-plan.md)。以下为带日期的既有验证，不扩大为本次外部验收。
 
 2026-09-29 在 Node.js v24.19.0 下运行 `npm run check`：根自动化 9 项、前端 183 项、后端 20 项，共 212 项通过、0 失败；前端 lint、TypeScript 检查和 Hub、Cardgame、ShotMarker、Analytics、WebTrace 五个生产构建全部通过。ShotMarker 原有内容与服务端渲染断言已同步覆盖可编辑任务、停止后手动生成、升级提示、版本范围和旧图标注。
 

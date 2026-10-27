@@ -424,3 +424,18 @@ code {
     scroll-behavior: auto !important;
   }
 }
+
+.filters input {
+  min-height: 44px;
+  max-width: 150px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #0f172a;
+}
+.steps-summary { margin-top: 28px; padding: 20px; background: white; border-radius: 16px; }
+.steps-summary p { color: #475569; line-height: 1.7; }
+.steps-table-scroll { overflow-x: auto; }
+.steps-summary table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+.steps-summary th, .steps-summary td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; }

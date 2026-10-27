@@ -15,7 +15,7 @@
 
 ## 当前 Change
 
-当前没有进行中的 Change。
+- [ShotMarker 埋点发布](./changes/2026-10-27-analytics-release-plan.md)：用户已授权提交、合并及发布，正在执行。
 
 ## 参考文档
 
@@ -29,6 +29,7 @@
 
 历史验证只对应记录中的日期；迁移文档不表示重新验收。以下记录由本仓库作为唯一权威来源：
 
+- [ShotMarker 埋点增强与验证](./archive/2026-10/2026-10-27-analytics-steps-plan.md)
 - [CardGame 路由前置验证](./archive/2026-07/2026-07-29-cardgame-portfolio-routing.md)
 - [项目整理生产盘点](./archive/2026-07/2026-07-29-project-cleanup.md)
 - [Analytics 数值验收输入](./archive/2026-08/2026-08-17-analytics-native-svg-values.md)

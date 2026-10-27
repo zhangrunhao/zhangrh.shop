@@ -15,7 +15,6 @@ import {
   TRACK_PROJECTS,
   TRACK_TREND_ERROR_MESSAGE,
   describeTrackTrendError,
-  fetchTrackTrend,
   isTrackDays,
   isTrackEvent,
   isTrackProject,
@@ -24,6 +23,8 @@ import {
   type TrackTrend,
   type TrackTrendQuery,
 } from "./track-trend";
+import { AUDIENCES, AUDIENCE_LABELS, loadAnalytics, type Audience, type ShotMarkerSummary } from "./shotmarker-query";
+import { ShotMarkerSteps } from "./shotmarker-steps";
 import { TrendView } from "./trend-view";
 
 const PROJECT_LABELS: Record<TrackProject, string> = {
@@ -34,6 +35,7 @@ const PROJECT_LABELS: Record<TrackProject, string> = {
 
 type ViewState = {
   trend: TrackTrend | null;
+  steps: ShotMarkerSummary | null;
   loading: boolean;
   error: string | null;
   updatedAt: string | null;
@@ -79,6 +81,7 @@ export const App = () => {
   const [reloadToken, setReloadToken] = useState(0);
   const [view, setView] = useState<ViewState>({
     trend: null,
+    steps: null,
     loading: true,
     error: null,
     updatedAt: null,
@@ -101,11 +104,14 @@ export const App = () => {
     latestRequest.current = requestId;
     let active = true;
 
-    void fetchTrackTrend(query)
-      .then((trend) => {
+    void loadAnalytics(query, fetch, () => active && latestRequest.current === requestId)
+      .then((result) => {
+        if (!result) return;
+        const { trend, steps } = result;
         if (!active || latestRequest.current !== requestId) return;
         setView({
           trend,
+          steps,
           loading: false,
           error: null,
           updatedAt: formatUpdatedAt(new Date()),
@@ -126,7 +132,8 @@ export const App = () => {
   }, [query, reloadToken]);
 
   const beginFilterLoad = (nextQuery: TrackTrendQuery) => {
-    setView({ trend: null, loading: true, error: null, updatedAt: null });
+    latestRequest.current += 1;
+    setView({ trend: null, steps: null, loading: true, error: null, updatedAt: null });
     setQuery(nextQuery);
   };
 
@@ -145,7 +152,11 @@ export const App = () => {
     beginFilterLoad(selectTrackEvent(query, event));
   };
 
+  const updateAudience = (audience: Audience) => beginFilterLoad({ ...query, audience });
+  const updateVersion = (version: string) => beginFilterLoad({ ...query, version: version || undefined });
+
   const reload = () => {
+    latestRequest.current += 1;
     setView((current) => ({ ...current, loading: true, error: null }));
     setReloadToken((current) => current + 1);
   };
@@ -216,6 +227,19 @@ export const App = () => {
             </select>
           </label>
 
+          {query.project === "shotmarker" ? <>
+            <label><span>来源</span><select aria-label="来源" value={query.audience ?? "production"} onChange={(event) => updateAudience(event.currentTarget.value as Audience)}>
+              {AUDIENCES.map((audience) => <option key={audience} value={audience}>{AUDIENCE_LABELS[audience]}</option>)}
+            </select></label>
+            <label><span>版本</span><input aria-label="版本" key={query.project} placeholder="全部版本" defaultValue={query.version ?? ""} maxLength={32} onBlur={(event) => {
+              const value = event.currentTarget.value.trim();
+              if (value === "" || /^(?:unknown|\d+(?:\.\d+)*)$/.test(value)) {
+                event.currentTarget.setCustomValidity("");
+                if (value !== (query.version ?? "")) updateVersion(value);
+              } else { event.currentTarget.setCustomValidity("请输入数字点分版本或 unknown"); event.currentTarget.reportValidity(); }
+            }} onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }} /></label>
+          </> : null}
+
           <fieldset className="metric-toggle">
             <legend>口径</legend>
             {(["pv", "uv"] as const).map((value) => (
@@ -261,8 +285,10 @@ export const App = () => {
         />
       ) : null}
 
+      {view.steps ? <ShotMarkerSteps steps={view.steps} /> : null}
+
       <footer className="page-footer">
-        仅展示逐日聚合 PV/UV，不包含原始事件记录或设备标识。
+        仅展示聚合趋势与流程统计，不包含原始事件记录、安装标识或操作标识。
       </footer>
     </div>
   );

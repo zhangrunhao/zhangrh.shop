@@ -12,7 +12,8 @@
 | `/analytics/` | Analytics HTML |
 | `/webtrace/` | WebTrace HTML；同一 SPA 提供 `/support` 与 `/privacy` 子路由 |
 | `/track` | Nginx 接收 Track 并返回 `204` |
-| `/api/track/trend` | Backend Track 查询 |
+| `/api/track/trend` | Backend Track 趋势查询 |
+| `/api/track/shotmarker` | Backend ShotMarker 步骤查询 |
 | `/api/cardgame/*` | Backend Cardgame HTTP/WebSocket |
 
 JS、CSS、图片等 `static` 构建产物的公开地址为 `https://static.zhangrh.shop/zhangrh-shop/<project>/static/`。
@@ -44,6 +45,10 @@ Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查�
 - 公开入口、Cardgame health 和 Track 查询可以使用 GET/HEAD 做只读验证。
 - Track 写入验证会产生真实事件，只有在对应 Change 明确授权时执行。
 - 生产配置或存储迁移必须在私有仓库建立 Change，完成预检、授权、实施和验证。
+
+## ShotMarker 扩展的发布边界
+
+用户于 2026-10-27 明确授权提交、合并 main 及发布；本地来源与步骤增强进入发布验收，当前结果以[发布 Change](../changes/2026-10-27-analytics-release-plan.md)为准。发布顺序为兼容新旧格式的 Backend、Nginx 扩展接收格式、Analytics/隐私页面、新版 iPhone。Nginx 示例及合并位置见[接收说明](../../backend/examples/track-nginx.md)；它不替代实际生产配置，发布前须在目标环境执行配置校验。旧四字段保留，不回填、不清空。只有 Backend 更新而接收端未更新时，新字段仍会丢失，不能声称步骤链路已经生效。
 
 ## 外部状态（带日期事实）
 

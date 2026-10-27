@@ -9,7 +9,7 @@
 - ShotMarker：产品介绍、帮助和隐私说明。
 - Analytics：按项目、事件、时间范围和 PV/UV 口径查看逐日趋势。
 - WebTrace：网站时间追踪器的产品介绍、使用支持和中英双语隐私政策。
-- Backend：Cardgame HTTP/WebSocket 服务和 Track 只读趋势查询。
+- Backend：Cardgame HTTP/WebSocket 服务和 Track 只读趋势、ShotMarker 步骤查询。
 
 ## WebTrace 公开内容（实现事实）
 
@@ -30,7 +30,7 @@
 - 2026-09-29 按 ShotMarker 1.3 当前代码同步公开文案：从训练选择视频与默认时长、调整序数样式，到保存可编辑任务、逐片段预览和调整范围、确认保留或排除、生成和保存成片。
 - 使用说明与支持 FAQ 明确生成需保持前台；进入后台会停止排队及运行中的生成，之后需手动重新生成。停止、失败或编辑保留任务及已有成片，重新生成成功后才替换；“当前成片不包含最新修改”说明旧成片尚未包含编辑结果。
 - 首页显著提示 1.3 首次升级会清理旧的 App 本地数据且不自动迁移，建议提前将需要保留的成片保存到系统相册。支持和中英隐私页同步清理范围，并区分不受影响的系统照片库、HealthKit 和 App 外导出文件，以及之后正常保留的新数据。页面说明具体可用版本以 App Store 为准。
-- 隐私页继续区分第一方产品 Analytics、Sentry Cocoa 9.26.0 到开发者自管 GlitchTip 的精简错误与崩溃上报，以及主动分享的完整本地诊断日志；保留 SDK 技术上下文、独立安装范围标识和源 IP 保留未核验边界。此次文案同步不增加数据采集；原生效日期保持 2026-08-19，最后更新为 2026-09-29。
+- 隐私页继续区分第一方产品 Analytics、Sentry Cocoa 9.26.0 到开发者自管 GlitchTip 的精简错误与崩溃上报，以及主动分享的完整本地诊断日志；保留 SDK 技术上下文、独立安装范围标识和源 IP 保留未核验边界。本地政策新增来源、自用、版本及步骤字段披露，最后更新为 2026-10-27，原生效日期保持 2026-08-19；本次扩展尚未部署，2026-09-29 仍是下述既有发布验证基线。
 - 官网配图仍是旧版基础操作示意，页面已显著标注；尚未替换为 1.3 截图。已完成任务截图来自仅含合成预览数据的临时模拟器。
 - Hub 的作品卡使用名称 `ShotMarker`、描述“训练时用 Apple Watch 给精彩投篮打点，结束后在 iPhone 上把训练视频整理成集锦。”，并链接默认产品入口。
 - 2026-09-29 发布后，四个 ShotMarker 路由和全部 8 个静态资源均返回 HTTP 200，内容与本地发布产物逐字节一致；Chrome 确认首页、支持和隐私页的新文案。桌面及 390×844 本地预览核对了排版；本次不包含 App 实机功能或生产上报链路验证。详情见[发布记录](../archive/2026-09/2026-09-29-shotmarker-content-release.md)。
@@ -42,10 +42,10 @@
 | `frontend/project/hub` | 主页、作品和文章 |
 | `frontend/project/cardgame` | Cardgame 页面和 WebSocket 客户端 |
 | `frontend/project/shotmarker` | ShotMarker 产品页面 |
-| `frontend/project/analytics` | Track 趋势页面 |
+| `frontend/project/analytics` | Track 趋势与 ShotMarker 来源/步骤页面 |
 | `frontend/project/webtrace` | WebTrace 产品、支持与隐私页面 |
 | `frontend/common` | 共用设备标识和埋点发送 |
-| `backend` | Cardgame 服务和 Track 趋势查询 |
+| `backend` | Cardgame 服务和 Track 只读聚合查询 |
 | `automation/publish` | 交互式启动与发布入口 |
 
 前端与后端分别维护依赖和锁文件，不是 npm workspace。

@@ -220,11 +220,11 @@ test("privacy page documents the first-party analytics contract", () => {
   const text = pageText(privacyPage);
 
   assert.equal(privacyPage.muted, "Effective date: August 19, 2026");
-  assert.equal(LAST_UPDATED, "2026-09-29");
+  assert.equal(LAST_UPDATED, "2026-10-27");
   assert.match(text, /random 12-character installation identifier/);
   assert.match(
     text,
-    /The four fixed event names are app_launch, training_sync_succeeded, highlight_generate_succeeded, and highlight_save_succeeded/,
+    /Fixed events cover app_launch and the starts, outcomes, and diagnostics of phone-side sync, highlight generation, and saving/,
   );
   assert.match(text, /does not have a fixed automatic expiration period/);
   assert.match(text, /does not immediately delete prior server events/);
@@ -239,13 +239,13 @@ test("privacy page documents the first-party analytics contract", () => {
   );
   assert.match(
     text,
-    /The iPhone app sends only the project value shotmarker, the event name, and a random 12-character installation identifier stored in UserDefaults/,
+    /The iPhone app sends the project value shotmarker, the event name, and a random 12-character installation identifier stored in UserDefaults/,
   );
   assert.match(
     text,
     /When the server writes the event, it adds its ISO 8601 receipt time/,
   );
-  assert.match(text, /The stored record contains only project, event, time, and device_id/);
+  assert.match(text, /The record also includes distribution, is_self_use, app_version, app_build, operation_id, stage, and reason/);
   assert.match(text, /used to estimate daily unique installations/);
   assert.doesNotMatch(
     text,
@@ -267,6 +267,10 @@ test("privacy page documents the first-party analytics contract", () => {
     /Uninstalling and reinstalling ShotMarker resets the local installation identifier/,
   );
   assert.match(text, /Public aggregate queries do not return raw installation identifiers/);
+  assert.match(text, /dedicated random operation UUID/);
+  assert.match(text, /not a training, task, or video identifier/);
+  assert.match(text, /自用标记/);
+  assert.match(text, /固定枚举/);
 
   assert.match(
     text,
@@ -274,15 +278,15 @@ test("privacy page documents the first-party analytics contract", () => {
   );
   assert.match(
     text,
-    /四个固定事件名为 app_launch、training_sync_succeeded、highlight_generate_succeeded 和 highlight_save_succeeded/,
+    /固定事件覆盖 app_launch，以及手机侧同步、集锦生成和保存的开始、结果与附属诊断/,
   );
   assert.match(
     text,
-    /iPhone App 只发送 project 值 shotmarker、事件名，以及保存在 UserDefaults 中的随机 12 位安装标识符/,
+    /iPhone App 发送 project 值 shotmarker、事件名，以及保存在 UserDefaults 中的随机 12 位安装标识符/,
   );
   assert.match(
     text,
-    /服务器写入事件时添加 ISO 8601 接收时间；保存的记录只包含 project、event、time 和 device_id/,
+    /服务器写入事件时添加 ISO 8601 接收时间；记录还包含 distribution、is_self_use、app_version、app_build、operation_id、stage 和 reason/,
   );
   assert.match(text, /用于估算每日独立安装数量/);
   assert.doesNotMatch(text, /客户端时间|空参数对象|schema v1|32 位十六进制/);

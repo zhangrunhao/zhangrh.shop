@@ -5,7 +5,7 @@ export const PRIVACY_PATH = "/shotmarker/privacy";
 export const HOW_TO_PATH = "/shotmarker/how-to";
 export const ZHANGRH_SHOP_URL = "https://zhangrh.shop/hub/";
 export const EFFECTIVE_DATE = "August 19, 2026";
-export const LAST_UPDATED = "2026-09-29";
+export const LAST_UPDATED = "2026-10-27";
 export const DEVELOPER = "Rain / ShotMarker";
 export const VERSION_NOTICE = "以下介绍适用于 ShotMarker 1.3；具体可用版本以 App Store 为准。";
 export const UPGRADE_NOTICE_ZH = "升级到 1.3 后首次启动，会清理 iPhone 和 Apple Watch 中 ShotMarker 的旧训练与打点、集锦任务、片段确认、App 内视频副本和成片、待同步数据、缓存、日志及设置，不提供自动迁移。请在升级前将需要保留的成片保存到系统相册。系统照片库、HealthKit 数据和 App 外导出文件不受影响；此后创建的新数据正常保留。";
@@ -233,11 +233,11 @@ export const privacyPage: ShotMarkerPage = {
         { kind: "heading", text: "First-Party Product Analytics" },
         {
           kind: "paragraph",
-          text: "Only Release builds of the ShotMarker iPhone app send first-party product analytics events to the developer's own HTTPS endpoint. The four fixed event names are app_launch, training_sync_succeeded, highlight_generate_succeeded, and highlight_save_succeeded.",
+          text: "Only Release builds of the ShotMarker iPhone app send first-party product analytics events to the developer's own HTTPS endpoint. Fixed events cover app_launch and the starts, outcomes, and diagnostics of phone-side sync, highlight generation, and saving. Success, failure, cancellation, ignored old sync data, failed acknowledgements, and failed local save-state updates are distinguished.",
         },
         {
           kind: "paragraph",
-          text: "The iPhone app sends only the project value shotmarker, the event name, and a random 12-character installation identifier stored in UserDefaults. When the server writes the event, it adds its ISO 8601 receipt time. The stored record contains only project, event, time, and device_id. The installation identifier is associated only with the current app installation and is used to estimate daily unique installations.",
+          text: "The iPhone app sends the project value shotmarker, the event name, and a random 12-character installation identifier stored in UserDefaults. When the server writes the event, it adds its ISO 8601 receipt time. The record also includes distribution, is_self_use, app_version, app_build, operation_id, stage, and reason. These fields describe the distribution channel, self-use setting, app version/build, a dedicated random operation UUID, and fixed stage/reason enums. The operation UUID is not a training, task, or video identifier; it is used only to pair analytics steps. The installation identifier is associated only with the current app installation and is used to estimate daily unique installations.",
         },
         {
           kind: "paragraph",
@@ -246,12 +246,12 @@ export const privacyPage: ShotMarkerPage = {
         {
           kind: "paragraph",
           className: "language-block",
-          text: "仅 ShotMarker iPhone App 的 Release 构建会向开发者自己的 HTTPS 端点发送第一方产品分析事件。四个固定事件名为 app_launch、training_sync_succeeded、highlight_generate_succeeded 和 highlight_save_succeeded。",
+          text: "仅 ShotMarker iPhone App 的 Release 构建会向开发者自己的 HTTPS 端点发送第一方产品分析事件。固定事件覆盖 app_launch，以及手机侧同步、集锦生成和保存的开始、结果与附属诊断。成功、失败、取消、忽略旧同步数据、回执失败和本地保存状态更新失败分别记录。",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "iPhone App 只发送 project 值 shotmarker、事件名，以及保存在 UserDefaults 中的随机 12 位安装标识符。服务器写入事件时添加 ISO 8601 接收时间；保存的记录只包含 project、event、time 和 device_id。该标识符只与当前 App 安装相关，用于估算每日独立安装数量。",
+          text: "iPhone App 发送 project 值 shotmarker、事件名，以及保存在 UserDefaults 中的随机 12 位安装标识符。服务器写入事件时添加 ISO 8601 接收时间；记录还包含 distribution、is_self_use、app_version、app_build、operation_id、stage 和 reason。它们表示分发渠道、自用标记、App 版本与构建号、专用随机操作 UUID，以及固定枚举的阶段与原因。操作 UUID 只用于配对分析步骤，不使用训练、任务或视频标识。该标识符只与当前 App 安装相关，用于估算每日独立安装数量。",
         },
         {
           kind: "paragraph",
@@ -411,7 +411,7 @@ export const privacyPage: ShotMarkerPage = {
         },
         {
           kind: "paragraph",
-          text: "Uninstalling and reinstalling ShotMarker resets the local installation identifier, but does not immediately delete prior server events. Public aggregate queries do not return raw installation identifiers.",
+          text: "Uninstalling and reinstalling ShotMarker resets the local installation identifier, but does not immediately delete prior server events. Public aggregate queries do not return raw installation identifiers or operation UUIDs.",
         },
         {
           kind: "paragraph",
@@ -421,7 +421,7 @@ export const privacyPage: ShotMarkerPage = {
         {
           kind: "paragraph",
           className: "language-block",
-          text: "卸载并重新安装 ShotMarker 会重置本地安装标识符，但不会立即删除此前的服务器事件。公开聚合查询不会返回原始安装标识符。",
+          text: "卸载并重新安装 ShotMarker 会重置本地安装标识符，但不会立即删除此前的服务器事件。公开聚合查询不会返回原始安装标识符或操作 UUID。",
         },
       ],
     },
@@ -483,12 +483,12 @@ export const privacyPage: ShotMarkerPage = {
       blocks: [
         {
           kind: "paragraph",
-          text: "This Privacy Policy may be updated when ShotMarker's features or data practices change. The last-updated date is shown below. The September 29, 2026 update describes editable tasks and the local data reset that applies when upgrading to version 1.3; it does not add new analytics or diagnostic collection.",
+          text: "This Privacy Policy may be updated when ShotMarker's features or data practices change. The last-updated date is shown below. The October 27, 2026 update describes first-party analytics for distribution channel, self-use, app version/build, and phone-side operation steps and outcomes.",
         },
         {
           kind: "paragraph",
           className: "language-block",
-          text: "如果 ShotMarker 的功能或数据实践发生变化，本隐私政策会相应更新，并在页尾标明最后更新日期。2026 年 9 月 29 日的更新补充了可编辑任务和升级到 1.3 时的本地清理说明，没有增加新的分析或诊断采集。",
+          text: "如果 ShotMarker 的功能或数据实践发生变化，本隐私政策会相应更新，并在页尾标明最后更新日期。2026 年 10 月 27 日的更新补充分发渠道、自用标记、App 版本与构建号，以及手机侧操作步骤和结果的第一方分析采集说明。",
         },
       ],
     },

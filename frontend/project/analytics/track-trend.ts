@@ -31,9 +31,20 @@ export const PROJECT_EVENTS = {
     defaultEvent: "app_launch",
     events: [
       "app_launch",
+      "training_sync_started",
       "training_sync_succeeded",
+      "training_sync_failed",
+      "training_sync_ignored",
+      "training_sync_ack_failed",
+      "highlight_generate_started",
       "highlight_generate_succeeded",
+      "highlight_generate_failed",
+      "highlight_generate_cancelled",
+      "highlight_save_started",
       "highlight_save_succeeded",
+      "highlight_save_failed",
+      "highlight_save_cancelled",
+      "highlight_save_state_failed",
     ],
   },
 } as const;
@@ -43,6 +54,8 @@ export type TrackEvent = ProjectEvents[TrackProject]["events"][number];
 export type TrackMetric = "pv" | "uv";
 
 export type TrackTrendQuery = {
+  audience?: "production" | "test" | "self" | "unknown" | "all";
+  version?: string;
   project: TrackProject;
   event: TrackEvent;
   days: TrackDays;
@@ -128,12 +141,18 @@ export const buildTrackTrendUrl = ({
   project,
   event,
   days,
+  audience,
+  version,
 }: TrackTrendQuery) => {
   const query = new URLSearchParams({
     project,
     event,
     days: String(days),
   });
+  if (project === "shotmarker") {
+    query.set("audience", audience ?? "production");
+    if (version) query.set("version", version);
+  }
   return `/api/track/trend?${query.toString()}`;
 };
 

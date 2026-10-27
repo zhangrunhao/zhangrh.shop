@@ -210,3 +210,31 @@ test('returns a sanitized internal error without logging raw exception content',
   assert.equal((await response.json()).error.code, 'internal_error')
   assert.doesNotMatch(JSON.stringify(logged), /\/var\/log\/nginx|Device000001|raw payload/)
 })
+
+test('ShotMarker accepts bounded filters with production default, shares concurrency and rejects invalid filters', async (t) => {
+  const calls = []
+  let release
+  const gate = new Promise((resolve) => { release = resolve })
+  const origin = await startApp(t, {
+    queryShotMarker: async (options) => { calls.push(options); await gate; return { flows: [], issues: [] } },
+  })
+  const pending = fetch(`${origin}/api/track/shotmarker?days=7`)
+  for (let attempt = 0; calls.length === 0 && attempt < 100; attempt += 1) await new Promise(setImmediate)
+  try {
+    assert.equal(calls.length, 1)
+    assert.equal(calls[0].audience, 'production')
+    assert.equal((await fetch(`${origin}${validPath}`)).status, 503)
+  } finally { release() }
+  assert.equal((await pending).status, 200)
+  for (const [query, code] of [
+    ['days=1&audience=bad', 'invalid_audience'], ['days=1&version=raw', 'invalid_version'],
+    ['days=1&audience=self&audience=test', 'duplicate_query_parameter'],
+    ['days=1&project=shotmarker', 'unknown_query_parameter'], ['', 'missing_query_parameter'],
+  ]) {
+    const response = await fetch(`${origin}/api/track/shotmarker?${query}`)
+    assert.equal(response.status, 400)
+    assert.equal((await response.json()).error.code, code)
+  }
+  assert.equal((await fetch(`${origin}/api/track/trend?project=shotmarker&event=app_launch&days=1&audience=test&version=1.3`)).status, 200)
+  assert.equal((await fetch(`${origin}${validPath}&audience=test`)).status, 400)
+})
