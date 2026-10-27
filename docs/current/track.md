@@ -1,6 +1,6 @@
 # Track 埋点与趋势
 
-- 本地实现复核：2026-10-27。新增 ShotMarker 来源与步骤聚合尚未部署；不从本地检查推断生产接收状态。
+- 最近发布与外部核验：2026-10-27。来源与步骤查询、Nginx 扩展接收格式、Analytics 与 ShotMarker 隐私页面已部署；真实 App Store/TestFlight 发送仍须单独验收。
 - Track 是公开、可伪造的产品观察数据，不用于计费、风控、审计或强一致业务指标。
 
 ## 有效数据契约
@@ -96,7 +96,8 @@ GET /api/track/shotmarker?days=30&audience=production
 
 - 历史四字段生产接收验收日期为 2026-08-16。
 - ShotMarker 于 2026-10-27 只读核验保留日志与现有趋势 API；脱敏结论由 [ShotMarker 观测验证](https://github.com/zhangrunhao/ShotMarker/blob/main/docs/current/observability.md)维护。
-- 本次扩展尚未部署；生产 Nginx 格式、Backend、Analytics 页面及真实 App Store/TestFlight 端到端验收未完成。发布顺序见[部署边界](deployment.md)。
+- 2026-10-27，Backend 与 Nginx 扩展格式、Analytics/隐私页面已发布；生产配置检查和重载通过。同一 log_format 在容器内隔离回环监听/临时日志验证 11 字段及旧网页空扩展，未向生产 Track 写入虚构事件。
+- 同日新步骤 API 为 200，正式来源三流程为零；旧趋势的 90 天 app_launch 共 83 条、全部归未知。页面与资源逐字节匹配发布产物。该结果不证明真实 App Store/TestFlight 客户端已上报，详见[发布记录](../archive/2026-10/2026-10-27-analytics-release-plan.md)。
 - 具体主机、权限和生产配置由私有台账维护；不含敏感信息的协议与验收结论留在公开仓库。
 
 ## 证据

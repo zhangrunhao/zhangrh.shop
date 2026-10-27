@@ -1,6 +1,6 @@
 # 部署与生产边界
 
-本文同时记录公开部署契约和仓库发布实现。前端发布脚本于 2026-09-29 复核；实际服务器、网络、证书和生产配置仍由私有台账维护，本次未重新复核这些配置。
+本文同时记录公开部署契约和仓库发布实现。Backend、Analytics、ShotMarker 与 Track 接收格式最近于 2026-10-27 发布；实际服务器、网络、证书和生产配置由私有台账维护，未因本次发布扩大其他服务的核验范围。
 
 ## 公开拓扑（有效决定）
 
@@ -48,9 +48,11 @@ Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查�
 
 ## ShotMarker 扩展的发布边界
 
-用户于 2026-10-27 明确授权提交、合并 main 及发布；本地来源与步骤增强进入发布验收，当前结果以[发布 Change](../changes/2026-10-27-analytics-release-plan.md)为准。发布顺序为兼容新旧格式的 Backend、Nginx 扩展接收格式、Analytics/隐私页面、新版 iPhone。Nginx 示例及合并位置见[接收说明](../../backend/examples/track-nginx.md)；它不替代实际生产配置，发布前须在目标环境执行配置校验。旧四字段保留，不回填、不清空。只有 Backend 更新而接收端未更新时，新字段仍会丢失，不能声称步骤链路已经生效。
+用户于 2026-10-27 明确授权提交、合并 main 及发布。网站已按 Backend、Nginx 扩展接收格式、Analytics/ShotMarker 页面顺序完成发布；App 的上传、审核和端到端状态由 ShotMarker 仓库维护。旧四字段保留，不回填、不清空。Nginx 示例及合并位置见[接收说明](../../backend/examples/track-nginx.md)；它不替代具体生产配置。真实渠道的新 App 上报尚未验收，历史记录仍归未知。
 
 ## 外部状态（带日期事实）
+
+- 2026-10-27，公开 revision `05e178b` 已合并并推送 main，Backend、Analytics、ShotMarker 前端已发布，Nginx 扩展日志格式配置检查与平滑重载通过。5 个页面和 11 个静态资产均为 200，且与发布产物逐字节一致；新步骤/旧趋势 API 与 Cardgame health 只读检查通过。容器内隔离临时日志验证新旧接收格式，未向生产 Track 写入虚构事件。完整范围和未验收项见[发布记录](../archive/2026-10/2026-10-27-analytics-release-plan.md)。
 
 - 2026-10-19，WebTrace 1.1.0 已在 Chrome 应用商店公开上架；官网与 Hub 的公开 revision `f4e7225` 经各自正常发布流程上线。三个 WebTrace 入口、Hub 首页与作品列表，以及 9 个静态资源均通过公网读取并与本地生产产物逐字节一致。首页商店安装按钮、支持页安装步骤与升级提示、Hub 已上架文案已发布；隐私政策内容与更新日期未改。详情及浏览器验证边界见[发布记录](../archive/2026-10/2026-10-19-webtrace-store-release.md)。
 - 2026-10-18，Hub 文档治理文章 100004（公开 revision `92bc2e8`）已发布。首页、文章列表和文章详情的公网 HTML，以及 5 个静态资源，均返回 HTTP 200 并与本地构建产物逐字节一致。详情见[发布记录](../archive/2026-10/2026-10-18-hub-document-governance-article-release.md)。

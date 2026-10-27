@@ -1,6 +1,6 @@
 # Backend
 
-本文只记录可由本仓库代码和测试核对的实现事实。Backend 是 Node.js 24、Express 5 和 `ws` 组成的单进程服务，提供 Cardgame HTTP/WebSocket 与 Track 只读查询，Track 新增聚合路径于 2026-10-27 在本地复核；生产部署另行验收。
+本文只记录可由本仓库代码和测试核对的实现事实。Backend 是 Node.js 24、Express 5 和 `ws` 组成的单进程服务，提供 Cardgame HTTP/WebSocket 与 Track 只读查询，Track 新增聚合路径于 2026-10-27 完成发布和只读验收。生产运行 Node.js v24.22.1；源码与公开 revision `05e178b` 的三个 Track 模块逐字节一致。
 
 ## 运行时
 
