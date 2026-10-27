@@ -36,3 +36,5 @@
 2026-10-27 追加检查 App main 的 `AppLogStore.append`、`cleanup` 和 `AppLogExportService`：正常日志写入后和准备诊断导出时都执行 14 天窗口及 `30 * 1024 * 1024` 字节总量清理。官网隐私页的 Local Diagnostic Logs 与 Data Retention and Deletion 两节仍沿用“仅导出清理、持续执行未证实”的旧描述；现将两节中英文共四处同步为实际触发点，大小用精确单位 30 MiB。此修正只改公开文字及契约断言，不改变 App、业务留存行为或基础设施配置。
 
 更新后的既有文案契约在旧文字上先失败，修正后 ShotMarker 定向 10 项通过。Node.js v24.19.0 下再次运行 `npm run check`：222 项测试、lint、TypeScript 与五站构建全部通过；本地 Markdown 链接、标题锚点、current 行数和 `git diff --check` 通过。
+
+文案修正提交 `441b658` 已在 main 推送并按现有脚本仅重新发布 ShotMarker 前端。四个公开入口和 8 个静态资源再次全部 HTTP 200，并与此次产物逐字节一致；新 JS `index-BMZg-buS.js` 含四处更新说明且不再含旧句。Backend、Nginx 与 Analytics 未再次发布。上述 Chrome 验收发生在这次日志文字修正之前，本次文字修正以定向内容测试、构建和公开资产字节核对验收。

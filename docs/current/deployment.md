@@ -53,6 +53,7 @@ Track 的容器内读取路径见 [Backend](./backend.md)，文件模型和查�
 ## 外部状态（带日期事实）
 
 - 2026-10-27，公开 revision `05e178b` 已合并并推送 main，Backend、Analytics、ShotMarker 前端已发布，Nginx 扩展日志格式配置检查与平滑重载通过。5 个页面和 11 个静态资产均为 200，且与发布产物逐字节一致；新步骤/旧趋势 API 与 Cardgame health 只读检查通过。容器内隔离临时日志验证新旧接收格式，未向生产 Track 写入虚构事件。完整范围和未验收项见[发布记录](../archive/2026-10/2026-10-27-analytics-release-plan.md)。
+- 同日从 `441b658` 仅重新发布 ShotMarker 前端，将隐私页两节中英文共四处日志清理说明同步为 App 已实现的正常写入后/导出前清理。四入口及 8 个资源 HTTP 200 且与最终产物逐字节一致；本次追加发布不改 Backend、Nginx、Analytics 或业务留存规则。Chrome 的来源/版本筛选、三流程、未知来源历史趋势、失败空表与隐私新增字段验收见[同日发布记录](../archive/2026-10/2026-10-27-analytics-release-plan.md)。
 
 - 2026-10-19，WebTrace 1.1.0 已在 Chrome 应用商店公开上架；官网与 Hub 的公开 revision `f4e7225` 经各自正常发布流程上线。三个 WebTrace 入口、Hub 首页与作品列表，以及 9 个静态资源均通过公网读取并与本地生产产物逐字节一致。首页商店安装按钮、支持页安装步骤与升级提示、Hub 已上架文案已发布；隐私政策内容与更新日期未改。详情及浏览器验证边界见[发布记录](../archive/2026-10/2026-10-19-webtrace-store-release.md)。
 - 2026-10-18，Hub 文档治理文章 100004（公开 revision `92bc2e8`）已发布。首页、文章列表和文章详情的公网 HTML，以及 5 个静态资源，均返回 HTTP 200 并与本地构建产物逐字节一致。详情见[发布记录](../archive/2026-10/2026-10-18-hub-document-governance-article-release.md)。
